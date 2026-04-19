@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,17 +11,17 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Routing\Tests\Generator;
+namespace WPPack\Component\Routing\Tests\Generator;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Routing\Attribute\Route;
-use WpPack\Component\Routing\Exception\MissingParametersException;
-use WpPack\Component\Routing\Exception\RouteNotFoundException;
-use WpPack\Component\Routing\Generator\UrlGenerator;
-use WpPack\Component\Routing\Response\TemplateResponse;
-use WpPack\Component\Routing\RouteRegistry;
+use WPPack\Component\Routing\Attribute\Route;
+use WPPack\Component\Routing\Exception\MissingParametersException;
+use WPPack\Component\Routing\Exception\RouteNotFoundException;
+use WPPack\Component\Routing\Generator\UrlGenerator;
+use WPPack\Component\Routing\Response\TemplateResponse;
+use WPPack\Component\Routing\RouteRegistry;
 
 #[CoversClass(UrlGenerator::class)]
 #[CoversClass(RouteNotFoundException::class)]

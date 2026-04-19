@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database\Bridge\Pgsql\Tests;
+namespace WPPack\Component\Database\Bridge\Pgsql\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Database\Bridge\Pgsql\PgsqlDriver;
-use WpPack\Component\Dsn\Dsn;
+use WPPack\Component\Database\Bridge\Pgsql\PgsqlDriver;
+use WPPack\Component\Dsn\Dsn;
 
 /**
  * Verifies that the search_path constructor option actually emits
@@ -24,7 +24,7 @@ use WpPack\Component\Dsn\Dsn;
  * live PostgreSQL test server via DATABASE_DSN=pgsql:...
  *
  * Doctrine DBAL deliberately doesn't expose this knob (connections are
- * expected to inherit the role / database default). WpPack does, so WP
+ * expected to inherit the role / database default). WPPack does, so WP
  * multisite / multi-tenant installations can isolate schemas per blog
  * without ALTER ROLE gymnastics. This test pins that behaviour.
  */
@@ -85,7 +85,7 @@ final class PgsqlSearchPathTest extends TestCase
         $parsed = Dsn::fromString($this->dsnString);
         $driver = $this->makeDriver($parsed, ["tenant\0injected"]);
 
-        $this->expectException(\WpPack\Component\Database\Exception\ConnectionException::class);
+        $this->expectException(\WPPack\Component\Database\Exception\ConnectionException::class);
         $driver->connect();
     }
 
@@ -95,7 +95,7 @@ final class PgsqlSearchPathTest extends TestCase
         $parsed = Dsn::fromString($this->dsnString);
         $driver = $this->makeDriver($parsed, ["tenant\nDROP"]);
 
-        $this->expectException(\WpPack\Component\Database\Exception\ConnectionException::class);
+        $this->expectException(\WPPack\Component\Database\Exception\ConnectionException::class);
         $driver->connect();
     }
 

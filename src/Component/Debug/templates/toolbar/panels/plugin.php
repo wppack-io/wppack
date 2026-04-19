@@ -8,7 +8,7 @@
  * @var array                                                        $plugins       Plugin data keyed by slug
  * @var list<string>                                                 $dropins       Drop-in file names
  * @var array                                                        $assetData     Script/style asset data
- * @var \WpPack\Component\Debug\Toolbar\Panel\TemplateFormatters     $fmt           Template formatters
+ * @var \WPPack\Component\Debug\Toolbar\Panel\TemplateFormatters     $fmt           Template formatters
  */
 $muPluginsList = array_filter($plugins, static fn(array $info): bool => (bool) ($info['is_mu'] ?? false));
 $regularPluginsList = array_filter($plugins, static fn(array $info): bool => !((bool) ($info['is_mu'] ?? false)));

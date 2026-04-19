@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Mailer\Transport;
+namespace WPPack\Component\Mailer\Transport;
 
-use WpPack\Component\Mailer\Bridge\Amazon\Transport\SesTransportFactory;
-use WpPack\Component\Mailer\Bridge\Azure\Transport\AzureTransportFactory;
-use WpPack\Component\Mailer\Bridge\SendGrid\Transport\SendGridTransportFactory;
-use WpPack\Component\Mailer\Exception\UnsupportedSchemeException;
+use WPPack\Component\Mailer\Bridge\Amazon\Transport\SesTransportFactory;
+use WPPack\Component\Mailer\Bridge\Azure\Transport\AzureTransportFactory;
+use WPPack\Component\Mailer\Bridge\SendGrid\Transport\SendGridTransportFactory;
+use WPPack\Component\Mailer\Exception\UnsupportedSchemeException;
 
 final class Transport
 {

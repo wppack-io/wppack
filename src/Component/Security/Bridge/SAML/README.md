@@ -2,7 +2,7 @@
 
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=saml_security)](https://codecov.io/github/wppack-io/wppack)
 
-SAML 2.0 Service Provider (SP) authentication bridge for WpPack Security. Wraps `onelogin/php-saml` to integrate external IdP (Okta, Azure AD, Google Workspace, etc.) SSO authentication with the WpPack Security component.
+SAML 2.0 Service Provider (SP) authentication bridge for WPPack Security. Wraps `onelogin/php-saml` to integrate external IdP (Okta, Azure AD, Google Workspace, etc.) SSO authentication with the WPPack Security component.
 
 ## Installation
 
@@ -13,9 +13,9 @@ composer require wppack/saml-security
 ## Configuration
 
 ```php
-use WpPack\Component\Security\Bridge\SAML\Configuration\IdpSettings;
-use WpPack\Component\Security\Bridge\SAML\Configuration\SpSettings;
-use WpPack\Component\Security\Bridge\SAML\Configuration\SamlConfiguration;
+use WPPack\Component\Security\Bridge\SAML\Configuration\IdpSettings;
+use WPPack\Component\Security\Bridge\SAML\Configuration\SpSettings;
+use WPPack\Component\Security\Bridge\SAML\Configuration\SamlConfiguration;
 
 $idpSettings = new IdpSettings(
     entityId: 'https://idp.example.com/metadata',
@@ -38,8 +38,8 @@ $configuration = new SamlConfiguration($idpSettings, $spSettings);
 ### SP-Initiated SSO
 
 ```php
-use WpPack\Component\Security\Bridge\SAML\SamlEntryPoint;
-use WpPack\Component\Security\Bridge\SAML\Factory\SamlAuthFactory;
+use WPPack\Component\Security\Bridge\SAML\SamlEntryPoint;
+use WPPack\Component\Security\Bridge\SAML\Factory\SamlAuthFactory;
 
 $factory = new SamlAuthFactory($configuration);
 $entryPoint = new SamlEntryPoint($factory);
@@ -54,7 +54,7 @@ $loginUrl = $entryPoint->getLoginUrl();
 ### Assertion Consumer Service (ACS)
 
 ```php
-use WpPack\Component\Security\Bridge\SAML\SamlAuthenticator;
+use WPPack\Component\Security\Bridge\SAML\SamlAuthenticator;
 
 $authenticator = new SamlAuthenticator(
     authFactory: $factory,
@@ -67,8 +67,8 @@ $authenticator = new SamlAuthenticator(
 ### SP Metadata
 
 ```php
-use WpPack\Component\Security\Bridge\SAML\Configuration\SpMetadataExporter;
-use WpPack\Component\Security\Bridge\SAML\SamlMetadataController;
+use WPPack\Component\Security\Bridge\SAML\Configuration\SpMetadataExporter;
+use WPPack\Component\Security\Bridge\SAML\SamlMetadataController;
 
 $exporter = new SpMetadataExporter($configuration);
 
@@ -86,7 +86,7 @@ $exporter->exportToFile('/path/to/sp-metadata.xml');
 ### IdP Metadata Import
 
 ```php
-use WpPack\Component\Security\Bridge\SAML\Configuration\IdpMetadataParser;
+use WPPack\Component\Security\Bridge\SAML\Configuration\IdpMetadataParser;
 
 $parser = new IdpMetadataParser();
 
@@ -103,7 +103,7 @@ $idpSettings = $parser->parseRemoteUrl('https://idp.example.com/metadata');
 ### Single Logout
 
 ```php
-use WpPack\Component\Security\Bridge\SAML\SamlLogoutHandler;
+use WPPack\Component\Security\Bridge\SAML\SamlLogoutHandler;
 
 $logoutHandler = new SamlLogoutHandler($factory, redirectAfterLogout: home_url());
 $logoutHandler->initiateLogout($nameId, $sessionIndex);
@@ -112,7 +112,7 @@ $logoutHandler->initiateLogout($nameId, $sessionIndex);
 ## User Resolution (JIT Provisioning)
 
 ```php
-use WpPack\Component\Security\Bridge\SAML\UserResolution\SamlUserResolver;
+use WPPack\Component\Security\Bridge\SAML\UserResolution\SamlUserResolver;
 
 $userResolver = new SamlUserResolver(
     autoProvision: true,
@@ -133,7 +133,7 @@ $userResolver = new SamlUserResolver(
 ### Cross-Site SSO
 
 ```php
-use WpPack\Component\Security\Bridge\SAML\Multisite\CrossSiteRedirector;
+use WPPack\Component\Security\Bridge\SAML\Multisite\CrossSiteRedirector;
 
 $redirector = new CrossSiteRedirector(
     allowedHosts: ['site-a.example.com', 'site-b.example.com'],

@@ -5,7 +5,7 @@
 ## 概要
 
 - AWS CloudWatch / Cloudflare Analytics のメトリクスをリアルタイムで表示するダッシュボード
-- WpPack プラグインの設定から AWS サービスを自動検出（Auto-Discovery）
+- WPPack プラグインの設定から AWS サービスを自動検出（Auto-Discovery）
 - DataViews / DataForm ベースの設定 UI
 - テンプレートシステムによるプロバイダの簡単追加
 - プロバイダごとのメトリクスカード（スパークライングラフ付き）
@@ -77,7 +77,7 @@ src/Plugin/MonitoringPlugin/
 
 ## Auto-Discovery
 
-既存の WpPack プラグイン設定から AWS サービスを自動検出します。検出されたプロバイダは「プラグイン」ソースとして locked 状態で登録され、編集・削除できません。
+既存の WPPack プラグイン設定から AWS サービスを自動検出します。検出されたプロバイダは「プラグイン」ソースとして locked 状態で登録され、編集・削除できません。
 
 | Discovery | 検出元 | 検出ロジック |
 |-----------|--------|-------------|
@@ -133,7 +133,7 @@ src/Plugin/MonitoringPlugin/
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "WpPackMonitoring",
+      "Sid": "WPPackMonitoring",
       "Effect": "Allow",
       "Action": "cloudwatch:GetMetricData",
       "Resource": "*"

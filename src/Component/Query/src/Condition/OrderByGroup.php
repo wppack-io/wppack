@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Query\Condition;
+namespace WPPack\Component\Query\Condition;
 
-use WpPack\Component\Query\Enum\Order;
-use WpPack\Component\Query\Wql\OrderByParser;
-use WpPack\Component\Query\Wql\ParsedOrderBy;
+use WPPack\Component\Query\Enum\Order;
+use WPPack\Component\Query\Wql\OrderByParser;
+use WPPack\Component\Query\Wql\ParsedOrderBy;
 
 final class OrderByGroup
 {

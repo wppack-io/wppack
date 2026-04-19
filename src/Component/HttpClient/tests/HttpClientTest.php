@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\HttpClient\Tests;
+namespace WPPack\Component\HttpClient\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\HttpClient\Exception\ConnectionException;
-use WpPack\Component\HttpClient\HttpClient;
-use WpPack\Component\HttpClient\Request;
-use WpPack\Component\HttpClient\Response;
+use WPPack\Component\HttpClient\Exception\ConnectionException;
+use WPPack\Component\HttpClient\HttpClient;
+use WPPack\Component\HttpClient\Request;
+use WPPack\Component\HttpClient\Response;
 
 final class HttpClientTest extends TestCase
 {

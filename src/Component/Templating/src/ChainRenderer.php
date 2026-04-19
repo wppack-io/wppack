@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Templating;
+namespace WPPack\Component\Templating;
 
-use WpPack\Component\Templating\Exception\TemplateNotFoundException;
+use WPPack\Component\Templating\Exception\TemplateNotFoundException;
 
 /**
  * Delegates rendering to the first renderer that supports the template.

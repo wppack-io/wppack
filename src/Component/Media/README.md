@@ -1,4 +1,4 @@
-# WpPack Media
+# WPPack Media
 
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=media)](https://codecov.io/github/wppack-io/wppack)
 
@@ -15,8 +15,8 @@ composer require wppack/media
 ### Upload
 
 ```php
-use WpPack\Component\Media\MediaManager;
-use WpPack\Component\Media\Upload\UploadedFile;
+use WPPack\Component\Media\MediaManager;
+use WPPack\Component\Media\Upload\UploadedFile;
 
 $mediaManager = new MediaManager();
 
@@ -37,7 +37,7 @@ $html = $attachment->toHtml('large', ['class' => 'featured-image']);
 ### Image Sizes
 
 ```php
-use WpPack\Component\Media\ImageSize;
+use WPPack\Component\Media\ImageSize;
 
 $mediaManager->addImageSize(new ImageSize(
     name: 'card-thumbnail',
@@ -54,9 +54,9 @@ For S3 media storage, install `wppack/s3-storage-plugin`. The Media API remains 
 ### AttachmentManager
 
 ```php
-use WpPack\Component\Media\AttachmentManager;
-use WpPack\Component\Media\Exception\AttachmentException;
-use WpPack\Component\PostType\PostRepository;
+use WPPack\Component\Media\AttachmentManager;
+use WPPack\Component\Media\Exception\AttachmentException;
+use WPPack\Component\PostType\PostRepository;
 
 $attachment = new AttachmentManager(new PostRepository());
 

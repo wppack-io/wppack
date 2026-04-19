@@ -1,4 +1,4 @@
-# WpPack Mailer
+# WPPack Mailer
 
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=mailer)](https://codecov.io/github/wppack-io/wppack)
 
@@ -13,8 +13,8 @@ composer require wppack/mailer
 ## Usage
 
 ```php
-use WpPack\Component\Mailer\Mailer;
-use WpPack\Component\Mailer\Email;
+use WPPack\Component\Mailer\Mailer;
+use WPPack\Component\Mailer\Email;
 
 // DSN string — transport is resolved automatically
 $mailer = new Mailer('smtp://user:pass@smtp.example.com:587?encryption=tls');
@@ -35,8 +35,8 @@ All transports implement `TransportInterface`, which provides the transport name
 sends email through the `PhpMailer` instance:
 
 ```php
-use WpPack\Component\Mailer\Transport\TransportInterface;
-use WpPack\Component\Mailer\PhpMailer;
+use WPPack\Component\Mailer\Transport\TransportInterface;
+use WPPack\Component\Mailer\PhpMailer;
 
 interface TransportInterface
 {

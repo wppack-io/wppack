@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\S3StoragePlugin\Subscriber;
+namespace WPPack\Plugin\S3StoragePlugin\Subscriber;
 
-use WpPack\Component\Asset\AssetManager;
-use WpPack\Component\EventDispatcher\Attribute\AsEventListener;
-use WpPack\Component\Nonce\NonceManager;
-use WpPack\Component\Rest\RestUrlGenerator;
-use WpPack\Plugin\S3StoragePlugin\PreSignedUrl\UploadPolicy;
+use WPPack\Component\Asset\AssetManager;
+use WPPack\Component\EventDispatcher\Attribute\AsEventListener;
+use WPPack\Component\Nonce\NonceManager;
+use WPPack\Component\Rest\RestUrlGenerator;
+use WPPack\Plugin\S3StoragePlugin\PreSignedUrl\UploadPolicy;
 
 final readonly class AdminAssetSubscriber
 {

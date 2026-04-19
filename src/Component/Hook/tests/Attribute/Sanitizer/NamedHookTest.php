@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,24 +11,24 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Hook\Tests\Attribute\Sanitizer;
+namespace WPPack\Component\Hook\Tests\Attribute\Sanitizer;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Hook\Attribute\Filter;
-use WpPack\Component\Hook\Hook;
-use WpPack\Component\Hook\HookType;
-use WpPack\Component\Hook\Attribute\Sanitizer\Filter\PreInsertTermFilter;
-use WpPack\Component\Hook\Attribute\Sanitizer\Filter\PreUserLoginFilter;
-use WpPack\Component\Hook\Attribute\Sanitizer\Filter\SanitizeCommentMetaFilter;
-use WpPack\Component\Hook\Attribute\Sanitizer\Filter\SanitizeEmailFilter;
-use WpPack\Component\Hook\Attribute\Sanitizer\Filter\SanitizeFileNameFilter;
-use WpPack\Component\Hook\Attribute\Sanitizer\Filter\SanitizeKeyFilter;
-use WpPack\Component\Hook\Attribute\Sanitizer\Filter\SanitizePostMetaFilter;
-use WpPack\Component\Hook\Attribute\Sanitizer\Filter\SanitizeTermMetaFilter;
-use WpPack\Component\Hook\Attribute\Sanitizer\Filter\SanitizeTextFieldFilter;
-use WpPack\Component\Hook\Attribute\Sanitizer\Filter\SanitizeTitleFilter;
-use WpPack\Component\Hook\Attribute\Sanitizer\Filter\SanitizeUserMetaFilter;
+use WPPack\Component\Hook\Attribute\Filter;
+use WPPack\Component\Hook\Hook;
+use WPPack\Component\Hook\HookType;
+use WPPack\Component\Hook\Attribute\Sanitizer\Filter\PreInsertTermFilter;
+use WPPack\Component\Hook\Attribute\Sanitizer\Filter\PreUserLoginFilter;
+use WPPack\Component\Hook\Attribute\Sanitizer\Filter\SanitizeCommentMetaFilter;
+use WPPack\Component\Hook\Attribute\Sanitizer\Filter\SanitizeEmailFilter;
+use WPPack\Component\Hook\Attribute\Sanitizer\Filter\SanitizeFileNameFilter;
+use WPPack\Component\Hook\Attribute\Sanitizer\Filter\SanitizeKeyFilter;
+use WPPack\Component\Hook\Attribute\Sanitizer\Filter\SanitizePostMetaFilter;
+use WPPack\Component\Hook\Attribute\Sanitizer\Filter\SanitizeTermMetaFilter;
+use WPPack\Component\Hook\Attribute\Sanitizer\Filter\SanitizeTextFieldFilter;
+use WPPack\Component\Hook\Attribute\Sanitizer\Filter\SanitizeTitleFilter;
+use WPPack\Component\Hook\Attribute\Sanitizer\Filter\SanitizeUserMetaFilter;
 
 final class NamedHookTest extends TestCase
 {

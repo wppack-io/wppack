@@ -1,10 +1,10 @@
-# WpPack ドキュメント
+# WPPack ドキュメント
 
 WordPress をモダンに扱うためのコンポーネントライブラリ。Symfony にインスパイアされた設計で、WordPress のエコシステムに最適化されたパッケージ群を提供します。
 
 ## プロジェクト概要
 
-WpPack は、WordPress のグローバル関数・手続き型 API を、型安全な OOP インターフェースでラップするコンポーネントライブラリです。Symfony のパターンを WordPress に持ち込み、`declare(strict_types=1)` の世界で WordPress 開発を行えるようにします。
+WPPack は、WordPress のグローバル関数・手続き型 API を、型安全な OOP インターフェースでラップするコンポーネントライブラリです。Symfony のパターンを WordPress に持ち込み、`declare(strict_types=1)` の世界で WordPress 開発を行えるようにします。
 
 ### Before / After
 
@@ -25,7 +25,7 @@ function my_clear_cache(int $postId, \WP_Post $post): void {
 }
 ```
 
-**WpPack — Attribute で宣言的に定義**
+**WPPack — Attribute で宣言的に定義**
 
 ```php
 #[AsHookSubscriber]
@@ -53,7 +53,7 @@ $settings = get_option('my_plugin_settings');
 $endpoint = $settings['api']['endpoint'] ?? 'https://default.example.com';
 ```
 
-**WpPack — `#[Option]` でコンストラクタに注入**
+**WPPack — `#[Option]` でコンストラクタに注入**
 
 ```php
 final readonly class ApiConfig
@@ -82,7 +82,7 @@ function my_send_notification(int $postId): void {
 add_action('save_post', 'my_send_notification');
 ```
 
-**WpPack — DI コンテナによるコンストラクタインジェクション**
+**WPPack — DI コンテナによるコンストラクタインジェクション**
 
 ```php
 #[AsHookSubscriber]

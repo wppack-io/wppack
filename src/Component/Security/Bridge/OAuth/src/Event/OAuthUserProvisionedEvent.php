@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Security\Bridge\OAuth\Event;
+namespace WPPack\Component\Security\Bridge\OAuth\Event;
 
-use WpPack\Component\EventDispatcher\Event;
+use WPPack\Component\EventDispatcher\Event;
 
 final class OAuthUserProvisionedEvent extends Event
 {

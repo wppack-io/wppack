@@ -1,6 +1,6 @@
 {
     "name": "wppack/memcached-cache",
-    "description": "Memcached cache adapter for WpPack Cache",
+    "description": "Memcached cache adapter for WPPack Cache",
     "type": "library",
     "license": "MIT",
     "require": {
@@ -10,12 +10,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\Cache\\Bridge\\Memcached\\": "src/"
+            "WPPack\\Component\\Cache\\Bridge\\Memcached\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Component\\Cache\\Bridge\\Memcached\\Tests\\": "tests/"
+            "WPPack\\Component\\Cache\\Bridge\\Memcached\\Tests\\": "tests/"
         }
     }
 }

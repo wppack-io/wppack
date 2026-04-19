@@ -1,7 +1,7 @@
 # Media コンポーネント
 
 **パッケージ:** `wppack/media`
-**名前空間:** `WpPack\Component\Media\`
+**名前空間:** `WPPack\Component\Media\`
 **レイヤー:** Application
 
 WordPress メディア関連フックを Named Hook アトリビュートで型安全に利用するためのコンポーネントです。
@@ -38,12 +38,12 @@ function enhance_image_attrs(array $attr, WP_Post $attachment, $size): array {
 }
 ```
 
-### After（WpPack）
+### After（WPPack）
 
 ```php
-use WpPack\Component\Media\Attribute\WpHandleUploadFilter;
-use WpPack\Component\Media\Attribute\WpHandleUploadPrefilterFilter;
-use WpPack\Component\Media\Attribute\WpGetAttachmentImageAttributesFilter;
+use WPPack\Component\Media\Attribute\WpHandleUploadFilter;
+use WPPack\Component\Media\Attribute\WpHandleUploadPrefilterFilter;
+use WPPack\Component\Media\Attribute\WpGetAttachmentImageAttributesFilter;
 
 class MediaHandler
 {
@@ -79,10 +79,10 @@ class MediaHandler
 WordPress の attachment 操作関数（`wp_insert_attachment()`、`wp_delete_attachment()`、`wp_prepare_attachment_for_js()` 等）をラップするクラス。`AttachmentManagerInterface` を実装しており、DI コンテナではインターフェースを型宣言に使用します。
 
 ```php
-use WpPack\Component\Media\AttachmentManager;
-use WpPack\Component\Media\AttachmentManagerInterface;
-use WpPack\Component\Media\Exception\AttachmentException;
-use WpPack\Component\PostType\PostRepository;
+use WPPack\Component\Media\AttachmentManager;
+use WPPack\Component\Media\AttachmentManagerInterface;
+use WPPack\Component\Media\Exception\AttachmentException;
+use WPPack\Component\PostType\PostRepository;
 
 $attachment = new AttachmentManager(new PostRepository());
 

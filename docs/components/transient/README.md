@@ -1,7 +1,7 @@
 # Transient コンポーネント
 
 **パッケージ:** `wppack/transient`
-**名前空間:** `WpPack\Component\Transient\`
+**名前空間:** `WPPack\Component\Transient\`
 **レイヤー:** Infrastructure
 
 WordPress Transient API（`get_transient()` / `set_transient()`）の型安全なラッパーです。シングルサイト用の `TransientManager` とマルチサイト用の `SiteTransientManager` を提供します。
@@ -40,11 +40,11 @@ if ($data === false) {
 }
 ```
 
-### After（WpPack）
+### After（WPPack）
 
 ```php
-use WpPack\Component\Transient\TransientManager;
-use WpPack\Component\HttpClient\HttpClient;
+use WPPack\Component\Transient\TransientManager;
+use WPPack\Component\HttpClient\HttpClient;
 
 final class ApiClient
 {
@@ -86,7 +86,7 @@ final class ApiClient
 ### 基本操作
 
 ```php
-use WpPack\Component\Transient\TransientManager;
+use WPPack\Component\Transient\TransientManager;
 
 $transient = new TransientManager();
 
@@ -115,7 +115,7 @@ $transient->delete('api_response');
 ### 基本操作
 
 ```php
-use WpPack\Component\Transient\SiteTransientManager;
+use WPPack\Component\Transient\SiteTransientManager;
 
 $siteTransient = new SiteTransientManager();
 

@@ -2,7 +2,7 @@
   "name": "@wppack/amazon-mailer-plugin",
   "version": "1.0.0",
   "private": true,
-  "author": "WpPack",
+  "author": "WPPack",
   "scripts": {
     "build": "wp-scripts build",
     "start": "wp-scripts start",

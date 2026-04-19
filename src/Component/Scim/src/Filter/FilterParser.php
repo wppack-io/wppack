@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Scim\Filter;
+namespace WPPack\Component\Scim\Filter;
 
-use WpPack\Component\Scim\Exception\InvalidFilterException;
+use WPPack\Component\Scim\Exception\InvalidFilterException;
 
 final class FilterParser
 {

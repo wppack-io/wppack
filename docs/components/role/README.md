@@ -1,7 +1,7 @@
 # Role Component
 
 **パッケージ:** `wppack/role`
-**名前空間:** `WpPack\Component\Role\`
+**名前空間:** `WPPack\Component\Role\`
 **レイヤー:** Infrastructure
 
 WordPress のロール・権限管理関数（`add_role()` / `add_cap()` / `current_user_can()`）をアトリビュートベースでラップし、型安全なロール定義と権限チェックを提供するコンポーネントです。
@@ -33,12 +33,12 @@ if (current_user_can('manage_products')) {
 }
 ```
 
-### After（WpPack）
+### After（WPPack）
 
 ```php
-use WpPack\Component\Role\Attribute\AsRole;
-use WpPack\Component\Role\Attribute\IsGranted;
-use WpPack\Component\Role\RoleManager;
+use WPPack\Component\Role\Attribute\AsRole;
+use WPPack\Component\Role\Attribute\IsGranted;
+use WPPack\Component\Role\RoleManager;
 
 // ロール定義
 #[AsRole(
@@ -66,7 +66,7 @@ final class ProductController
 ### `#[AsRole]` アトリビュート
 
 ```php
-use WpPack\Component\Role\Attribute\AsRole;
+use WPPack\Component\Role\Attribute\AsRole;
 
 #[AsRole(
     name: 'shop_manager',
@@ -86,7 +86,7 @@ final class ShopManagerRole {}
 プログラム的にロール定義を作成する場合:
 
 ```php
-use WpPack\Component\Role\RoleDefinition;
+use WPPack\Component\Role\RoleDefinition;
 
 $definition = new RoleDefinition(
     name: 'shop_manager',
@@ -100,7 +100,7 @@ $definition = new RoleDefinition(
 `RoleManager` はロール定義を管理し、WordPress のロールシステムと同期します。
 
 ```php
-use WpPack\Component\Role\RoleManager;
+use WPPack\Component\Role\RoleManager;
 
 $manager = new RoleManager();
 
@@ -138,7 +138,7 @@ $manager->unregister('shop_manager');
 クラスまたはメソッドに付与して、宣言的に権限チェックを行います。複数指定で AND（すべて通過が必要）。
 
 ```php
-use WpPack\Component\Role\Attribute\IsGranted;
+use WPPack\Component\Role\Attribute\IsGranted;
 
 #[IsGranted('edit_posts')]
 final class PostController
@@ -162,7 +162,7 @@ final class PostController
 `#[IsGranted]` アトリビュートの解決とチェックを行うサービスです。
 
 ```php
-use WpPack\Component\Role\Authorization\IsGrantedChecker;
+use WPPack\Component\Role\Authorization\IsGrantedChecker;
 
 // アトリビュートの解決
 $grants = IsGrantedChecker::resolve($reflectionClass, $reflectionMethod);
@@ -178,7 +178,7 @@ $capability = IsGrantedChecker::extractCapability($reflectionClass);
 Security コンポーネントと併用する場合、`AuthorizationCheckerInterface` を注入して Voter ベースの認可チェックを利用できます:
 
 ```php
-use WpPack\Component\Role\Authorization\AuthorizationCheckerInterface;
+use WPPack\Component\Role\Authorization\AuthorizationCheckerInterface;
 
 $checker = new IsGrantedChecker($authorizationChecker);
 ```

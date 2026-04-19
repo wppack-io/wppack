@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,15 +11,15 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\S3StoragePlugin\Subscriber;
+namespace WPPack\Plugin\S3StoragePlugin\Subscriber;
 
 use Psr\Log\LoggerInterface;
-use WpPack\Component\EventDispatcher\Attribute\AsEventListener;
-use WpPack\Component\EventDispatcher\WordPressEvent;
-use WpPack\Component\Media\Storage\PrivateAttachmentChecker;
-use WpPack\Component\Media\Storage\StorageConfiguration;
-use WpPack\Component\Storage\Adapter\StorageAdapterInterface;
-use WpPack\Component\Storage\Visibility;
+use WPPack\Component\EventDispatcher\Attribute\AsEventListener;
+use WPPack\Component\EventDispatcher\WordPressEvent;
+use WPPack\Component\Media\Storage\PrivateAttachmentChecker;
+use WPPack\Component\Media\Storage\StorageConfiguration;
+use WPPack\Component\Storage\Adapter\StorageAdapterInterface;
+use WPPack\Component\Storage\Visibility;
 
 /**
  * Sets ACL on S3 objects for private attachments after metadata generation.

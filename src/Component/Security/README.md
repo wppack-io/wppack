@@ -1,4 +1,4 @@
-# WpPack Security
+# WPPack Security
 
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=security)](https://codecov.io/github/wppack-io/wppack)
 
@@ -17,10 +17,10 @@ composer require wppack/security
 Authenticate requests using the Authenticator pattern:
 
 ```php
-use WpPack\Component\Security\Authentication\AuthenticatorInterface;
-use WpPack\Component\Security\Authentication\Passport\Passport;
-use WpPack\Component\Security\Authentication\Passport\Badge\UserBadge;
-use WpPack\Component\Security\Authentication\Passport\Badge\CredentialsBadge;
+use WPPack\Component\Security\Authentication\AuthenticatorInterface;
+use WPPack\Component\Security\Authentication\Passport\Passport;
+use WPPack\Component\Security\Authentication\Passport\Badge\UserBadge;
+use WPPack\Component\Security\Authentication\Passport\Badge\CredentialsBadge;
 
 final class MyAuthenticator implements AuthenticatorInterface
 {
@@ -46,7 +46,7 @@ final class MyAuthenticator implements AuthenticatorInterface
 Check permissions using the Voter pattern:
 
 ```php
-use WpPack\Component\Security\Security;
+use WPPack\Component\Security\Security;
 
 $security->denyAccessUnlessGranted('edit_posts');
 
@@ -58,8 +58,8 @@ if ($security->isGranted('ROLE_ADMINISTRATOR')) {
 ### Named Hook Attributes
 
 ```php
-use WpPack\Component\Hook\Attribute\Security\Action\WpLoginAction;
-use WpPack\Component\Hook\Attribute\Security\Filter\AuthenticateFilter;
+use WPPack\Component\Hook\Attribute\Security\Action\WpLoginAction;
+use WPPack\Component\Hook\Attribute\Security\Filter\AuthenticateFilter;
 
 class SecuritySubscriber
 {
@@ -97,9 +97,9 @@ $blogId = $security->getToken()->getBlogId();
 `CurrentUserValueResolver` resolves `#[CurrentUser]` attributed parameters to the current `\WP_User`. Used with `ArgumentResolver` from the HttpFoundation component.
 
 ```php
-use WpPack\Component\HttpFoundation\ArgumentResolver;
-use WpPack\Component\HttpFoundation\RequestValueResolver;
-use WpPack\Component\Security\ValueResolver\CurrentUserValueResolver;
+use WPPack\Component\HttpFoundation\ArgumentResolver;
+use WPPack\Component\HttpFoundation\RequestValueResolver;
+use WPPack\Component\Security\ValueResolver\CurrentUserValueResolver;
 
 $argumentResolver = new ArgumentResolver([
     new RequestValueResolver($request),
@@ -110,7 +110,7 @@ $argumentResolver = new ArgumentResolver([
 This enables parameter injection in Admin, DashboardWidget, Setting, and Widget components:
 
 ```php
-use WpPack\Component\Security\Attribute\CurrentUser;
+use WPPack\Component\Security\Attribute\CurrentUser;
 
 public function __invoke(#[CurrentUser] \WP_User $user): string
 {

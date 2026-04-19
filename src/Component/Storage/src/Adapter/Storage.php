@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Storage\Adapter;
+namespace WPPack\Component\Storage\Adapter;
 
-use WpPack\Component\Storage\Bridge\Azure\AzureStorageAdapterFactory;
-use WpPack\Component\Storage\Bridge\Gcs\GcsStorageAdapterFactory;
-use WpPack\Component\Storage\Bridge\S3\S3StorageAdapterFactory;
-use WpPack\Component\Storage\Exception\UnsupportedSchemeException;
+use WPPack\Component\Storage\Bridge\Azure\AzureStorageAdapterFactory;
+use WPPack\Component\Storage\Bridge\Gcs\GcsStorageAdapterFactory;
+use WPPack\Component\Storage\Bridge\S3\S3StorageAdapterFactory;
+use WPPack\Component\Storage\Exception\UnsupportedSchemeException;
 
 final class Storage
 {

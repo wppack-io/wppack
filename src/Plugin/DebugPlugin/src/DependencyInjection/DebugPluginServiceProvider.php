@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,15 +11,15 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\DebugPlugin\DependencyInjection;
+namespace WPPack\Plugin\DebugPlugin\DependencyInjection;
 
-use WpPack\Component\Debug\DebugConfig;
-use WpPack\Component\Debug\DependencyInjection\DebugServiceProvider;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\DependencyInjection\Reference;
-use WpPack\Component\DependencyInjection\ServiceProviderInterface;
-use WpPack\Component\Logger\DependencyInjection\LoggerServiceProvider;
-use WpPack\Component\Logger\LoggerFactory;
+use WPPack\Component\Debug\DebugConfig;
+use WPPack\Component\Debug\DependencyInjection\DebugServiceProvider;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\DependencyInjection\Reference;
+use WPPack\Component\DependencyInjection\ServiceProviderInterface;
+use WPPack\Component\Logger\DependencyInjection\LoggerServiceProvider;
+use WPPack\Component\Logger\LoggerFactory;
 
 final class DebugPluginServiceProvider implements ServiceProviderInterface
 {

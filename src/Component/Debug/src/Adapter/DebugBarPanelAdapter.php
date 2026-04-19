@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,10 +11,10 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Debug\Adapter;
+namespace WPPack\Component\Debug\Adapter;
 
-use WpPack\Component\Debug\Attribute\AsDataCollector;
-use WpPack\Component\Debug\DataCollector\AbstractDataCollector;
+use WPPack\Component\Debug\Attribute\AsDataCollector;
+use WPPack\Component\Debug\DataCollector\AbstractDataCollector;
 
 #[AsDataCollector(name: 'debug_bar_panel', priority: -100)]
 final class DebugBarPanelAdapter extends AbstractDataCollector

@@ -1,7 +1,7 @@
 # DatabaseExport コンポーネント
 
 **パッケージ:** `wppack/database-export`
-**名前空間:** `WpPack\Component\DatabaseExport\`
+**名前空間:** `WPPack\Component\DatabaseExport\`
 **レイヤー:** Feature
 
 WordPress データベースを複数のフォーマット（wpress 互換 SQL、JSON、CSV）でエクスポートするコンポーネントです。MySQL、MariaDB、SQLite、PostgreSQL の各ソース DB に対応しています。
@@ -15,14 +15,14 @@ composer require wppack/database-export
 ## 基本的な使い方
 
 ```php
-use WpPack\Component\Database\DatabaseManager;
-use WpPack\Component\Database\SchemaReader\MysqlSchemaReader;
-use WpPack\Component\DatabaseExport\DatabaseExporter;
-use WpPack\Component\DatabaseExport\ExportConfiguration;
-use WpPack\Component\DatabaseExport\RowTransformer\WpOptionsTransformer;
-use WpPack\Component\DatabaseExport\RowTransformer\WpUserMetaTransformer;
-use WpPack\Component\DatabaseExport\TableFilter\PrefixTableFilter;
-use WpPack\Component\DatabaseExport\Writer\WpressSqlWriter;
+use WPPack\Component\Database\DatabaseManager;
+use WPPack\Component\Database\SchemaReader\MysqlSchemaReader;
+use WPPack\Component\DatabaseExport\DatabaseExporter;
+use WPPack\Component\DatabaseExport\ExportConfiguration;
+use WPPack\Component\DatabaseExport\RowTransformer\WpOptionsTransformer;
+use WPPack\Component\DatabaseExport\RowTransformer\WpUserMetaTransformer;
+use WPPack\Component\DatabaseExport\TableFilter\PrefixTableFilter;
+use WPPack\Component\DatabaseExport\Writer\WpressSqlWriter;
 
 $db = new DatabaseManager();
 $config = new ExportConfiguration(

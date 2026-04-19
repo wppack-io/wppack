@@ -1,7 +1,7 @@
 # Plugin コンポーネント
 
 **パッケージ:** `wppack/plugin`
-**名前空間:** `WpPack\Component\Plugin\`
+**名前空間:** `WPPack\Component\Plugin\`
 **レイヤー:** Application
 
 WordPress プラグインライフサイクルに関連するフック（`activated_plugin`、`deactivated_plugin`、`plugin_action_links_{plugin}` など）を Named Hook Attributes でラップするコンポーネントです。

@@ -9,12 +9,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\EventDispatcher\\": "src/"
+            "WPPack\\Component\\EventDispatcher\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Component\\EventDispatcher\\Tests\\": "tests/"
+            "WPPack\\Component\\EventDispatcher\\Tests\\": "tests/"
         }
     }
 }

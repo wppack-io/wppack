@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Mailer;
+namespace WPPack\Component\Mailer;
 
-use WpPack\Component\Mailer\Header\Headers;
+use WPPack\Component\Mailer\Header\Headers;
 
 class Email
 {

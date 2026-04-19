@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,19 +11,19 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Hook\Tests\Attribute\Role;
+namespace WPPack\Component\Hook\Tests\Attribute\Role;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Hook\Attribute\Action;
-use WpPack\Component\Hook\Attribute\Filter;
-use WpPack\Component\Hook\Hook;
-use WpPack\Component\Hook\HookType;
-use WpPack\Component\Hook\Attribute\Role\Action\GrantSuperAdminAction;
-use WpPack\Component\Hook\Attribute\Role\Action\RevokeSuperAdminAction;
-use WpPack\Component\Hook\Attribute\Role\Action\SetUserRoleAction;
-use WpPack\Component\Hook\Attribute\Role\Filter\MapMetaCapFilter;
-use WpPack\Component\Hook\Attribute\Role\Filter\UserHasCapFilter;
+use WPPack\Component\Hook\Attribute\Action;
+use WPPack\Component\Hook\Attribute\Filter;
+use WPPack\Component\Hook\Hook;
+use WPPack\Component\Hook\HookType;
+use WPPack\Component\Hook\Attribute\Role\Action\GrantSuperAdminAction;
+use WPPack\Component\Hook\Attribute\Role\Action\RevokeSuperAdminAction;
+use WPPack\Component\Hook\Attribute\Role\Action\SetUserRoleAction;
+use WPPack\Component\Hook\Attribute\Role\Filter\MapMetaCapFilter;
+use WPPack\Component\Hook\Attribute\Role\Filter\UserHasCapFilter;
 
 final class NamedHookTest extends TestCase
 {

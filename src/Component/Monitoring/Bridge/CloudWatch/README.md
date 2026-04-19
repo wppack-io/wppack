@@ -1,6 +1,6 @@
 # wppack/cloudwatch-monitoring
 
-AWS CloudWatch bridge for WpPack Monitoring component. Implements `MetricProviderInterface` to query CloudWatch metrics via the GetMetricData API.
+AWS CloudWatch bridge for WPPack Monitoring component. Implements `MetricProviderInterface` to query CloudWatch metrics via the GetMetricData API.
 
 ## Installation
 

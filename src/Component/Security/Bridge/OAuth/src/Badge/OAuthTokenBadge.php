@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,10 +11,10 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Security\Bridge\OAuth\Badge;
+namespace WPPack\Component\Security\Bridge\OAuth\Badge;
 
-use WpPack\Component\Security\Authentication\Passport\Badge\BadgeInterface;
-use WpPack\Component\Security\Bridge\OAuth\Token\OAuthTokenSet;
+use WPPack\Component\Security\Authentication\Passport\Badge\BadgeInterface;
+use WPPack\Component\Security\Bridge\OAuth\Token\OAuthTokenSet;
 
 final class OAuthTokenBadge implements BadgeInterface
 {

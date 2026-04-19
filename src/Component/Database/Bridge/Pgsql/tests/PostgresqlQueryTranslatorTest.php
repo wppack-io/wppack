@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database\Bridge\Pgsql\Tests;
+namespace WPPack\Component\Database\Bridge\Pgsql\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Database\Bridge\Pgsql\PgsqlDriver;
-use WpPack\Component\Database\Bridge\Pgsql\Translator\PostgresqlQueryTranslator;
+use WPPack\Component\Database\Bridge\Pgsql\PgsqlDriver;
+use WPPack\Component\Database\Bridge\Pgsql\Translator\PostgresqlQueryTranslator;
 
 final class PostgresqlQueryTranslatorTest extends TestCase
 {
@@ -1438,7 +1438,7 @@ SQL;
         // jsonb path-array '{a,b}' uses comma as a segment separator, so
         // silently splitting the quoted key would corrupt the lookup. We
         // refuse via UnsupportedFeatureException instead.
-        $this->expectException(\WpPack\Component\Database\Exception\UnsupportedFeatureException::class);
+        $this->expectException(\WPPack\Component\Database\Exception\UnsupportedFeatureException::class);
 
         $this->translator->translate("SELECT JSON_EXTRACT(meta, '\$.\"a,b\".c') FROM t");
     }
@@ -1449,7 +1449,7 @@ SQL;
         // Unknown format specifiers used to pass through verbatim and
         // produce a half-valid PG template string. Refuse so the caller
         // can't silently receive wrong data.
-        $this->expectException(\WpPack\Component\Database\Exception\UnsupportedFeatureException::class);
+        $this->expectException(\WPPack\Component\Database\Exception\UnsupportedFeatureException::class);
         $this->expectExceptionMessageMatches('/%z/');
 
         $this->translator->translate("SELECT STR_TO_DATE('2024-01-15 +0900', '%Y-%m-%d %z') FROM t");
@@ -1536,7 +1536,7 @@ SQL;
     #[Test]
     public function fulltextMatchAgainstRaisesTranslationException(): void
     {
-        $this->expectException(\WpPack\Component\Database\Exception\TranslationException::class);
+        $this->expectException(\WPPack\Component\Database\Exception\TranslationException::class);
         $this->expectExceptionMessageMatches('/FULLTEXT/');
 
         $this->translator->translate("SELECT * FROM posts WHERE MATCH(content) AGAINST('wordpress')");

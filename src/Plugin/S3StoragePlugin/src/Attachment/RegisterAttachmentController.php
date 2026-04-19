@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,16 +11,16 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\S3StoragePlugin\Attachment;
+namespace WPPack\Plugin\S3StoragePlugin\Attachment;
 
-use WpPack\Component\HttpFoundation\JsonResponse;
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\Media\AttachmentManagerInterface;
-use WpPack\Component\Rest\AbstractRestController;
-use WpPack\Component\Rest\Attribute\RestRoute;
-use WpPack\Component\Rest\HttpMethod;
-use WpPack\Component\Role\Attribute\IsGranted;
-use WpPack\Component\Storage\Adapter\StorageAdapterInterface;
+use WPPack\Component\HttpFoundation\JsonResponse;
+use WPPack\Component\HttpFoundation\Request;
+use WPPack\Component\Media\AttachmentManagerInterface;
+use WPPack\Component\Rest\AbstractRestController;
+use WPPack\Component\Rest\Attribute\RestRoute;
+use WPPack\Component\Rest\HttpMethod;
+use WPPack\Component\Role\Attribute\IsGranted;
+use WPPack\Component\Storage\Adapter\StorageAdapterInterface;
 
 #[RestRoute(route: '/s3/register-attachment', methods: HttpMethod::POST, namespace: 'wppack/v1')]
 #[IsGranted('upload_files')]

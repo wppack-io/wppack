@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,17 +11,17 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Storage\Tests\Exception;
+namespace WPPack\Component\Storage\Tests\Exception;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Storage\Adapter\Dsn;
-use WpPack\Component\Storage\Exception\ExceptionInterface;
-use WpPack\Component\Storage\Exception\InvalidArgumentException;
-use WpPack\Component\Storage\Exception\ObjectNotFoundException;
-use WpPack\Component\Storage\Exception\StorageException;
-use WpPack\Component\Storage\Exception\UnsupportedOperationException;
-use WpPack\Component\Storage\Exception\UnsupportedSchemeException;
+use WPPack\Component\Storage\Adapter\Dsn;
+use WPPack\Component\Storage\Exception\ExceptionInterface;
+use WPPack\Component\Storage\Exception\InvalidArgumentException;
+use WPPack\Component\Storage\Exception\ObjectNotFoundException;
+use WPPack\Component\Storage\Exception\StorageException;
+use WPPack\Component\Storage\Exception\UnsupportedOperationException;
+use WPPack\Component\Storage\Exception\UnsupportedSchemeException;
 
 final class ExceptionTest extends TestCase
 {

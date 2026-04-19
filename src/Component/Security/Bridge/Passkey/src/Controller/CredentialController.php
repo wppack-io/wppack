@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,16 +11,16 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Security\Bridge\Passkey\Controller;
+namespace WPPack\Component\Security\Bridge\Passkey\Controller;
 
-use WpPack\Component\HttpFoundation\JsonResponse;
-use WpPack\Component\Rest\AbstractRestController;
-use WpPack\Component\Rest\Attribute\RestRoute;
-use WpPack\Component\Rest\HttpMethod;
-use WpPack\Component\Security\AuthenticationSession;
-use WpPack\Component\Rest\Attribute\Permission;
-use WpPack\Component\Security\Bridge\Passkey\Storage\CredentialRepositoryInterface;
-use WpPack\Component\Security\Bridge\Passkey\Storage\PasskeyCredential;
+use WPPack\Component\HttpFoundation\JsonResponse;
+use WPPack\Component\Rest\AbstractRestController;
+use WPPack\Component\Rest\Attribute\RestRoute;
+use WPPack\Component\Rest\HttpMethod;
+use WPPack\Component\Security\AuthenticationSession;
+use WPPack\Component\Rest\Attribute\Permission;
+use WPPack\Component\Security\Bridge\Passkey\Storage\CredentialRepositoryInterface;
+use WPPack\Component\Security\Bridge\Passkey\Storage\PasskeyCredential;
 
 /**
  * REST endpoints for managing the current user's passkey credentials.

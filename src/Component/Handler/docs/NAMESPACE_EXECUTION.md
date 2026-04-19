@@ -40,7 +40,7 @@ Processors must not call WordPress functions (`add_action`, `get_option`, etc.).
 
 ### MimeTypes Without WordPress
 
-The `StaticFileProcessor` uses `WpPack\Component\Mime\MimeTypes` for MIME type detection. The `guessMimeType()` method works without WordPress via:
+The `StaticFileProcessor` uses `WPPack\Component\Mime\MimeTypes` for MIME type detection. The `guessMimeType()` method works without WordPress via:
 - `ExtensionMimeTypeGuesser` — Uses the `MimeTypeMap` constant (pure PHP)
 - `FileinfoMimeTypeGuesser` — Uses PHP's `finfo` extension
 

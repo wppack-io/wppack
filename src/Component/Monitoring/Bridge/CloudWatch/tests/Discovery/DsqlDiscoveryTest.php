@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Monitoring\Bridge\CloudWatch\Tests\Discovery;
+namespace WPPack\Component\Monitoring\Bridge\CloudWatch\Tests\Discovery;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Monitoring\Bridge\CloudWatch\Discovery\DsqlDiscovery;
+use WPPack\Component\Monitoring\Bridge\CloudWatch\Discovery\DsqlDiscovery;
 
 final class DsqlDiscoveryTest extends TestCase
 {
@@ -33,6 +33,6 @@ final class DsqlDiscoveryTest extends TestCase
     {
         $discovery = new DsqlDiscovery();
 
-        self::assertInstanceOf(\WpPack\Component\Monitoring\MonitoringProviderInterface::class, $discovery);
+        self::assertInstanceOf(\WPPack\Component\Monitoring\MonitoringProviderInterface::class, $discovery);
     }
 }

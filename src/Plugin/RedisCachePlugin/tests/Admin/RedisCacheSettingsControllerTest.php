@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\RedisCachePlugin\Tests\Admin;
+namespace WPPack\Plugin\RedisCachePlugin\Tests\Admin;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Rest\AbstractRestController;
-use WpPack\Plugin\RedisCachePlugin\Admin\RedisCacheSettingsController;
-use WpPack\Plugin\RedisCachePlugin\Configuration\RedisCacheConfiguration;
+use WPPack\Component\Rest\AbstractRestController;
+use WPPack\Plugin\RedisCachePlugin\Admin\RedisCacheSettingsController;
+use WPPack\Plugin\RedisCachePlugin\Configuration\RedisCacheConfiguration;
 
 #[CoversClass(RedisCacheSettingsController::class)]
 final class RedisCacheSettingsControllerTest extends TestCase

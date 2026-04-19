@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,15 +11,15 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Templating\Bridge\Twig;
+namespace WPPack\Component\Templating\Bridge\Twig;
 
 use Twig\Environment;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
-use WpPack\Component\Templating\Exception\RenderingException;
-use WpPack\Component\Templating\Exception\TemplateNotFoundException;
-use WpPack\Component\Templating\TemplateRendererInterface;
+use WPPack\Component\Templating\Exception\RenderingException;
+use WPPack\Component\Templating\Exception\TemplateNotFoundException;
+use WPPack\Component\Templating\TemplateRendererInterface;
 
 final class TwigRenderer implements TemplateRendererInterface
 {

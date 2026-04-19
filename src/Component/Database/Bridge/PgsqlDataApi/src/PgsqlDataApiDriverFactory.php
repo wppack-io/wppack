@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database\Bridge\PgsqlDataApi;
+namespace WPPack\Component\Database\Bridge\PgsqlDataApi;
 
 use AsyncAws\RdsDataService\RdsDataServiceClient;
-use WpPack\Component\Database\Driver\DriverDefinition;
-use WpPack\Component\Database\Driver\DriverFactoryInterface;
-use WpPack\Component\Database\Driver\DriverField;
-use WpPack\Component\Database\Driver\DriverInterface;
-use WpPack\Component\Dsn\Dsn;
+use WPPack\Component\Database\Driver\DriverDefinition;
+use WPPack\Component\Database\Driver\DriverFactoryInterface;
+use WPPack\Component\Database\Driver\DriverField;
+use WPPack\Component\Database\Driver\DriverInterface;
+use WPPack\Component\Dsn\Dsn;
 
 /**
  * Factory for Aurora PostgreSQL Data API connections.

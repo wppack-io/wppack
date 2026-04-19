@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\S3StoragePlugin\Tests\Message;
+namespace WPPack\Plugin\S3StoragePlugin\Tests\Message;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Plugin\S3StoragePlugin\Message\S3EventNormalizer;
-use WpPack\Plugin\S3StoragePlugin\Message\S3ObjectCreatedMessage;
-use WpPack\Plugin\S3StoragePlugin\Message\S3ObjectRemovedMessage;
+use WPPack\Plugin\S3StoragePlugin\Message\S3EventNormalizer;
+use WPPack\Plugin\S3StoragePlugin\Message\S3ObjectCreatedMessage;
+use WPPack\Plugin\S3StoragePlugin\Message\S3ObjectRemovedMessage;
 
 final class S3EventNormalizerTest extends TestCase
 {

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,20 +11,20 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\AmazonMailerPlugin\Admin;
+namespace WPPack\Plugin\AmazonMailerPlugin\Admin;
 
-use WpPack\Component\HttpFoundation\JsonResponse;
-use WpPack\Component\Mailer\Bridge\Amazon\Transport\SesTransportFactory;
-use WpPack\Component\Mailer\Bridge\Azure\Transport\AzureTransportFactory;
-use WpPack\Component\Mailer\Bridge\SendGrid\Transport\SendGridTransportFactory;
-use WpPack\Component\Mailer\Transport\NativeTransportFactory;
-use WpPack\Component\Mailer\Transport\TransportDefinition;
-use WpPack\Component\Mailer\Transport\TransportFactoryInterface;
-use WpPack\Component\Rest\AbstractRestController;
-use WpPack\Component\Rest\Attribute\RestRoute;
-use WpPack\Component\Rest\HttpMethod;
-use WpPack\Component\Role\Attribute\IsGranted;
-use WpPack\Plugin\AmazonMailerPlugin\Configuration\AmazonMailerConfiguration;
+use WPPack\Component\HttpFoundation\JsonResponse;
+use WPPack\Component\Mailer\Bridge\Amazon\Transport\SesTransportFactory;
+use WPPack\Component\Mailer\Bridge\Azure\Transport\AzureTransportFactory;
+use WPPack\Component\Mailer\Bridge\SendGrid\Transport\SendGridTransportFactory;
+use WPPack\Component\Mailer\Transport\NativeTransportFactory;
+use WPPack\Component\Mailer\Transport\TransportDefinition;
+use WPPack\Component\Mailer\Transport\TransportFactoryInterface;
+use WPPack\Component\Rest\AbstractRestController;
+use WPPack\Component\Rest\Attribute\RestRoute;
+use WPPack\Component\Rest\HttpMethod;
+use WPPack\Component\Role\Attribute\IsGranted;
+use WPPack\Plugin\AmazonMailerPlugin\Configuration\AmazonMailerConfiguration;
 
 #[RestRoute(namespace: 'wppack/v1/mailer')]
 #[IsGranted('manage_options')]
@@ -69,8 +69,8 @@ final class AmazonMailerSettingsController extends AbstractRestController
 
         $result = wp_mail(
             $to,
-            'WpPack Mailer Test',
-            'This is a test email sent from WpPack Mailer settings.',
+            'WPPack Mailer Test',
+            'This is a test email sent from WPPack Mailer settings.',
         );
 
         return $this->json(['success' => $result, 'to' => $to]);

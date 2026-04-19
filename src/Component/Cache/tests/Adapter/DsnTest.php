@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Cache\Tests\Adapter;
+namespace WPPack\Component\Cache\Tests\Adapter;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Cache\Adapter\Dsn;
-use WpPack\Component\Cache\Exception\InvalidArgumentException;
+use WPPack\Component\Cache\Adapter\Dsn;
+use WPPack\Component\Cache\Exception\InvalidArgumentException;
 
 final class DsnTest extends TestCase
 {

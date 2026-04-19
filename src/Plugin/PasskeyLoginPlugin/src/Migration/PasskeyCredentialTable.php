@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\PasskeyLoginPlugin\Migration;
+namespace WPPack\Plugin\PasskeyLoginPlugin\Migration;
 
-use WpPack\Component\Database\Attribute\Table;
-use WpPack\Component\Database\DatabaseManager;
-use WpPack\Component\Database\TableInterface;
+use WPPack\Component\Database\Attribute\Table;
+use WPPack\Component\Database\DatabaseManager;
+use WPPack\Component\Database\TableInterface;
 
 #[Table('wppack_passkey_credentials')]
 final class PasskeyCredentialTable implements TableInterface

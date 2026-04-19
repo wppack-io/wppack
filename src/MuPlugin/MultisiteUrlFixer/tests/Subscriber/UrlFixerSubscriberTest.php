@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace WpPack\MuPlugin\MultisiteUrlFixer\Tests\Subscriber;
+namespace WPPack\MuPlugin\MultisiteUrlFixer\Tests\Subscriber;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\MuPlugin\MultisiteUrlFixer\Subscriber\UrlFixerSubscriber;
+use WPPack\MuPlugin\MultisiteUrlFixer\Subscriber\UrlFixerSubscriber;
 
 final class UrlFixerSubscriberTest extends TestCase
 {

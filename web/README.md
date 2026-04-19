@@ -1,6 +1,6 @@
 # Local WordPress Development Environment
 
-Local development environment for testing WpPack components in a browser.
+Local development environment for testing WPPack components in a browser.
 Configured as a **multisite (subdirectory)** installation.
 
 ## Setup
@@ -16,7 +16,7 @@ docker compose up -d --wait
 vendor/bin/wp core multisite-install \
     --path=web/wp \
     --url=http://localhost:8080 \
-    --title="WpPack Dev" \
+    --title="WPPack Dev" \
     --admin_user=admin \
     --admin_password=admin \
     --admin_email=admin@localhost.test \
@@ -59,7 +59,7 @@ Test user credentials:
 |------|-------------|
 | `web/wp/` | WordPress core (installed by Composer, gitignored) |
 | `web/wp-config.php` | WordPress configuration (DB: `wppack_dev`) |
-| `web/handler.php` | Front controller (WpPack Handler) |
+| `web/handler.php` | Front controller (WPPack Handler) |
 | `web/wp-content/mu-plugins/` | Loads Composer autoloader |
 | `web/wp-content/plugins/` | Symlinks to `src/Plugin/*` |
 

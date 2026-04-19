@@ -7,7 +7,7 @@
  * @var int                                                          $limit           Memory limit in bytes
  * @var float                                                        $usagePercentage Usage as percentage of limit
  * @var array<string,int>                                            $snapshots       Memory snapshots by checkpoint label
- * @var \WpPack\Component\Debug\Toolbar\Panel\TemplateFormatters     $fmt             Template formatters
+ * @var \WPPack\Component\Debug\Toolbar\Panel\TemplateFormatters     $fmt             Template formatters
  */
 $usageColor = match (true) {
     $usagePercentage >= 90 => 'wpd-text-red',

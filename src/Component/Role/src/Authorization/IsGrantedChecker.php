@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,10 +11,10 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Role\Authorization;
+namespace WPPack\Component\Role\Authorization;
 
-use WpPack\Component\Role\Attribute\IsGranted;
-use WpPack\Component\Role\Exception\AccessDeniedException;
+use WPPack\Component\Role\Attribute\IsGranted;
+use WPPack\Component\Role\Exception\AccessDeniedException;
 
 final class IsGrantedChecker
 {

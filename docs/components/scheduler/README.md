@@ -1,7 +1,7 @@
 # Scheduler コンポーネント
 
 **パッケージ:** `wppack/scheduler`
-**名前空間:** `WpPack\Component\Scheduler\`
+**名前空間:** `WPPack\Component\Scheduler\`
 **レイヤー:** Feature
 
 Trigger ベースのタスクスケジューラー。WordPress の `wp_schedule_event()` / `wp_schedule_single_event()` をアトリビュートベースのモダンなインターフェースでラップし、5 種類の Trigger による柔軟なスケジュール定義と、複数バックエンド（WP-Cron / Action Scheduler / EventBridge）の切り替えをサポートします。
@@ -57,14 +57,14 @@ function myplugin_deactivation() {
 }
 ```
 
-### After（WpPack）
+### After（WPPack）
 
 ```php
-use WpPack\Component\Scheduler\Attribute\AsSchedule;
-use WpPack\Component\Scheduler\ScheduleProviderInterface;
-use WpPack\Component\Scheduler\Schedule;
-use WpPack\Component\Scheduler\Message\RecurringMessage;
-use WpPack\Component\Messenger\Attribute\AsMessageHandler;
+use WPPack\Component\Scheduler\Attribute\AsSchedule;
+use WPPack\Component\Scheduler\ScheduleProviderInterface;
+use WPPack\Component\Scheduler\Schedule;
+use WPPack\Component\Scheduler\Message\RecurringMessage;
+use WPPack\Component\Messenger\Attribute\AsMessageHandler;
 
 // メッセージクラス（プレーン POPO）
 final readonly class CleanupOldPostsMessage
@@ -134,7 +134,7 @@ final class CleanupOldPostsHandler
 `TriggerInterface` はスケジュールの「いつ実行するか」を定義する統一インターフェースです。
 
 ```php
-namespace WpPack\Component\Scheduler\Trigger;
+namespace WPPack\Component\Scheduler\Trigger;
 
 interface TriggerInterface extends \Stringable
 {
@@ -151,7 +151,7 @@ interface TriggerInterface extends \Stringable
 cron 式（`* * * * *` 形式）によるスケジュール。`dragonmantank/cron-expression` を使用します。
 
 ```php
-use WpPack\Component\Scheduler\Trigger\CronExpressionTrigger;
+use WPPack\Component\Scheduler\Trigger\CronExpressionTrigger;
 
 $trigger = new CronExpressionTrigger('0 3 * * *');     // 毎日 03:00
 $trigger = new CronExpressionTrigger('*/15 * * * *');   // 15 分ごと
@@ -165,7 +165,7 @@ $trigger = new CronExpressionTrigger('0 9 * * 1');      // 毎週月曜 09:00
 固定間隔での繰り返し実行。
 
 ```php
-use WpPack\Component\Scheduler\Trigger\IntervalTrigger;
+use WPPack\Component\Scheduler\Trigger\IntervalTrigger;
 
 $trigger = new IntervalTrigger(
     intervalInSeconds: 300,     // 5 分ごと
@@ -180,7 +180,7 @@ $trigger = new IntervalTrigger(
 WordPress WP-Cron のビルトイン名前付きスケジュールを使用します。
 
 ```php
-use WpPack\Component\Scheduler\Trigger\WpCronScheduleTrigger;
+use WPPack\Component\Scheduler\Trigger\WpCronScheduleTrigger;
 
 $trigger = new WpCronScheduleTrigger('daily');
 ```
@@ -199,7 +199,7 @@ $trigger = new WpCronScheduleTrigger('daily');
 指定日時に一度だけ実行する Trigger。`OneTimeMessage` で使用されます。
 
 ```php
-use WpPack\Component\Scheduler\Trigger\DateTimeTrigger;
+use WPPack\Component\Scheduler\Trigger\DateTimeTrigger;
 
 $trigger = new DateTimeTrigger(
     new \DateTimeImmutable('2024-12-31 23:59:59'),
@@ -217,8 +217,8 @@ $trigger->getDateTime(); // DateTimeImmutable
 内部の Trigger にランダムな遅延（ジッター）を追加するデコレーター。複数のスケジュールが同時に実行されるのを防ぎます。
 
 ```php
-use WpPack\Component\Scheduler\Trigger\JitterTrigger;
-use WpPack\Component\Scheduler\Trigger\IntervalTrigger;
+use WPPack\Component\Scheduler\Trigger\JitterTrigger;
+use WPPack\Component\Scheduler\Trigger\IntervalTrigger;
 
 $trigger = new JitterTrigger(
     inner: new IntervalTrigger(3600),
@@ -245,7 +245,7 @@ $trigger = new JitterTrigger(
 ### `schedule()` — WP-Cron 名前付きスケジュール
 
 ```php
-use WpPack\Component\Scheduler\Message\RecurringMessage;
+use WPPack\Component\Scheduler\Message\RecurringMessage;
 
 RecurringMessage::schedule('hourly', new HourlyMessage());
 RecurringMessage::schedule('twicedaily', new TwiceDailyMessage());
@@ -289,8 +289,8 @@ RecurringMessage::cron('0 9 * * 1', new MondayReportMessage());
 任意の `TriggerInterface` 実装を渡せます。
 
 ```php
-use WpPack\Component\Scheduler\Trigger\JitterTrigger;
-use WpPack\Component\Scheduler\Trigger\IntervalTrigger;
+use WPPack\Component\Scheduler\Trigger\JitterTrigger;
+use WPPack\Component\Scheduler\Trigger\IntervalTrigger;
 
 RecurringMessage::trigger(
     new JitterTrigger(new IntervalTrigger(3600), maxJitterSeconds: 120),
@@ -327,7 +327,7 @@ RecurringMessage::schedule('daily', new CleanupMessage())
 ### `at()` — 日時指定
 
 ```php
-use WpPack\Component\Scheduler\Message\OneTimeMessage;
+use WPPack\Component\Scheduler\Message\OneTimeMessage;
 
 OneTimeMessage::at(
     new \DateTimeImmutable('2024-12-31 23:59:59'),
@@ -375,7 +375,7 @@ OneTimeMessage::at($dateTime, new ReminderMessage())
 ### ScheduleProviderInterface
 
 ```php
-namespace WpPack\Component\Scheduler;
+namespace WPPack\Component\Scheduler;
 
 interface ScheduleProviderInterface
 {
@@ -388,7 +388,7 @@ interface ScheduleProviderInterface
 `ScheduleProviderInterface` を実装したクラスに `#[AsSchedule]` を付与します。
 
 ```php
-use WpPack\Component\Scheduler\Attribute\AsSchedule;
+use WPPack\Component\Scheduler\Attribute\AsSchedule;
 
 #[AsSchedule]                          // name: 'default'
 #[AsSchedule(name: 'maintenance')]     // 名前付き
@@ -403,9 +403,9 @@ use WpPack\Component\Scheduler\Attribute\AsSchedule;
 `Schedule` はスケジュールのコレクションです。`add()` で `RecurringMessage` / `OneTimeMessage` を追加します（fluent）。
 
 ```php
-use WpPack\Component\Scheduler\Schedule;
-use WpPack\Component\Scheduler\Message\RecurringMessage;
-use WpPack\Component\Scheduler\Message\OneTimeMessage;
+use WPPack\Component\Scheduler\Schedule;
+use WPPack\Component\Scheduler\Message\RecurringMessage;
+use WPPack\Component\Scheduler\Message\OneTimeMessage;
 
 $schedule = (new Schedule())
     ->add(RecurringMessage::schedule('daily', new CleanupMessage()))
@@ -450,7 +450,7 @@ final class ReportingScheduleProvider implements ScheduleProviderInterface
 `SchedulerInterface` はスケジュールの登録・解除・確認を行う CRUD API です。バックエンドごとに実装が異なります。
 
 ```php
-namespace WpPack\Component\Scheduler\Scheduler;
+namespace WPPack\Component\Scheduler\Scheduler;
 
 interface SchedulerInterface
 {
@@ -475,7 +475,7 @@ interface SchedulerInterface
 テスト用のインメモリ実装。実際のスケジューリングは行わず、登録されたメッセージを保持します。
 
 ```php
-use WpPack\Component\Scheduler\Scheduler\NullScheduler;
+use WPPack\Component\Scheduler\Scheduler\NullScheduler;
 
 $scheduler = new NullScheduler();
 $scheduler->schedule('daily-cleanup', RecurringMessage::schedule('daily', new CleanupMessage()));
@@ -505,7 +505,7 @@ Schedule → SchedulerInterface::schedule()
 ```
 
 ```php
-use WpPack\Component\Messenger\Attribute\AsMessageHandler;
+use WPPack\Component\Messenger\Attribute\AsMessageHandler;
 
 final readonly class CleanupMessage
 {
@@ -530,10 +530,10 @@ final class CleanupMessageHandler
 
 ```php
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Scheduler\Schedule;
-use WpPack\Component\Scheduler\Message\RecurringMessage;
-use WpPack\Component\Scheduler\Scheduler\NullScheduler;
-use WpPack\Component\Messenger\Test\TestMessageBus;
+use WPPack\Component\Scheduler\Schedule;
+use WPPack\Component\Scheduler\Message\RecurringMessage;
+use WPPack\Component\Scheduler\Scheduler\NullScheduler;
+use WPPack\Component\Messenger\Test\TestMessageBus;
 
 class CleanupScheduleProviderTest extends TestCase
 {

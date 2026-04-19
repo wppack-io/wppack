@@ -15,7 +15,7 @@ composer require wppack/storage
 ### Using DSN
 
 ```php
-use WpPack\Component\Storage\Adapter\Storage;
+use WPPack\Component\Storage\Adapter\Storage;
 
 // S3 (requires wppack/s3-storage)
 $adapter = Storage::fromDsn('s3://my-bucket.s3.ap-northeast-1.amazonaws.com/uploads');
@@ -27,7 +27,7 @@ $contents = $adapter->read('path/to/file.txt');
 ### StorageAdapterInterface
 
 ```php
-use WpPack\Component\Storage\Adapter\StorageAdapterInterface;
+use WPPack\Component\Storage\Adapter\StorageAdapterInterface;
 
 function upload(StorageAdapterInterface $adapter): void
 {
@@ -88,7 +88,7 @@ function upload(StorageAdapterInterface $adapter): void
 Use `InMemoryStorageAdapter` for unit tests:
 
 ```php
-use WpPack\Component\Storage\Test\InMemoryStorageAdapter;
+use WPPack\Component\Storage\Test\InMemoryStorageAdapter;
 
 $adapter = new InMemoryStorageAdapter();
 $adapter->write('test.txt', 'hello');
@@ -109,7 +109,7 @@ assert($adapter->read('test.txt') === 'hello');
 Register a protocol to use standard PHP file functions with any storage adapter:
 
 ```php
-use WpPack\Component\Storage\StreamWrapper\StorageStreamWrapper;
+use WPPack\Component\Storage\StreamWrapper\StorageStreamWrapper;
 
 // Register a protocol
 $adapter = Storage::fromDsn('s3://my-bucket.s3.ap-northeast-1.amazonaws.com/uploads');

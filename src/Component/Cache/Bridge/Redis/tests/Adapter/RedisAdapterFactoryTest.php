@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,19 +11,19 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Cache\Bridge\Redis\Tests\Adapter;
+namespace WPPack\Component\Cache\Bridge\Redis\Tests\Adapter;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Cache\Adapter\Dsn;
-use WpPack\Component\Cache\Bridge\Redis\Adapter\PredisAdapter;
-use WpPack\Component\Cache\Bridge\Redis\Adapter\RedisAdapter;
-use WpPack\Component\Cache\Bridge\Redis\Adapter\RedisAdapterFactory;
-use WpPack\Component\Cache\Bridge\Redis\Adapter\RedisClusterAdapter;
-use WpPack\Component\Cache\Bridge\Redis\Adapter\RelayAdapter;
-use WpPack\Component\Cache\Bridge\Redis\Adapter\RelayClusterAdapter;
-use WpPack\Component\Cache\Exception\AdapterException;
-use WpPack\Component\Cache\Exception\UnsupportedSchemeException;
+use WPPack\Component\Cache\Adapter\Dsn;
+use WPPack\Component\Cache\Bridge\Redis\Adapter\PredisAdapter;
+use WPPack\Component\Cache\Bridge\Redis\Adapter\RedisAdapter;
+use WPPack\Component\Cache\Bridge\Redis\Adapter\RedisAdapterFactory;
+use WPPack\Component\Cache\Bridge\Redis\Adapter\RedisClusterAdapter;
+use WPPack\Component\Cache\Bridge\Redis\Adapter\RelayAdapter;
+use WPPack\Component\Cache\Bridge\Redis\Adapter\RelayClusterAdapter;
+use WPPack\Component\Cache\Exception\AdapterException;
+use WPPack\Component\Cache\Exception\UnsupportedSchemeException;
 
 final class RedisAdapterFactoryTest extends TestCase
 {
@@ -217,7 +217,7 @@ final class RedisAdapterFactoryTest extends TestCase
             self::markTestSkipped('No Redis client library is available.');
         }
 
-        if (!class_exists(\WpPack\Component\Cache\Bridge\ElastiCacheAuth\ElastiCacheIamTokenGenerator::class)) {
+        if (!class_exists(\WPPack\Component\Cache\Bridge\ElastiCacheAuth\ElastiCacheIamTokenGenerator::class)) {
             self::markTestSkipped('wppack/elasticache-auth is not available.');
         }
 
@@ -241,7 +241,7 @@ final class RedisAdapterFactoryTest extends TestCase
             self::markTestSkipped('No Redis client library is available.');
         }
 
-        if (!class_exists(\WpPack\Component\Cache\Bridge\ElastiCacheAuth\ElastiCacheIamTokenGenerator::class)) {
+        if (!class_exists(\WPPack\Component\Cache\Bridge\ElastiCacheAuth\ElastiCacheIamTokenGenerator::class)) {
             self::markTestSkipped('wppack/elasticache-auth is not available.');
         }
 
@@ -259,7 +259,7 @@ final class RedisAdapterFactoryTest extends TestCase
             self::markTestSkipped('No Redis client library is available.');
         }
 
-        if (!class_exists(\WpPack\Component\Cache\Bridge\ElastiCacheAuth\ElastiCacheIamTokenGenerator::class)) {
+        if (!class_exists(\WPPack\Component\Cache\Bridge\ElastiCacheAuth\ElastiCacheIamTokenGenerator::class)) {
             self::markTestSkipped('wppack/elasticache-auth is not available.');
         }
 
@@ -282,7 +282,7 @@ final class RedisAdapterFactoryTest extends TestCase
             self::markTestSkipped('No Redis client library is available.');
         }
 
-        if (!class_exists(\WpPack\Component\Cache\Bridge\ElastiCacheAuth\ElastiCacheIamTokenGenerator::class)) {
+        if (!class_exists(\WPPack\Component\Cache\Bridge\ElastiCacheAuth\ElastiCacheIamTokenGenerator::class)) {
             self::markTestSkipped('wppack/elasticache-auth is not available.');
         }
 
@@ -305,7 +305,7 @@ final class RedisAdapterFactoryTest extends TestCase
             self::markTestSkipped('No Redis client library is available.');
         }
 
-        if (!class_exists(\WpPack\Component\Cache\Bridge\ElastiCacheAuth\ElastiCacheIamTokenGenerator::class)) {
+        if (!class_exists(\WPPack\Component\Cache\Bridge\ElastiCacheAuth\ElastiCacheIamTokenGenerator::class)) {
             self::markTestSkipped('wppack/elasticache-auth is not available.');
         }
 
@@ -616,7 +616,7 @@ final class RedisAdapterFactoryTest extends TestCase
             self::markTestSkipped('No Redis client library is available.');
         }
 
-        if (!class_exists(\WpPack\Component\Cache\Bridge\ElastiCacheAuth\ElastiCacheIamTokenGenerator::class)) {
+        if (!class_exists(\WPPack\Component\Cache\Bridge\ElastiCacheAuth\ElastiCacheIamTokenGenerator::class)) {
             self::markTestSkipped('wppack/elasticache-auth is not available.');
         }
 
@@ -740,7 +740,7 @@ final class RedisAdapterFactoryTest extends TestCase
             self::markTestSkipped('No Redis client library is available.');
         }
 
-        if (class_exists(\WpPack\Component\Cache\Bridge\ElastiCacheAuth\ElastiCacheIamTokenGenerator::class)) {
+        if (class_exists(\WPPack\Component\Cache\Bridge\ElastiCacheAuth\ElastiCacheIamTokenGenerator::class)) {
             // Cannot test "package not installed" error when it IS installed
             self::markTestSkipped('wppack/elasticache-auth is available - cannot test missing package error.');
         }

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,15 +11,15 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Messenger\Tests\Middleware;
+namespace WPPack\Component\Messenger\Tests\Middleware;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Messenger\Envelope;
-use WpPack\Component\Messenger\Middleware\AddBusNameStampMiddleware;
-use WpPack\Component\Messenger\Middleware\MiddlewareStack;
-use WpPack\Component\Messenger\Stamp\BusNameStamp;
+use WPPack\Component\Messenger\Envelope;
+use WPPack\Component\Messenger\Middleware\AddBusNameStampMiddleware;
+use WPPack\Component\Messenger\Middleware\MiddlewareStack;
+use WPPack\Component\Messenger\Stamp\BusNameStamp;
 
 #[CoversClass(AddBusNameStampMiddleware::class)]
 final class AddBusNameStampMiddlewareTest extends TestCase

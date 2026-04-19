@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,18 +11,18 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Messenger\Tests\Middleware;
+namespace WPPack\Component\Messenger\Tests\Middleware;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Messenger\Envelope;
-use WpPack\Component\Messenger\Exception\HandlerFailedException;
-use WpPack\Component\Messenger\Exception\NoHandlerForMessageException;
-use WpPack\Component\Messenger\Handler\HandlerLocator;
-use WpPack\Component\Messenger\Middleware\HandleMessageMiddleware;
-use WpPack\Component\Messenger\Middleware\MiddlewareStack;
-use WpPack\Component\Messenger\Stamp\HandledStamp;
+use WPPack\Component\Messenger\Envelope;
+use WPPack\Component\Messenger\Exception\HandlerFailedException;
+use WPPack\Component\Messenger\Exception\NoHandlerForMessageException;
+use WPPack\Component\Messenger\Handler\HandlerLocator;
+use WPPack\Component\Messenger\Middleware\HandleMessageMiddleware;
+use WPPack\Component\Messenger\Middleware\MiddlewareStack;
+use WPPack\Component\Messenger\Stamp\HandledStamp;
 
 #[CoversClass(HandleMessageMiddleware::class)]
 final class HandleMessageMiddlewareTest extends TestCase

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Logger;
+namespace WPPack\Component\Logger;
 
 use Psr\Log\AbstractLogger;
-use WpPack\Component\Logger\Context\LoggerContext;
-use WpPack\Component\Logger\Exception\InvalidArgumentException;
-use WpPack\Component\Logger\Handler\HandlerInterface;
+use WPPack\Component\Logger\Context\LoggerContext;
+use WPPack\Component\Logger\Exception\InvalidArgumentException;
+use WPPack\Component\Logger\Handler\HandlerInterface;
 
 final class Logger extends AbstractLogger
 {

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,10 +11,10 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\S3StoragePlugin\PreSignedUrl;
+namespace WPPack\Plugin\S3StoragePlugin\PreSignedUrl;
 
-use WpPack\Component\Mime\MimeTypes;
-use WpPack\Component\Mime\MimeTypesInterface;
+use WPPack\Component\Mime\MimeTypes;
+use WPPack\Component\Mime\MimeTypesInterface;
 
 final readonly class UploadPolicy
 {

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Routing\Response;
+namespace WPPack\Component\Routing\Response;
 
-use WpPack\Component\HttpFoundation\Response;
+use WPPack\Component\HttpFoundation\Response;
 
 final class TemplateResponse extends Response
 {

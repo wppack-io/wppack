@@ -1,7 +1,7 @@
 # APCu Cache Bridge
 
 **パッケージ:** `wppack/apcu-cache`
-**名前空間:** `WpPack\Component\Cache\Bridge\Apcu\`
+**名前空間:** `WPPack\Component\Cache\Bridge\Apcu\`
 
 APCu（Alternative PHP Cache user-data cache）を Object Cache バックエンドとして利用するための Bridge パッケージです。
 
@@ -64,7 +64,7 @@ APCu はローカルメモリのためホスト指定は不要です:
 ```
 
 > [!NOTE]
-> Symfony は APCu に DSN を使いませんが、WpPack は `WPPACK_CACHE_DSN` で統一的にバックエンドを選択するため `apcu://` スキームを採用しています。
+> Symfony は APCu に DSN を使いませんが、WPPack は `WPPACK_CACHE_DSN` で統一的にバックエンドを選択するため `apcu://` スキームを採用しています。
 
 ## CLI での利用
 

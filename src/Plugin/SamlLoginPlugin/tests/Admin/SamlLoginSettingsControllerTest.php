@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,19 +11,19 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\SamlLoginPlugin\Tests\Admin;
+namespace WPPack\Plugin\SamlLoginPlugin\Tests\Admin;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Rest\AbstractRestController;
-use WpPack\Component\Sanitizer\Sanitizer;
-use WpPack\Component\Security\Bridge\SAML\Configuration\IdpSettings;
-use WpPack\Component\Security\Bridge\SAML\Configuration\SamlConfiguration;
-use WpPack\Component\Security\Bridge\SAML\Configuration\SpMetadataExporter;
-use WpPack\Component\Security\Bridge\SAML\Configuration\SpSettings;
-use WpPack\Plugin\SamlLoginPlugin\Admin\SamlLoginSettingsController;
-use WpPack\Plugin\SamlLoginPlugin\Configuration\SamlLoginConfiguration;
+use WPPack\Component\Rest\AbstractRestController;
+use WPPack\Component\Sanitizer\Sanitizer;
+use WPPack\Component\Security\Bridge\SAML\Configuration\IdpSettings;
+use WPPack\Component\Security\Bridge\SAML\Configuration\SamlConfiguration;
+use WPPack\Component\Security\Bridge\SAML\Configuration\SpMetadataExporter;
+use WPPack\Component\Security\Bridge\SAML\Configuration\SpSettings;
+use WPPack\Plugin\SamlLoginPlugin\Admin\SamlLoginSettingsController;
+use WPPack\Plugin\SamlLoginPlugin\Configuration\SamlLoginConfiguration;
 
 #[CoversClass(SamlLoginSettingsController::class)]
 final class SamlLoginSettingsControllerTest extends TestCase

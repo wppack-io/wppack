@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Widget\Tests;
+namespace WPPack\Component\Widget\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Templating\TemplateRendererInterface;
-use WpPack\Component\Widget\AbstractWidget;
-use WpPack\Component\Widget\Attribute\AsWidget;
+use WPPack\Component\Templating\TemplateRendererInterface;
+use WPPack\Component\Widget\AbstractWidget;
+use WPPack\Component\Widget\Attribute\AsWidget;
 
 final class AbstractWidgetTest extends TestCase
 {

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,8 +11,8 @@
 
 declare(strict_types=1);
 
-use WpPack\Component\DependencyInjection\Configurator\ContainerConfigurator;
-use WpPack\Component\DependencyInjection\Tests\Fixtures\SimpleService;
+use WPPack\Component\DependencyInjection\Configurator\ContainerConfigurator;
+use WPPack\Component\DependencyInjection\Tests\Fixtures\SimpleService;
 
 return static function (ContainerConfigurator $services): void {
     $services->set(SimpleService::class)->lazy();

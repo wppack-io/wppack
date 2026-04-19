@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Kernel\Tests;
+namespace WPPack\Component\Kernel\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Kernel\AbstractPlugin;
-use WpPack\Component\Kernel\PluginInterface;
+use WPPack\Component\Kernel\AbstractPlugin;
+use WPPack\Component\Kernel\PluginInterface;
 
 final class AbstractPluginTest extends TestCase
 {
@@ -79,7 +79,7 @@ final class AbstractPluginTest extends TestCase
     public function bootDoesNotThrow(): void
     {
         $plugin = $this->createPlugin(__FILE__);
-        $container = new \WpPack\Component\DependencyInjection\Container(new \Symfony\Component\DependencyInjection\Container());
+        $container = new \WPPack\Component\DependencyInjection\Container(new \Symfony\Component\DependencyInjection\Container());
 
         $plugin->boot($container);
 
@@ -117,7 +117,7 @@ final class AbstractPluginTest extends TestCase
     private function createPlugin(string $pluginFile): AbstractPlugin
     {
         return new class ($pluginFile) extends AbstractPlugin {
-            public function register(\WpPack\Component\DependencyInjection\ContainerBuilder $builder): void {}
+            public function register(\WPPack\Component\DependencyInjection\ContainerBuilder $builder): void {}
         };
     }
 }

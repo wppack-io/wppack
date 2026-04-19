@@ -13,9 +13,9 @@ composer require wppack/query
 ## Usage
 
 ```php
-use WpPack\Component\Query\QueryFactory;
-use WpPack\Component\Query\Enum\Order;
-use WpPack\Component\Query\Result\PostQueryResult;
+use WPPack\Component\Query\QueryFactory;
+use WPPack\Component\Query\Enum\Order;
+use WPPack\Component\Query\Result\PostQueryResult;
 
 class ProductService
 {

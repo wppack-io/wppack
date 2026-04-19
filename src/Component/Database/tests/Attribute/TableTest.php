@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database\Tests\Attribute;
+namespace WPPack\Component\Database\Tests\Attribute;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Database\Attribute\Table;
+use WPPack\Component\Database\Attribute\Table;
 
 #[CoversClass(Table::class)]
 final class TableTest extends TestCase

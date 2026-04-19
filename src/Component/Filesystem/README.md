@@ -1,4 +1,4 @@
-# WpPack Filesystem
+# WPPack Filesystem
 
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=filesystem)](https://codecov.io/github/wppack-io/wppack)
 
@@ -15,7 +15,7 @@ composer require wppack/filesystem
 ### Filesystem
 
 ```php
-use WpPack\Component\Filesystem\Filesystem;
+use WPPack\Component\Filesystem\Filesystem;
 
 // Inject WP_Filesystem_Base (required)
 $filesystem = new Filesystem($wp_filesystem);
@@ -55,7 +55,7 @@ $all = $filesystem->listContents('/path/to/directory', recursive: true);
 ### UploadPath
 
 ```php
-use WpPack\Component\Filesystem\WordPress\UploadPath;
+use WPPack\Component\Filesystem\WordPress\UploadPath;
 
 $uploadPath = new UploadPath();
 
@@ -69,9 +69,9 @@ $customPath = $uploadPath->subdir('exports'); // .../uploads/exports (auto-creat
 ### Named Hook Attributes
 
 ```php
-use WpPack\Component\Hook\Attribute\Filesystem\Filter\UploadDirFilter;
-use WpPack\Component\Hook\Attribute\Filesystem\Filter\FilesystemMethodFilter;
-use WpPack\Component\Hook\Attribute\Filesystem\Action\WpFilesystemInitAction;
+use WPPack\Component\Hook\Attribute\Filesystem\Filter\UploadDirFilter;
+use WPPack\Component\Hook\Attribute\Filesystem\Filter\FilesystemMethodFilter;
+use WPPack\Component\Hook\Attribute\Filesystem\Action\WpFilesystemInitAction;
 
 final class FilesystemHooks
 {

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,15 +11,15 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Messenger\Bridge\Sqs\Handler;
+namespace WPPack\Component\Messenger\Bridge\Sqs\Handler;
 
 use Psr\Log\LoggerInterface;
-use WpPack\Component\Messenger\MessageBusInterface;
-use WpPack\Component\Messenger\Serializer\SerializerInterface;
-use WpPack\Component\Messenger\Stamp\ReceivedStamp;
-use WpPack\Component\Serializer\Encoder\JsonEncoder;
-use WpPack\Component\Site\BlogSwitcher;
-use WpPack\Component\Site\BlogSwitcherInterface;
+use WPPack\Component\Messenger\MessageBusInterface;
+use WPPack\Component\Messenger\Serializer\SerializerInterface;
+use WPPack\Component\Messenger\Stamp\ReceivedStamp;
+use WPPack\Component\Serializer\Encoder\JsonEncoder;
+use WPPack\Component\Site\BlogSwitcher;
+use WPPack\Component\Site\BlogSwitcherInterface;
 
 final class SqsEventHandler
 {
@@ -81,7 +81,7 @@ final class SqsEventHandler
         $data = $this->jsonEncoder->decode($record['body'], 'json');
         $envelope = $this->serializer->decode($data);
 
-        $multisiteStamp = $envelope->last(\WpPack\Component\Messenger\Stamp\MultisiteStamp::class);
+        $multisiteStamp = $envelope->last(\WPPack\Component\Messenger\Stamp\MultisiteStamp::class);
 
         $dispatch = function () use ($envelope, $record): void {
             $existingStamps = $envelope->all();

@@ -1,6 +1,6 @@
-# WpPack Aurora PostgreSQL Data API Database Driver
+# WPPack Aurora PostgreSQL Data API Database Driver
 
-Aurora PostgreSQL Data API driver for the WpPack Database component. Uses RDS Data API (HTTP) instead of native PostgreSQL connections.
+Aurora PostgreSQL Data API driver for the WPPack Database component. Uses RDS Data API (HTTP) instead of native PostgreSQL connections.
 
 ## Installation
 

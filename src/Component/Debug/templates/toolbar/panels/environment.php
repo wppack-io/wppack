@@ -3,7 +3,7 @@
  * Environment panel template.
  *
  * @var array                                                        $data Environment data
- * @var \WpPack\Component\Debug\Toolbar\Panel\TemplateFormatters     $fmt  Template formatters
+ * @var \WPPack\Component\Debug\Toolbar\Panel\TemplateFormatters     $fmt  Template formatters
  */
 $php = $data['php'] ?? [];
 $extensions = $data['extensions'] ?? [];

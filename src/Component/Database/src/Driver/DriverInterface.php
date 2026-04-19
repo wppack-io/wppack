@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database\Driver;
+namespace WPPack\Component\Database\Driver;
 
-use WpPack\Component\Database\Platform\PlatformInterface;
-use WpPack\Component\Database\Result;
-use WpPack\Component\Database\Statement;
+use WPPack\Component\Database\Platform\PlatformInterface;
+use WPPack\Component\Database\Result;
+use WPPack\Component\Database\Statement;
 
 /**
  * Service Provider Interface for database drivers.
@@ -75,7 +75,7 @@ interface DriverInterface
      * Used by the db.php drop-in to translate WordPress MySQL queries
      * to the target engine's dialect. MySQL drivers return NullQueryTranslator.
      */
-    public function getQueryTranslator(): \WpPack\Component\Database\Translator\QueryTranslatorInterface;
+    public function getQueryTranslator(): \WPPack\Component\Database\Translator\QueryTranslatorInterface;
 
     /**
      * Return the underlying native connection handle.
@@ -89,7 +89,7 @@ interface DriverInterface
      * Escape $value and wrap it in single quotes so the result is a valid
      * SQL string literal for this engine (e.g. `'O''Brien'` on MySQL).
      *
-     * Used by WpPackWpdb for debug/display interpolation of '?' placeholders
+     * Used by WPPackWpdb for debug/display interpolation of '?' placeholders
      * — the driver still executes queries with native parameter binding.
      */
     public function quoteStringLiteral(string $value): string;

@@ -1,7 +1,7 @@
 # SiteHealth コンポーネント
 
 **パッケージ:** `wppack/site-health`
-**名前空間:** `WpPack\Component\SiteHealth\`
+**名前空間:** `WPPack\Component\SiteHealth\`
 **レイヤー:** Application
 
 WordPress のサイトヘルスチェック機能（`site_status_tests` フィルター、`debug_information` フィルター）をアトリビュートベースで登録・管理するコンポーネントです。
@@ -49,12 +49,12 @@ function my_custom_health_check_function() {
 }
 ```
 
-### After（WpPack）
+### After（WPPack）
 
 ```php
-use WpPack\Component\SiteHealth\HealthCheckInterface;
-use WpPack\Component\SiteHealth\Attribute\AsHealthCheck;
-use WpPack\Component\SiteHealth\Result;
+use WPPack\Component\SiteHealth\HealthCheckInterface;
+use WPPack\Component\SiteHealth\Attribute\AsHealthCheck;
+use WPPack\Component\SiteHealth\Result;
 
 #[AsHealthCheck(
     id: 'my_custom_test',
@@ -85,9 +85,9 @@ class MyCustomCheck implements HealthCheckInterface
 ### カスタムヘルスチェックの登録
 
 ```php
-use WpPack\Component\SiteHealth\HealthCheckInterface;
-use WpPack\Component\SiteHealth\Attribute\AsHealthCheck;
-use WpPack\Component\SiteHealth\Result;
+use WPPack\Component\SiteHealth\HealthCheckInterface;
+use WPPack\Component\SiteHealth\Attribute\AsHealthCheck;
+use WPPack\Component\SiteHealth\Result;
 
 #[AsHealthCheck(
     id: 'database_optimization',
@@ -146,8 +146,8 @@ class DatabaseOptimizationCheck implements HealthCheckInterface
 WordPress は非同期テスト（`async` カテゴリ）もサポートしています：
 
 ```php
-use WpPack\Component\HttpClient\HttpClient;
-use WpPack\Component\HttpClient\Exception\ConnectionException;
+use WPPack\Component\HttpClient\HttpClient;
+use WPPack\Component\HttpClient\Exception\ConnectionException;
 
 #[AsHealthCheck(
     id: 'external_api_connectivity',
@@ -192,8 +192,8 @@ class ExternalApiCheck implements HealthCheckInterface
 WordPress の「サイトヘルス情報」タブにカスタムセクションを追加します（`debug_information` フィルター）：
 
 ```php
-use WpPack\Component\SiteHealth\Attribute\AsDebugInfo;
-use WpPack\Component\SiteHealth\DebugSectionInterface;
+use WPPack\Component\SiteHealth\Attribute\AsDebugInfo;
+use WPPack\Component\SiteHealth\DebugSectionInterface;
 
 #[AsDebugInfo(
     section: 'my-plugin',
@@ -290,7 +290,7 @@ WordPress のステータス値に直接マッピング：
 DI コンテナを使わずに、`SiteHealthRegistry` でヘルスチェックとデバッグ情報を直接登録できます。
 
 ```php
-use WpPack\Component\SiteHealth\SiteHealthRegistry;
+use WPPack\Component\SiteHealth\SiteHealthRegistry;
 
 add_action('init', function () {
     $registry = new SiteHealthRegistry();
@@ -311,7 +311,7 @@ add_action('init', function () {
 
 ```php
 add_action('init', function () {
-    $container = new WpPack\Container();
+    $container = new WPPack\Container();
     $container->register([
         DatabaseOptimizationCheck::class,
         CacheStatusCheck::class,

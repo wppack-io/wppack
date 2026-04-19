@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,16 +11,16 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Monitoring\Bridge\CloudWatch\DependencyInjection;
+namespace WPPack\Component\Monitoring\Bridge\CloudWatch\DependencyInjection;
 
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\DependencyInjection\ServiceProviderInterface;
-use WpPack\Component\Monitoring\Bridge\CloudWatch\Discovery\DsqlDiscovery;
-use WpPack\Component\Monitoring\Bridge\CloudWatch\Discovery\DynamoDbDiscovery;
-use WpPack\Component\Monitoring\Bridge\CloudWatch\Discovery\ElastiCacheDiscovery;
-use WpPack\Component\Monitoring\Bridge\CloudWatch\Discovery\RdsDiscovery;
-use WpPack\Component\Monitoring\Bridge\CloudWatch\Discovery\S3Discovery;
-use WpPack\Component\Monitoring\Bridge\CloudWatch\Discovery\SesDiscovery;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\DependencyInjection\ServiceProviderInterface;
+use WPPack\Component\Monitoring\Bridge\CloudWatch\Discovery\DsqlDiscovery;
+use WPPack\Component\Monitoring\Bridge\CloudWatch\Discovery\DynamoDbDiscovery;
+use WPPack\Component\Monitoring\Bridge\CloudWatch\Discovery\ElastiCacheDiscovery;
+use WPPack\Component\Monitoring\Bridge\CloudWatch\Discovery\RdsDiscovery;
+use WPPack\Component\Monitoring\Bridge\CloudWatch\Discovery\S3Discovery;
+use WPPack\Component\Monitoring\Bridge\CloudWatch\Discovery\SesDiscovery;
 
 /**
  * Registers all AWS CloudWatch discovery providers.

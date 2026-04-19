@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\AmazonMailerPlugin\Tests\Message;
+namespace WPPack\Plugin\AmazonMailerPlugin\Tests\Message;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Plugin\AmazonMailerPlugin\Message\SesBounceMessage;
-use WpPack\Plugin\AmazonMailerPlugin\Message\SesComplaintMessage;
-use WpPack\Plugin\AmazonMailerPlugin\Message\SesNotificationNormalizer;
+use WPPack\Plugin\AmazonMailerPlugin\Message\SesBounceMessage;
+use WPPack\Plugin\AmazonMailerPlugin\Message\SesComplaintMessage;
+use WPPack\Plugin\AmazonMailerPlugin\Message\SesNotificationNormalizer;
 
 #[CoversClass(SesNotificationNormalizer::class)]
 final class SesNotificationNormalizerTest extends TestCase

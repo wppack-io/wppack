@@ -1,7 +1,7 @@
 # Cache コンポーネント
 
 **パッケージ:** `wppack/cache`
-**名前空間:** `WpPack\Component\Cache\`
+**名前空間:** `WPPack\Component\Cache\`
 **レイヤー:** Abstraction
 
 WordPress Object Cache API（`wp_cache_get()` / `wp_cache_set()`）のオブジェクト指向ラッパーです。WordPress のオブジェクトキャッシュを型安全かつモダンなインターフェースで操作できます。
@@ -54,10 +54,10 @@ function get_expensive_data(int $id): mixed {
 }
 ```
 
-### After（WpPack）
+### After（WPPack）
 
 ```php
-use WpPack\Component\Cache\CacheManager;
+use WPPack\Component\Cache\CacheManager;
 
 final class DataService
 {
@@ -104,7 +104,7 @@ final class DataService
 ### 基本操作
 
 ```php
-use WpPack\Component\Cache\CacheManager;
+use WPPack\Component\Cache\CacheManager;
 
 $cache = new CacheManager();
 
@@ -158,7 +158,7 @@ $cache->decrement('page_views', 1, 'stats');
 
 ## Object Cache ドロップイン
 
-WpPack は `object-cache.php` ドロップインを提供し、WordPress のオブジェクトキャッシュバックエンドを Redis / Valkey 等に差し替えることができます。`CacheManager` はドロップインの有無にかかわらず同じインターフェースで動作します。
+WPPack は `object-cache.php` ドロップインを提供し、WordPress のオブジェクトキャッシュバックエンドを Redis / Valkey 等に差し替えることができます。`CacheManager` はドロップインの有無にかかわらず同じインターフェースで動作します。
 
 > [!NOTE]
 > Object Cache ドロップインの WordPress 内部での仕組みについては [docs/wordpress/object-cache-dropin.md](../../wordpress/object-cache-dropin.md) を参照してください。
@@ -238,7 +238,7 @@ Symfony Cache 互換の DSN 形式をサポートします。
 > [!TIP]
 > アダプタの内部設計、Bridge パッケージの構成、新しい Bridge の追加手順については [adapter-architecture.md](adapter-architecture.md) を参照してください。
 
-WpPack の Object Cache ドロップインは Mailer コンポーネントと同じ Bridge パターンを採用しています:
+WPPack の Object Cache ドロップインは Mailer コンポーネントと同じ Bridge パターンを採用しています:
 
 - **`ObjectCache`**: WP_Object_Cache エンジン。ランタイムキャッシュ、グループ管理、シリアライズ、マルチサイト対応を担当
 - **`AdapterInterface`**: 純粋な永続化レイヤー（生文字列の保存/取得のみ）
@@ -391,8 +391,8 @@ wp cache get test_key
 コンテンツ変更時にキャッシュを自動的に無効化する例です。
 
 ```php
-use WpPack\Component\Hook\Attribute\Action;
-use WpPack\Component\Cache\CacheManager;
+use WPPack\Component\Hook\Attribute\Action;
+use WPPack\Component\Cache\CacheManager;
 
 class CacheInvalidator
 {

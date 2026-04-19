@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,16 +11,16 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Hook\Tests;
+namespace WPPack\Component\Hook\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Hook\Attribute\Action;
-use WpPack\Component\Hook\Attribute\Filter;
-use WpPack\Component\Hook\Exception\LogicException;
-use WpPack\Component\Hook\HookRegistry;
-use WpPack\Component\Hook\HookType;
-use WpPack\Component\Hook\RegisteredHook;
+use WPPack\Component\Hook\Attribute\Action;
+use WPPack\Component\Hook\Attribute\Filter;
+use WPPack\Component\Hook\Exception\LogicException;
+use WPPack\Component\Hook\HookRegistry;
+use WPPack\Component\Hook\HookType;
+use WPPack\Component\Hook\RegisteredHook;
 
 final class HookRegistryTest extends TestCase
 {

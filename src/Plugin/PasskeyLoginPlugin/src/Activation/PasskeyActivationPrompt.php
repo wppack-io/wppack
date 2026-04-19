@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\PasskeyLoginPlugin\Activation;
+namespace WPPack\Plugin\PasskeyLoginPlugin\Activation;
 
-use WpPack\Component\Transient\TransientManager;
+use WPPack\Component\Transient\TransientManager;
 
 /**
  * Shows a passkey registration prompt on wp-activate.php after successful user activation.

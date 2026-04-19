@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,33 +11,33 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Scim\DependencyInjection;
+namespace WPPack\Component\Scim\DependencyInjection;
 
 use Psr\EventDispatcher\EventDispatcherInterface;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\DependencyInjection\Reference;
-use WpPack\Component\DependencyInjection\ServiceProviderInterface;
-use WpPack\Component\Role\RoleProvider;
-use WpPack\Component\Sanitizer\Sanitizer;
-use WpPack\Component\Scim\Controller\GroupController;
-use WpPack\Component\Scim\Controller\ResourceTypeController;
-use WpPack\Component\Scim\Controller\SchemaController;
-use WpPack\Component\Scim\Controller\ServiceProviderConfigController;
-use WpPack\Component\Scim\Controller\UserController;
-use WpPack\Component\Scim\Filter\FilterParser;
-use WpPack\Component\Scim\Filter\WpUserQueryAdapter;
-use WpPack\Component\Scim\Mapping\GroupMapper;
-use WpPack\Component\Scim\Mapping\GroupMapperInterface;
-use WpPack\Component\Scim\Authentication\ScimUserStatusChecker;
-use WpPack\Component\Scim\Mapping\UserAttributeMapper;
-use WpPack\Component\Scim\Mapping\UserAttributeMapperInterface;
-use WpPack\Component\Scim\Patch\PatchProcessor;
-use WpPack\Component\Scim\Repository\ScimGroupRepository;
-use WpPack\Component\Scim\Repository\ScimUserRepository;
-use WpPack\Component\Scim\Schema\ServiceProviderConfig;
-use WpPack\Component\Scim\Serialization\ScimGroupSerializer;
-use WpPack\Component\Scim\Serialization\ScimUserSerializer;
-use WpPack\Component\User\UserRepositoryInterface;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\DependencyInjection\Reference;
+use WPPack\Component\DependencyInjection\ServiceProviderInterface;
+use WPPack\Component\Role\RoleProvider;
+use WPPack\Component\Sanitizer\Sanitizer;
+use WPPack\Component\Scim\Controller\GroupController;
+use WPPack\Component\Scim\Controller\ResourceTypeController;
+use WPPack\Component\Scim\Controller\SchemaController;
+use WPPack\Component\Scim\Controller\ServiceProviderConfigController;
+use WPPack\Component\Scim\Controller\UserController;
+use WPPack\Component\Scim\Filter\FilterParser;
+use WPPack\Component\Scim\Filter\WpUserQueryAdapter;
+use WPPack\Component\Scim\Mapping\GroupMapper;
+use WPPack\Component\Scim\Mapping\GroupMapperInterface;
+use WPPack\Component\Scim\Authentication\ScimUserStatusChecker;
+use WPPack\Component\Scim\Mapping\UserAttributeMapper;
+use WPPack\Component\Scim\Mapping\UserAttributeMapperInterface;
+use WPPack\Component\Scim\Patch\PatchProcessor;
+use WPPack\Component\Scim\Repository\ScimGroupRepository;
+use WPPack\Component\Scim\Repository\ScimUserRepository;
+use WPPack\Component\Scim\Schema\ServiceProviderConfig;
+use WPPack\Component\Scim\Serialization\ScimGroupSerializer;
+use WPPack\Component\Scim\Serialization\ScimUserSerializer;
+use WPPack\Component\User\UserRepositoryInterface;
 
 final class ScimServiceProvider implements ServiceProviderInterface
 {

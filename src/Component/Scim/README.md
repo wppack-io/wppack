@@ -1,4 +1,4 @@
-# WpPack Scim
+# WPPack Scim
 
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=scim)](https://codecov.io/github/wppack-io/wppack)
 
@@ -30,9 +30,9 @@ The easiest way to use SCIM provisioning is through the `wppack/scim-plugin` pac
 ### Standalone
 
 ```php
-use WpPack\Component\Scim\Controller\UserController;
-use WpPack\Component\Scim\Controller\GroupController;
-use WpPack\Component\Rest\RestRegistry;
+use WPPack\Component\Scim\Controller\UserController;
+use WPPack\Component\Scim\Controller\GroupController;
+use WPPack\Component\Rest\RestRegistry;
 
 $restRegistry->register($userController);
 $restRegistry->register($groupController);

@@ -14,12 +14,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Plugin\\RedisCachePlugin\\": "src/"
+            "WPPack\\Plugin\\RedisCachePlugin\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Plugin\\RedisCachePlugin\\Tests\\": "tests/"
+            "WPPack\\Plugin\\RedisCachePlugin\\Tests\\": "tests/"
         }
     },
     "extra": {

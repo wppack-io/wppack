@@ -6,7 +6,7 @@
  * @var list<string>                        $scriptHandles
  * @var array<string, array<string, mixed>> $allStyles
  * @var array<string, array<string, mixed>> $allScripts
- * @var \WpPack\Component\Debug\Toolbar\Panel\TemplateFormatters $fmt
+ * @var \WPPack\Component\Debug\Toolbar\Panel\TemplateFormatters $fmt
  */
 ?>
 <div class="wpd-section">

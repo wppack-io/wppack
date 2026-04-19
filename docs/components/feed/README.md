@@ -1,7 +1,7 @@
 # Feed コンポーネント
 
 **パッケージ:** `wppack/feed`
-**名前空間:** `WpPack\Component\Feed\`
+**名前空間:** `WPPack\Component\Feed\`
 **レイヤー:** Application
 
 WordPress のフィード機能（RSS 2.0、Atom）をアトリビュートベースで管理するコンポーネントです。カスタムフィードの登録（`add_feed()`）、フィードコンテンツの変更、フィードクエリの制御を型安全に行えます。
@@ -29,12 +29,12 @@ add_action('rss2_item', function () {
 });
 ```
 
-### After（WpPack）
+### After（WPPack）
 
 ```php
-use WpPack\Component\Feed\AbstractFeed;
-use WpPack\Component\Feed\Attribute\AsFeed;
-use WpPack\Component\Hook\Attribute\Feed\Action\Rss2ItemAction;
+use WPPack\Component\Feed\AbstractFeed;
+use WPPack\Component\Feed\Attribute\AsFeed;
+use WPPack\Component\Hook\Attribute\Feed\Action\Rss2ItemAction;
 
 #[AsFeed(slug: 'products', label: 'Product Feed')]
 class ProductFeed extends AbstractFeed
@@ -64,8 +64,8 @@ class ProductFeed extends AbstractFeed
 `AbstractFeed` を継承し `#[AsFeed]` アトリビュートでメタデータを指定します。`render()` メソッドでフィード出力を実装します。
 
 ```php
-use WpPack\Component\Feed\AbstractFeed;
-use WpPack\Component\Feed\Attribute\AsFeed;
+use WPPack\Component\Feed\AbstractFeed;
+use WPPack\Component\Feed\Attribute\AsFeed;
 
 #[AsFeed(slug: 'products', label: 'Product Feed')]
 class ProductFeed extends AbstractFeed
@@ -96,7 +96,7 @@ class ProductFeed extends AbstractFeed
 `FeedRegistry` で複数のフィードを一括管理できます。
 
 ```php
-use WpPack\Component\Feed\FeedRegistry;
+use WPPack\Component\Feed\FeedRegistry;
 
 $registry = new FeedRegistry();
 $registry->register(new ProductFeed());
@@ -112,9 +112,9 @@ $registry->all();      // ['products' => ProductFeed, 'events' => EventFeed]
 既存の RSS/Atom フィードを Named Hook アトリビュートで修正できます。`AbstractFeed` の継承は不要です。
 
 ```php
-use WpPack\Component\Hook\Attribute\Feed\Action\Rss2HeadAction;
-use WpPack\Component\Hook\Attribute\Feed\Action\Rss2ItemAction;
-use WpPack\Component\Hook\Attribute\Feed\Filter\TheExcerptRssFilter;
+use WPPack\Component\Hook\Attribute\Feed\Action\Rss2HeadAction;
+use WPPack\Component\Hook\Attribute\Feed\Action\Rss2ItemAction;
+use WPPack\Component\Hook\Attribute\Feed\Filter\TheExcerptRssFilter;
 
 class FeedCustomizer
 {
@@ -145,7 +145,7 @@ class FeedCustomizer
 ### フィードクエリの制御
 
 ```php
-use WpPack\Component\Hook\Attribute\Filter;
+use WPPack\Component\Hook\Attribute\Filter;
 
 class FeedQueryModifier
 {

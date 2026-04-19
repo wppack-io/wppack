@@ -11,12 +11,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\Mime\\": "src/"
+            "WPPack\\Component\\Mime\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Component\\Mime\\Tests\\": "tests/"
+            "WPPack\\Component\\Mime\\Tests\\": "tests/"
         }
     }
 }

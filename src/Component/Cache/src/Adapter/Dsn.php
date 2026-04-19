@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Cache\Adapter;
+namespace WPPack\Component\Cache\Adapter;
 
-use WpPack\Component\Cache\Exception\InvalidArgumentException;
+use WPPack\Component\Cache\Exception\InvalidArgumentException;
 
 final class Dsn
 {

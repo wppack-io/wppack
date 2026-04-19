@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,16 +11,16 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Mime\Tests\DependencyInjection;
+namespace WPPack\Component\Mime\Tests\DependencyInjection;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\Mime\DependencyInjection\MimeServiceProvider;
-use WpPack\Component\Mime\DependencyInjection\RegisterMimeTypeGuessersPass;
-use WpPack\Component\Mime\MimeTypeGuesserInterface;
-use WpPack\Component\Mime\MimeTypes;
-use WpPack\Component\Mime\MimeTypesInterface;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\Mime\DependencyInjection\MimeServiceProvider;
+use WPPack\Component\Mime\DependencyInjection\RegisterMimeTypeGuessersPass;
+use WPPack\Component\Mime\MimeTypeGuesserInterface;
+use WPPack\Component\Mime\MimeTypes;
+use WPPack\Component\Mime\MimeTypesInterface;
 
 final class MimeServiceProviderTest extends TestCase
 {

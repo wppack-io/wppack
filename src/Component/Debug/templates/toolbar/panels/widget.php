@@ -8,7 +8,7 @@
  * @var float                                                        $renderTime     Widget render time in ms
  * @var array                                                        $sidebars       Sidebar data
  * @var list<array>                                                  $sidebarTimings Sidebar render timing records
- * @var \WpPack\Component\Debug\Toolbar\Panel\TemplateFormatters     $fmt            Template formatters
+ * @var \WPPack\Component\Debug\Toolbar\Panel\TemplateFormatters     $fmt            Template formatters
  */
 ?>
 <div class="wpd-section">

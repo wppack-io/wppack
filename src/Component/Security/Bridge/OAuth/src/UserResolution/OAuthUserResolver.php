@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,16 +11,16 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Security\Bridge\OAuth\UserResolution;
+namespace WPPack\Component\Security\Bridge\OAuth\UserResolution;
 
 use Psr\EventDispatcher\EventDispatcherInterface;
-use WpPack\Component\Sanitizer\Sanitizer;
-use WpPack\Component\Security\Bridge\OAuth\Event\OAuthUserProvisionedEvent;
-use WpPack\Component\Security\Bridge\OAuth\Event\OAuthUserProvisionFailedEvent;
-use WpPack\Component\Security\Bridge\OAuth\Event\OAuthUserUpdatedEvent;
-use WpPack\Component\Security\Exception\AuthenticationException;
-use WpPack\Component\User\Exception\UserException;
-use WpPack\Component\User\UserRepositoryInterface;
+use WPPack\Component\Sanitizer\Sanitizer;
+use WPPack\Component\Security\Bridge\OAuth\Event\OAuthUserProvisionedEvent;
+use WPPack\Component\Security\Bridge\OAuth\Event\OAuthUserProvisionFailedEvent;
+use WPPack\Component\Security\Bridge\OAuth\Event\OAuthUserUpdatedEvent;
+use WPPack\Component\Security\Exception\AuthenticationException;
+use WPPack\Component\User\Exception\UserException;
+use WPPack\Component\User\UserRepositoryInterface;
 
 final class OAuthUserResolver implements OAuthUserResolverInterface
 {

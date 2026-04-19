@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Logger\Tests\Context;
+namespace WPPack\Component\Logger\Tests\Context;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Logger\Context\LoggerContext;
+use WPPack\Component\Logger\Context\LoggerContext;
 
 final class LoggerContextTest extends TestCase
 {

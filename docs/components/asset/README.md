@@ -1,7 +1,7 @@
 # Asset コンポーネント
 
 **パッケージ:** `wppack/asset`
-**名前空間:** `WpPack\Component\Asset\`
+**名前空間:** `WPPack\Component\Asset\`
 **レイヤー:** Feature
 
 WordPress のスクリプト／スタイル API（`wp_enqueue_script()` / `wp_enqueue_style()` 等）をオブジェクト指向でラップするコンポーネントです。DI 可能なアセット管理を提供します。
@@ -30,10 +30,10 @@ wp_enqueue_style('my-style', plugins_url('css/app.css', __FILE__), [], '1.0.0');
 wp_add_inline_style('my-style', '.custom { color: red; }');
 ```
 
-### After（WpPack）
+### After（WPPack）
 
 ```php
-use WpPack\Component\Asset\AssetManager;
+use WPPack\Component\Asset\AssetManager;
 
 class AdminAssetSubscriber
 {
@@ -124,9 +124,9 @@ $asset->addInlineStyle('handle', '.foo { color: red; }');           // インラ
 Asset コンポーネントは Hook コンポーネントの以下のアトリビュートと組み合わせて使用します:
 
 ```php
-use WpPack\Component\Asset\AssetManager;
-use WpPack\Component\Hook\Attribute\Admin\Action\AdminEnqueueScriptsAction;
-use WpPack\Component\Hook\Attribute\Theme\Action\WpEnqueueScriptsAction;
+use WPPack\Component\Asset\AssetManager;
+use WPPack\Component\Hook\Attribute\Admin\Action\AdminEnqueueScriptsAction;
+use WPPack\Component\Hook\Attribute\Theme\Action\WpEnqueueScriptsAction;
 
 final class AssetSubscriber
 {

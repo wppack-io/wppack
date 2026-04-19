@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,15 +11,15 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Mailer\DependencyInjection;
+namespace WPPack\Component\Mailer\DependencyInjection;
 
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\DependencyInjection\Reference;
-use WpPack\Component\DependencyInjection\ServiceProviderInterface;
-use WpPack\Component\Mailer\Mailer;
-use WpPack\Component\Mailer\Transport\NativeTransportFactory;
-use WpPack\Component\Mailer\Transport\Transport;
-use WpPack\Component\Mailer\Transport\TransportInterface;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\DependencyInjection\Reference;
+use WPPack\Component\DependencyInjection\ServiceProviderInterface;
+use WPPack\Component\Mailer\Mailer;
+use WPPack\Component\Mailer\Transport\NativeTransportFactory;
+use WPPack\Component\Mailer\Transport\Transport;
+use WPPack\Component\Mailer\Transport\TransportInterface;
 
 final class MailerServiceProvider implements ServiceProviderInterface
 {

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,26 +11,26 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\ScimPlugin\Tests;
+namespace WPPack\Plugin\ScimPlugin\Tests;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Admin\AdminPageRegistry;
-use WpPack\Component\DependencyInjection\Container;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\EventDispatcher\DependencyInjection\RegisterEventListenersPass;
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\Rest\DependencyInjection\RegisterRestControllersPass;
-use WpPack\Component\Rest\RestRegistry;
-use WpPack\Component\Role\RoleProvider;
-use WpPack\Component\Security\AuthenticationSession;
-use WpPack\Component\Security\Authentication\AuthenticationManager;
-use WpPack\Component\Security\DependencyInjection\RegisterAuthenticatorsPass;
-use WpPack\Plugin\ScimPlugin\Admin\ScimSettingsController;
-use WpPack\Plugin\ScimPlugin\Admin\ScimSettingsPage;
-use WpPack\Plugin\ScimPlugin\Configuration\ScimConfiguration;
-use WpPack\Plugin\ScimPlugin\ScimPlugin;
+use WPPack\Component\Admin\AdminPageRegistry;
+use WPPack\Component\DependencyInjection\Container;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\EventDispatcher\DependencyInjection\RegisterEventListenersPass;
+use WPPack\Component\HttpFoundation\Request;
+use WPPack\Component\Rest\DependencyInjection\RegisterRestControllersPass;
+use WPPack\Component\Rest\RestRegistry;
+use WPPack\Component\Role\RoleProvider;
+use WPPack\Component\Security\AuthenticationSession;
+use WPPack\Component\Security\Authentication\AuthenticationManager;
+use WPPack\Component\Security\DependencyInjection\RegisterAuthenticatorsPass;
+use WPPack\Plugin\ScimPlugin\Admin\ScimSettingsController;
+use WPPack\Plugin\ScimPlugin\Admin\ScimSettingsPage;
+use WPPack\Plugin\ScimPlugin\Configuration\ScimConfiguration;
+use WPPack\Plugin\ScimPlugin\ScimPlugin;
 
 #[CoversClass(ScimPlugin::class)]
 final class ScimPluginTest extends TestCase
@@ -111,7 +111,7 @@ final class ScimPluginTest extends TestCase
         $adminRegistry = new AdminPageRegistry();
         $restRegistry = new RestRegistry(new Request());
         $authManager = new AuthenticationManager(
-            new \WpPack\Component\EventDispatcher\EventDispatcher(),
+            new \WPPack\Component\EventDispatcher\EventDispatcher(),
             new Request(),
             new AuthenticationSession(),
         );

@@ -1,6 +1,6 @@
 # wppack/passkey-security
 
-WebAuthn/Passkey authentication bridge for WpPack Security. Implements `AuthenticatorInterface` for passwordless login using FIDO2/WebAuthn passkeys.
+WebAuthn/Passkey authentication bridge for WPPack Security. Implements `AuthenticatorInterface` for passwordless login using FIDO2/WebAuthn passkeys.
 
 ## Installation
 

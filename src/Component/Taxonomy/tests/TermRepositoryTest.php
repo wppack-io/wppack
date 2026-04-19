@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Taxonomy\Tests;
+namespace WPPack\Component\Taxonomy\Tests;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Taxonomy\Exception\TermException;
-use WpPack\Component\Taxonomy\TermRepository;
+use WPPack\Component\Taxonomy\Exception\TermException;
+use WPPack\Component\Taxonomy\TermRepository;
 
 #[CoversClass(TermRepository::class)]
 final class TermRepositoryTest extends TestCase

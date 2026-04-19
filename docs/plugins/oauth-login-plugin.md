@@ -109,7 +109,7 @@ src/Plugin/OAuthLoginPlugin/
 ## 名前空間
 
 ```
-WpPack\Plugin\OAuthLoginPlugin\
+WPPack\Plugin\OAuthLoginPlugin\
 ```
 
 ## 設定

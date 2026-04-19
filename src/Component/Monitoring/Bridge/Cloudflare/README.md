@@ -1,6 +1,6 @@
 # wppack/cloudflare-monitoring
 
-Cloudflare Analytics bridge for WpPack Monitoring component. Implements `MetricProviderInterface` to query Cloudflare analytics via the GraphQL API.
+Cloudflare Analytics bridge for WPPack Monitoring component. Implements `MetricProviderInterface` to query Cloudflare analytics via the GraphQL API.
 
 ## Installation
 

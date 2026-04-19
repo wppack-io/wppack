@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,16 +11,16 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\RoleProvisioningPlugin\Admin;
+namespace WPPack\Plugin\RoleProvisioningPlugin\Admin;
 
-use WpPack\Component\HttpFoundation\JsonResponse;
-use WpPack\Component\Rest\AbstractRestController;
-use WpPack\Component\Rest\Attribute\RestRoute;
-use WpPack\Component\Rest\HttpMethod;
-use WpPack\Component\Role\Attribute\IsGranted;
-use WpPack\Component\Role\RoleProvider;
-use WpPack\Plugin\RoleProvisioningPlugin\Configuration\RoleProvisioningConfiguration;
-use WpPack\Plugin\RoleProvisioningPlugin\Provisioning\RoleProvisioner;
+use WPPack\Component\HttpFoundation\JsonResponse;
+use WPPack\Component\Rest\AbstractRestController;
+use WPPack\Component\Rest\Attribute\RestRoute;
+use WPPack\Component\Rest\HttpMethod;
+use WPPack\Component\Role\Attribute\IsGranted;
+use WPPack\Component\Role\RoleProvider;
+use WPPack\Plugin\RoleProvisioningPlugin\Configuration\RoleProvisioningConfiguration;
+use WPPack\Plugin\RoleProvisioningPlugin\Provisioning\RoleProvisioner;
 
 #[RestRoute(namespace: 'wppack/v1/role-provisioning')]
 #[IsGranted('manage_options')]

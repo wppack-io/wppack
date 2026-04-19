@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,18 +11,18 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Scim\Authentication;
+namespace WPPack\Component\Scim\Authentication;
 
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\HttpFoundation\Response;
-use WpPack\Component\Scim\Schema\ScimConstants;
-use WpPack\Component\Security\Authentication\Passport\Badge\UserBadge;
-use WpPack\Component\Security\Authentication\Passport\Passport;
-use WpPack\Component\Security\Authentication\Passport\SelfValidatingPassport;
-use WpPack\Component\Security\Authentication\StatelessAuthenticatorInterface;
-use WpPack\Component\Security\Authentication\Token\ServiceToken;
-use WpPack\Component\Security\Authentication\Token\TokenInterface;
-use WpPack\Component\Security\Exception\AuthenticationException;
+use WPPack\Component\HttpFoundation\Request;
+use WPPack\Component\HttpFoundation\Response;
+use WPPack\Component\Scim\Schema\ScimConstants;
+use WPPack\Component\Security\Authentication\Passport\Badge\UserBadge;
+use WPPack\Component\Security\Authentication\Passport\Passport;
+use WPPack\Component\Security\Authentication\Passport\SelfValidatingPassport;
+use WPPack\Component\Security\Authentication\StatelessAuthenticatorInterface;
+use WPPack\Component\Security\Authentication\Token\ServiceToken;
+use WPPack\Component\Security\Authentication\Token\TokenInterface;
+use WPPack\Component\Security\Exception\AuthenticationException;
 
 final readonly class ScimBearerAuthenticator implements StatelessAuthenticatorInterface
 {

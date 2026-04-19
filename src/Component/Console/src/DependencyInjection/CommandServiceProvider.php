@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Console\DependencyInjection;
+namespace WPPack\Component\Console\DependencyInjection;
 
-use WpPack\Component\Console\CommandRegistry;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\DependencyInjection\ServiceProviderInterface;
+use WPPack\Component\Console\CommandRegistry;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\DependencyInjection\ServiceProviderInterface;
 
 final class CommandServiceProvider implements ServiceProviderInterface
 {

@@ -1,6 +1,6 @@
 {
     "name": "wppack/monolog-logger",
-    "description": "Monolog bridge for WpPack Logger",
+    "description": "Monolog bridge for WPPack Logger",
     "type": "library",
     "license": "MIT",
     "require": {
@@ -10,12 +10,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\Logger\\Bridge\\Monolog\\": "src/"
+            "WPPack\\Component\\Logger\\Bridge\\Monolog\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Component\\Logger\\Bridge\\Monolog\\Tests\\": "tests/"
+            "WPPack\\Component\\Logger\\Bridge\\Monolog\\Tests\\": "tests/"
         }
     }
 }

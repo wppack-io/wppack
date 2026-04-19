@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Debug\Toolbar\Panel;
+namespace WPPack\Component\Debug\Toolbar\Panel;
 
 interface RendererInterface
 {

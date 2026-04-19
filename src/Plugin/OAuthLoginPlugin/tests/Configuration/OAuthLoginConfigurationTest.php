@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\OAuthLoginPlugin\Tests\Configuration;
+namespace WPPack\Plugin\OAuthLoginPlugin\Tests\Configuration;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Plugin\OAuthLoginPlugin\Configuration\OAuthLoginConfiguration;
-use WpPack\Plugin\OAuthLoginPlugin\Configuration\ProviderConfiguration;
+use WPPack\Plugin\OAuthLoginPlugin\Configuration\OAuthLoginConfiguration;
+use WPPack\Plugin\OAuthLoginPlugin\Configuration\ProviderConfiguration;
 
 #[CoversClass(OAuthLoginConfiguration::class)]
 #[CoversClass(ProviderConfiguration::class)]
@@ -140,7 +140,7 @@ final class OAuthLoginConfigurationTest extends TestCase
             ],
         ]);
 
-        $config = \WpPack\Plugin\OAuthLoginPlugin\Configuration\OAuthLoginConfiguration::fromEnvironment();
+        $config = \WPPack\Plugin\OAuthLoginPlugin\Configuration\OAuthLoginConfiguration::fromEnvironment();
         echo json_encode([
             'count' => count($config->providers),
             'google_type' => $config->providers['google']->type,
@@ -189,7 +189,7 @@ final class OAuthLoginConfigurationTest extends TestCase
         require_once '%s';
 
         try {
-            \WpPack\Plugin\OAuthLoginPlugin\Configuration\OAuthLoginConfiguration::fromEnvironment();
+            \WPPack\Plugin\OAuthLoginPlugin\Configuration\OAuthLoginConfiguration::fromEnvironment();
             echo 'NO_EXCEPTION';
         } catch (\RuntimeException $e) {
             echo $e->getMessage();
@@ -229,7 +229,7 @@ final class OAuthLoginConfigurationTest extends TestCase
         ]);
 
         try {
-            \WpPack\Plugin\OAuthLoginPlugin\Configuration\OAuthLoginConfiguration::fromEnvironment();
+            \WPPack\Plugin\OAuthLoginPlugin\Configuration\OAuthLoginConfiguration::fromEnvironment();
             echo 'NO_EXCEPTION';
         } catch (\RuntimeException $e) {
             echo $e->getMessage();
@@ -268,7 +268,7 @@ final class OAuthLoginConfigurationTest extends TestCase
         ]);
 
         try {
-            \WpPack\Plugin\OAuthLoginPlugin\Configuration\OAuthLoginConfiguration::fromEnvironment();
+            \WPPack\Plugin\OAuthLoginPlugin\Configuration\OAuthLoginConfiguration::fromEnvironment();
             echo 'NO_EXCEPTION';
         } catch (\RuntimeException $e) {
             echo $e->getMessage();
@@ -315,7 +315,7 @@ final class OAuthLoginConfigurationTest extends TestCase
             ],
         ]);
 
-        $config = \WpPack\Plugin\OAuthLoginPlugin\Configuration\OAuthLoginConfiguration::fromEnvironment();
+        $config = \WPPack\Plugin\OAuthLoginPlugin\Configuration\OAuthLoginConfiguration::fromEnvironment();
         echo json_encode([
             'global_auto_provision' => $config->autoProvision,
             'google_auto_provision' => $config->providers['google']->autoProvision,
@@ -367,7 +367,7 @@ final class OAuthLoginConfigurationTest extends TestCase
             ],
         ]);
 
-        $config = \WpPack\Plugin\OAuthLoginPlugin\Configuration\OAuthLoginConfiguration::fromEnvironment();
+        $config = \WPPack\Plugin\OAuthLoginPlugin\Configuration\OAuthLoginConfiguration::fromEnvironment();
         echo $config->authorizePath;
         PHP;
 

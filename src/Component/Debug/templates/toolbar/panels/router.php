@@ -3,7 +3,7 @@
  * Router panel template.
  *
  * @var array<string,mixed>                                          $data Router data
- * @var \WpPack\Component\Debug\Toolbar\Panel\TemplateFormatters     $fmt  Template formatters
+ * @var \WPPack\Component\Debug\Toolbar\Panel\TemplateFormatters     $fmt  Template formatters
  */
 $template = (string) ($data['template'] ?? '');
 $templatePath = (string) ($data['template_path'] ?? '');

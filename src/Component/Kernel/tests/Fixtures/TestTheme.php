@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Kernel\Tests\Fixtures;
+namespace WPPack\Component\Kernel\Tests\Fixtures;
 
-use WpPack\Component\DependencyInjection\Container;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\Kernel\AbstractTheme;
+use WPPack\Component\DependencyInjection\Container;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\Kernel\AbstractTheme;
 
 class TestTheme extends AbstractTheme
 {
@@ -23,11 +23,11 @@ class TestTheme extends AbstractTheme
     public bool $booted = false;
     public ?Container $bootedContainer = null;
 
-    /** @var list<\WpPack\Component\DependencyInjection\Compiler\CompilerPassInterface> */
+    /** @var list<\WPPack\Component\DependencyInjection\Compiler\CompilerPassInterface> */
     private array $compilerPasses;
 
     /**
-     * @param list<\WpPack\Component\DependencyInjection\Compiler\CompilerPassInterface> $compilerPasses
+     * @param list<\WPPack\Component\DependencyInjection\Compiler\CompilerPassInterface> $compilerPasses
      */
     public function __construct(string $themeFile = __FILE__, array $compilerPasses = [])
     {

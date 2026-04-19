@@ -1,7 +1,7 @@
 # Filesystem Component
 
 **Package:** `wppack/filesystem`
-**Namespace:** `WpPack\Component\Filesystem\`
+**Namespace:** `WPPack\Component\Filesystem\`
 **Layer:** Infrastructure
 
 WordPress のファイル操作をモダンなオブジェクト指向 API でラップするコンポーネントです。`WP_Filesystem_Base` を DI 注入可能にし、ファイルの読み書き・コピー・移動・削除などの基本操作、WordPress アップロードディレクトリの統合、Named Hook Attributes を提供します。
@@ -34,10 +34,10 @@ $content = $wp_filesystem->get_contents('/path/to/file.txt');
 $wp_filesystem->put_contents('/path/to/file.txt', $data, FS_CHMOD_FILE);
 ```
 
-### After（WpPack）
+### After（WPPack）
 
 ```php
-use WpPack\Component\Filesystem\Filesystem;
+use WPPack\Component\Filesystem\Filesystem;
 
 // DI コンテナから取得（WP_Filesystem_Base は必須）
 $filesystem = $container->get(Filesystem::class);
@@ -53,7 +53,7 @@ $filesystem->write('/path/to/file.txt', $content);
 ### コンストラクタ
 
 ```php
-use WpPack\Component\Filesystem\Filesystem;
+use WPPack\Component\Filesystem\Filesystem;
 
 // WP_Filesystem_Base を注入（必須）
 $filesystem = new Filesystem($wp_filesystem);
@@ -155,7 +155,7 @@ $all = $filesystem->listContents('/path/to/dir', recursive: true);  // 再帰
 `UploadPath` は `wp_upload_dir()` のラッパーで、DI 注入可能です。
 
 ```php
-use WpPack\Component\Filesystem\WordPress\UploadPath;
+use WPPack\Component\Filesystem\WordPress\UploadPath;
 
 $uploadPath = new UploadPath();
 
@@ -180,7 +180,7 @@ $customPath = $uploadPath->subdir('exports');
 
 ```php
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Filesystem\Filesystem;
+use WPPack\Component\Filesystem\Filesystem;
 
 class FileOperationsTest extends TestCase
 {

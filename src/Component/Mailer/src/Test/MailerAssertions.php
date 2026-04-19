@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,10 +11,10 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Mailer\Test;
+namespace WPPack\Component\Mailer\Test;
 
 use PHPUnit\Framework\Assert;
-use WpPack\Component\Mailer\SentMessage;
+use WPPack\Component\Mailer\SentMessage;
 
 trait MailerAssertions
 {

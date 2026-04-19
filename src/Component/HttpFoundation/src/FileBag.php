@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\HttpFoundation;
+namespace WPPack\Component\HttpFoundation;
 
-use WpPack\Component\HttpFoundation\File\UploadedFile;
+use WPPack\Component\HttpFoundation\File\UploadedFile;
 
 class FileBag implements \Countable
 {

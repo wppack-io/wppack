@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Rest\Tests\Attribute;
+namespace WPPack\Component\Rest\Tests\Attribute;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Rest\Attribute\RestRoute;
-use WpPack\Component\Rest\HttpMethod;
+use WPPack\Component\Rest\Attribute\RestRoute;
+use WPPack\Component\Rest\HttpMethod;
 
 final class RestRouteTest extends TestCase
 {

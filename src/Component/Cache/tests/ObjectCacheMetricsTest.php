@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Cache\Tests;
+namespace WPPack\Component\Cache\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Cache\ObjectCacheMetrics;
+use WPPack\Component\Cache\ObjectCacheMetrics;
 
 final class ObjectCacheMetricsTest extends TestCase
 {

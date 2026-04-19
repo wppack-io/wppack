@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,18 +11,18 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Templating\Bridge\Twig\DependencyInjection;
+namespace WPPack\Component\Templating\Bridge\Twig\DependencyInjection;
 
 use Twig\Environment;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\DependencyInjection\Reference;
-use WpPack\Component\DependencyInjection\ServiceProviderInterface;
-use WpPack\Component\Templating\Bridge\Twig\Extension\WordPressExtension;
-use WpPack\Component\Templating\Bridge\Twig\TwigEnvironmentFactory;
-use WpPack\Component\Templating\Bridge\Twig\TwigRenderer;
-use WpPack\Component\Templating\ChainRenderer;
-use WpPack\Component\Templating\PhpRenderer;
-use WpPack\Component\Templating\TemplateRendererInterface;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\DependencyInjection\Reference;
+use WPPack\Component\DependencyInjection\ServiceProviderInterface;
+use WPPack\Component\Templating\Bridge\Twig\Extension\WordPressExtension;
+use WPPack\Component\Templating\Bridge\Twig\TwigEnvironmentFactory;
+use WPPack\Component\Templating\Bridge\Twig\TwigRenderer;
+use WPPack\Component\Templating\ChainRenderer;
+use WPPack\Component\Templating\PhpRenderer;
+use WPPack\Component\Templating\TemplateRendererInterface;
 
 final class TwigTemplatingServiceProvider implements ServiceProviderInterface
 {

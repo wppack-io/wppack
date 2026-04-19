@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\HttpClient\Tests;
+namespace WPPack\Component\HttpClient\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\HttpClient\Exception\RequestException;
-use WpPack\Component\HttpClient\Stream;
-use WpPack\Component\HttpClient\Response;
+use WPPack\Component\HttpClient\Exception\RequestException;
+use WPPack\Component\HttpClient\Stream;
+use WPPack\Component\HttpClient\Response;
 
 final class ResponseTest extends TestCase
 {
@@ -275,7 +275,7 @@ final class ResponseTest extends TestCase
     #[Test]
     public function throwOnClientErrorWithRequest(): void
     {
-        $request = new \WpPack\Component\HttpClient\Request('GET', 'https://example.com');
+        $request = new \WPPack\Component\HttpClient\Request('GET', 'https://example.com');
         $response = new Response(404);
 
         try {

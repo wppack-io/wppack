@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Messenger\Test;
+namespace WPPack\Component\Messenger\Test;
 
-use WpPack\Component\Messenger\Envelope;
-use WpPack\Component\Messenger\MessageBusInterface;
-use WpPack\Component\Messenger\Stamp\StampInterface;
+use WPPack\Component\Messenger\Envelope;
+use WPPack\Component\Messenger\MessageBusInterface;
+use WPPack\Component\Messenger\Stamp\StampInterface;
 
 final class TestMessageBus implements MessageBusInterface
 {

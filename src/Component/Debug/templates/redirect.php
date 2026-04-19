@@ -16,7 +16,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>HTTP <?= $view->e((string) $status) ?> Redirect - WpPack Debug</title>
+<title>HTTP <?= $view->e((string) $status) ?> Redirect - WPPack Debug</title>
 <style>
 /* ── Reset ─────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }

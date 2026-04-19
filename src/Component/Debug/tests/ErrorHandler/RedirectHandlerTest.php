@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Debug\Tests\ErrorHandler;
+namespace WPPack\Component\Debug\Tests\ErrorHandler;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Debug\DebugConfig;
-use WpPack\Component\Debug\ErrorHandler\ErrorRenderer;
-use WpPack\Component\Debug\ErrorHandler\RedirectHandler;
+use WPPack\Component\Debug\DebugConfig;
+use WPPack\Component\Debug\ErrorHandler\ErrorRenderer;
+use WPPack\Component\Debug\ErrorHandler\RedirectHandler;
 
 final class RedirectHandlerTest extends TestCase
 {

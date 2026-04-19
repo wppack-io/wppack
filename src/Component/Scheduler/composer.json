@@ -13,12 +13,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\Scheduler\\": "src/"
+            "WPPack\\Component\\Scheduler\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Component\\Scheduler\\Tests\\": "tests/"
+            "WPPack\\Component\\Scheduler\\Tests\\": "tests/"
         }
     }
 }

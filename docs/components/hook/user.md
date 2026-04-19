@@ -9,7 +9,7 @@
 **WordPress フック:** `user_register`
 
 ```php
-use WpPack\Component\Hook\Attribute\User\UserRegisterAction;
+use WPPack\Component\Hook\Attribute\User\UserRegisterAction;
 
 class UserRegistration
 {
@@ -39,7 +39,7 @@ class UserRegistration
 **WordPress フック:** `registration_errors`
 
 ```php
-use WpPack\Component\Hook\Attribute\User\RegistrationErrorsFilter;
+use WPPack\Component\Hook\Attribute\User\RegistrationErrorsFilter;
 use WP_Error;
 
 class RegistrationValidation
@@ -71,7 +71,7 @@ class RegistrationValidation
 **WordPress フック:** `register_form`
 
 ```php
-use WpPack\Component\Hook\Attribute\User\RegisterFormAction;
+use WPPack\Component\Hook\Attribute\User\RegisterFormAction;
 
 class RegistrationForm
 {
@@ -96,7 +96,7 @@ class RegistrationForm
 **WordPress フック:** `profile_update`
 
 ```php
-use WpPack\Component\Hook\Attribute\User\ProfileUpdateAction;
+use WPPack\Component\Hook\Attribute\User\ProfileUpdateAction;
 use WP_User;
 
 class UserProfile
@@ -122,7 +122,7 @@ class UserProfile
 自分のプロフィール編集画面にカスタムフィールドを表示します。
 
 ```php
-use WpPack\Component\Hook\Attribute\User\ShowUserProfileAction;
+use WPPack\Component\Hook\Attribute\User\ShowUserProfileAction;
 use WP_User;
 
 class UserProfileFields
@@ -166,7 +166,7 @@ class UserProfileFields
 他のユーザーのプロフィール編集画面にカスタムフィールドを表示します。
 
 ```php
-use WpPack\Component\Hook\Attribute\User\EditUserProfileAction;
+use WPPack\Component\Hook\Attribute\User\EditUserProfileAction;
 use WP_User;
 
 class AdminUserProfileFields
@@ -198,7 +198,7 @@ class AdminUserProfileFields
 自分のプロフィールのカスタムフィールドを保存します。
 
 ```php
-use WpPack\Component\Hook\Attribute\User\PersonalOptionsUpdateAction;
+use WPPack\Component\Hook\Attribute\User\PersonalOptionsUpdateAction;
 
 class SaveProfileFields
 {
@@ -228,7 +228,7 @@ class SaveProfileFields
 他のユーザーのプロフィールのカスタムフィールドを保存します。
 
 ```php
-use WpPack\Component\Hook\Attribute\User\EditUserProfileUpdateAction;
+use WPPack\Component\Hook\Attribute\User\EditUserProfileUpdateAction;
 
 class SaveAdminProfileFields
 {
@@ -253,7 +253,7 @@ class SaveAdminProfileFields
 **WordPress フック:** `delete_user`
 
 ```php
-use WpPack\Component\Hook\Attribute\User\DeleteUserAction;
+use WPPack\Component\Hook\Attribute\User\DeleteUserAction;
 
 class UserDeletion
 {
@@ -277,7 +277,7 @@ class UserDeletion
 **WordPress フック:** `deleted_user`
 
 ```php
-use WpPack\Component\Hook\Attribute\User\DeletedUserAction;
+use WPPack\Component\Hook\Attribute\User\DeletedUserAction;
 
 class PostUserDeletion
 {
@@ -299,7 +299,7 @@ class PostUserDeletion
 **WordPress フック:** `remove_user_from_blog`
 
 ```php
-use WpPack\Component\Hook\Attribute\User\RemoveUserFromBlogAction;
+use WPPack\Component\Hook\Attribute\User\RemoveUserFromBlogAction;
 
 class MultiSiteUserHandler
 {

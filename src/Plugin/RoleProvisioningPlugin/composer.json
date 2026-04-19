@@ -15,12 +15,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Plugin\\RoleProvisioningPlugin\\": "src/"
+            "WPPack\\Plugin\\RoleProvisioningPlugin\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Plugin\\RoleProvisioningPlugin\\Tests\\": "tests/"
+            "WPPack\\Plugin\\RoleProvisioningPlugin\\Tests\\": "tests/"
         }
     },
     "extra": {

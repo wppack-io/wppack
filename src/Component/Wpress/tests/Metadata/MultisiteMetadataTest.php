@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Wpress\Tests\Metadata;
+namespace WPPack\Component\Wpress\Tests\Metadata;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Wpress\Metadata\MultisiteMetadata;
-use WpPack\Component\Wpress\Metadata\SiteInfo;
-use WpPack\Component\Wpress\Metadata\SiteWordPressInfo;
+use WPPack\Component\Wpress\Metadata\MultisiteMetadata;
+use WPPack\Component\Wpress\Metadata\SiteInfo;
+use WPPack\Component\Wpress\Metadata\SiteWordPressInfo;
 
 final class MultisiteMetadataTest extends TestCase
 {

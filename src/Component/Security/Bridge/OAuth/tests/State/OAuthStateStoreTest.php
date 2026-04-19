@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Security\Bridge\OAuth\Tests\State;
+namespace WPPack\Component\Security\Bridge\OAuth\Tests\State;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Security\Bridge\OAuth\State\OAuthStateStore;
-use WpPack\Component\Security\Bridge\OAuth\State\StoredState;
-use WpPack\Component\Transient\TransientManager;
+use WPPack\Component\Security\Bridge\OAuth\State\OAuthStateStore;
+use WPPack\Component\Security\Bridge\OAuth\State\StoredState;
+use WPPack\Component\Transient\TransientManager;
 
 #[CoversClass(OAuthStateStore::class)]
 final class OAuthStateStoreTest extends TestCase

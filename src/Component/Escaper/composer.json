@@ -8,12 +8,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\Escaper\\": "src/"
+            "WPPack\\Component\\Escaper\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Component\\Escaper\\Tests\\": "tests/"
+            "WPPack\\Component\\Escaper\\Tests\\": "tests/"
         }
     }
 }

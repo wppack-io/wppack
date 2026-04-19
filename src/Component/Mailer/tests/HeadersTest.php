@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Mailer\Tests;
+namespace WPPack\Component\Mailer\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Mailer\Exception\InvalidArgumentException;
-use WpPack\Component\Mailer\Header\Headers;
+use WPPack\Component\Mailer\Exception\InvalidArgumentException;
+use WPPack\Component\Mailer\Header\Headers;
 
 final class HeadersTest extends TestCase
 {

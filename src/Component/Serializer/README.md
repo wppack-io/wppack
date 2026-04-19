@@ -2,7 +2,7 @@
 
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=serializer)](https://codecov.io/github/wppack-io/wppack)
 
-Object serialization with normalizer chain for WpPack.
+Object serialization with normalizer chain for WPPack.
 
 ## Installation
 
@@ -13,11 +13,11 @@ composer require wppack/serializer
 ## Usage
 
 ```php
-use WpPack\Component\Serializer\Encoder\JsonEncoder;
-use WpPack\Component\Serializer\Normalizer\BackedEnumNormalizer;
-use WpPack\Component\Serializer\Normalizer\DateTimeNormalizer;
-use WpPack\Component\Serializer\Normalizer\ObjectNormalizer;
-use WpPack\Component\Serializer\Serializer;
+use WPPack\Component\Serializer\Encoder\JsonEncoder;
+use WPPack\Component\Serializer\Normalizer\BackedEnumNormalizer;
+use WPPack\Component\Serializer\Normalizer\DateTimeNormalizer;
+use WPPack\Component\Serializer\Normalizer\ObjectNormalizer;
+use WPPack\Component\Serializer\Serializer;
 
 $serializer = new Serializer(
     normalizers: [

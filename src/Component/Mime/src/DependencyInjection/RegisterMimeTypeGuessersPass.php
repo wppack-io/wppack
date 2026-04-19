@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Mime\DependencyInjection;
+namespace WPPack\Component\Mime\DependencyInjection;
 
-use WpPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\DependencyInjection\Reference;
-use WpPack\Component\Mime\MimeTypes;
+use WPPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\DependencyInjection\Reference;
+use WPPack\Component\Mime\MimeTypes;
 
 final class RegisterMimeTypeGuessersPass implements CompilerPassInterface
 {

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,10 +11,10 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database\Bridge\AuroraDsql\Translator;
+namespace WPPack\Component\Database\Bridge\AuroraDsql\Translator;
 
-use WpPack\Component\Database\Bridge\Pgsql\Translator\PostgresqlQueryTranslator;
-use WpPack\Component\Database\Translator\QueryTranslatorInterface;
+use WPPack\Component\Database\Bridge\Pgsql\Translator\PostgresqlQueryTranslator;
+use WPPack\Component\Database\Translator\QueryTranslatorInterface;
 
 /**
  * Query translator for Aurora DSQL.

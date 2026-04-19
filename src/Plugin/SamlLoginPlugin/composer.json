@@ -15,12 +15,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Plugin\\SamlLoginPlugin\\": "src/"
+            "WPPack\\Plugin\\SamlLoginPlugin\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Plugin\\SamlLoginPlugin\\Tests\\": "tests/"
+            "WPPack\\Plugin\\SamlLoginPlugin\\Tests\\": "tests/"
         }
     },
     "extra": {

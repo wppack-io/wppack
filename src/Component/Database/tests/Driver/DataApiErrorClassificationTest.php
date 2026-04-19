@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database\Tests\Driver;
+namespace WPPack\Component\Database\Tests\Driver;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Database\Exception\CredentialsExpiredException;
-use WpPack\Component\Database\Exception\DriverException;
-use WpPack\Component\Database\Exception\DriverThrottledException;
-use WpPack\Component\Database\Exception\DriverTimeoutException;
+use WPPack\Component\Database\Exception\CredentialsExpiredException;
+use WPPack\Component\Database\Exception\DriverException;
+use WPPack\Component\Database\Exception\DriverThrottledException;
+use WPPack\Component\Database\Exception\DriverTimeoutException;
 
 /**
  * Unit tests for the exception-classification helper in
@@ -38,7 +38,7 @@ final class DataApiErrorClassificationTest extends TestCase
     private static function invokeClassify(string $sql, \Throwable $e): DriverException
     {
         $harness = new class {
-            use \WpPack\Component\Database\Driver\DataApiDriverTrait;
+            use \WPPack\Component\Database\Driver\DataApiDriverTrait;
 
             public function callClassify(string $sql, \Throwable $e): DriverException
             {

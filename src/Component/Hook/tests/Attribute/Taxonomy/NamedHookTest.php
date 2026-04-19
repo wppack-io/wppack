@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,22 +11,22 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Hook\Tests\Attribute\Taxonomy;
+namespace WPPack\Component\Hook\Tests\Attribute\Taxonomy;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Hook\Attribute\Action;
-use WpPack\Component\Hook\Attribute\Filter;
-use WpPack\Component\Hook\Hook;
-use WpPack\Component\Hook\HookType;
-use WpPack\Component\Hook\Attribute\Taxonomy\Action\CreateTermAction;
-use WpPack\Component\Hook\Attribute\Taxonomy\Action\DeleteTermAction;
-use WpPack\Component\Hook\Attribute\Taxonomy\Action\EditTermAction;
-use WpPack\Component\Hook\Attribute\Taxonomy\Action\PreGetTermsAction;
-use WpPack\Component\Hook\Attribute\Taxonomy\Action\RegisteredTaxonomyAction;
-use WpPack\Component\Hook\Attribute\Taxonomy\Filter\GetTermsFilter;
-use WpPack\Component\Hook\Attribute\Taxonomy\Filter\TermLinkFilter;
-use WpPack\Component\Hook\Attribute\Taxonomy\Filter\TermsClausesFilter;
+use WPPack\Component\Hook\Attribute\Action;
+use WPPack\Component\Hook\Attribute\Filter;
+use WPPack\Component\Hook\Hook;
+use WPPack\Component\Hook\HookType;
+use WPPack\Component\Hook\Attribute\Taxonomy\Action\CreateTermAction;
+use WPPack\Component\Hook\Attribute\Taxonomy\Action\DeleteTermAction;
+use WPPack\Component\Hook\Attribute\Taxonomy\Action\EditTermAction;
+use WPPack\Component\Hook\Attribute\Taxonomy\Action\PreGetTermsAction;
+use WPPack\Component\Hook\Attribute\Taxonomy\Action\RegisteredTaxonomyAction;
+use WPPack\Component\Hook\Attribute\Taxonomy\Filter\GetTermsFilter;
+use WPPack\Component\Hook\Attribute\Taxonomy\Filter\TermLinkFilter;
+use WPPack\Component\Hook\Attribute\Taxonomy\Filter\TermsClausesFilter;
 
 final class NamedHookTest extends TestCase
 {

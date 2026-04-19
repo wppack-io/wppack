@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Hook\Attribute\NavigationMenu\Filter;
+namespace WPPack\Component\Hook\Attribute\NavigationMenu\Filter;
 
-use WpPack\Component\Hook\Attribute\Filter;
+use WPPack\Component\Hook\Attribute\Filter;
 
 #[\Attribute(\Attribute::TARGET_METHOD | \Attribute::IS_REPEATABLE)]
 final class WpNavMenuItemsFilter extends Filter

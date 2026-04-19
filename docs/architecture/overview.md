@@ -2,7 +2,7 @@
 
 ## 設計思想
 
-WpPack は **コンポーネントライブラリ** です。フレームワークではありません。
+WPPack は **コンポーネントライブラリ** です。フレームワークではありません。
 
 - 必要なパッケージだけを `composer require` して使う
 - 各コンポーネントは独立して動作する（最小限の依存）
@@ -124,23 +124,23 @@ WordPress のアプリケーション構成要素を抽象化する。
 ### Component（コンポーネント）
 
 ```
-WpPack\Component\{Name}\
+WPPack\Component\{Name}\
 ```
 
 例:
-- `WpPack\Component\Messenger\MessageBus`
-- `WpPack\Component\Scheduler\RecurringMessage`
-- `WpPack\Component\Hook\HookManager`
+- `WPPack\Component\Messenger\MessageBus`
+- `WPPack\Component\Scheduler\RecurringMessage`
+- `WPPack\Component\Hook\HookManager`
 
 ### Plugin（プラグイン）
 
 ```
-WpPack\Plugin\{Name}\
+WPPack\Plugin\{Name}\
 ```
 
 例:
-- `WpPack\Plugin\EventBridgeSchedulerPlugin\EventBridgeSchedulerPlugin`
-- `WpPack\Plugin\S3StoragePlugin\S3StoragePlugin`
+- `WPPack\Plugin\EventBridgeSchedulerPlugin\EventBridgeSchedulerPlugin`
+- `WPPack\Plugin\S3StoragePlugin\S3StoragePlugin`
 
 ## レイヤー間の依存ルール
 

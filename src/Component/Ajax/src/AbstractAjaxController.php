@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,10 +11,10 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Ajax;
+namespace WPPack\Component\Ajax;
 
-use WpPack\Component\HttpFoundation\JsonResponse;
-use WpPack\Component\Security\SecurityAwareTrait;
+use WPPack\Component\HttpFoundation\JsonResponse;
+use WPPack\Component\Security\SecurityAwareTrait;
 
 abstract class AbstractAjaxController
 {

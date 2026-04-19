@@ -1,6 +1,6 @@
 # Component カタログ
 
-WpPack のコンポーネントパッケージ一覧。各コンポーネントは独立して `composer require` でインストールできます。
+WPPack のコンポーネントパッケージ一覧。各コンポーネントは独立して `composer require` でインストールできます。
 
 ## インストール
 
@@ -134,13 +134,13 @@ WordPress のアプリケーション構成要素を抽象化する。
 
 ## 名前空間
 
-すべてのコンポーネントは `WpPack\Component\{Name}\` 名前空間を使用します:
+すべてのコンポーネントは `WPPack\Component\{Name}\` 名前空間を使用します:
 
 ```
-WpPack\Component\Hook\
-WpPack\Component\Messenger\
-WpPack\Component\Scheduler\
-WpPack\Component\Mailer\
+WPPack\Component\Hook\
+WPPack\Component\Messenger\
+WPPack\Component\Scheduler\
+WPPack\Component\Mailer\
 ...
 ```
 

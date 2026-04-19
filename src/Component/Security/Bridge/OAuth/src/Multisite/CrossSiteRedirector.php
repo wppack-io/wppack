@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Security\Bridge\OAuth\Multisite;
+namespace WPPack\Component\Security\Bridge\OAuth\Multisite;
 
-use WpPack\Component\Site\BlogContextInterface;
-use WpPack\Component\Site\SiteRepositoryInterface;
-use WpPack\Component\Transient\TransientManager;
+use WPPack\Component\Site\BlogContextInterface;
+use WPPack\Component\Site\SiteRepositoryInterface;
+use WPPack\Component\Transient\TransientManager;
 
 final class CrossSiteRedirector
 {

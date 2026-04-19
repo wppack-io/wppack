@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,10 +11,10 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Debug\Handler;
+namespace WPPack\Component\Debug\Handler;
 
-use WpPack\Component\Debug\DataCollector\LoggerDataCollector;
-use WpPack\Component\Logger\Handler\HandlerInterface;
+use WPPack\Component\Debug\DataCollector\LoggerDataCollector;
+use WPPack\Component\Logger\Handler\HandlerInterface;
 
 final class DebugHandler implements HandlerInterface
 {

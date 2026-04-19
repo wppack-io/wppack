@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Handler\Processor;
+namespace WPPack\Component\Handler\Processor;
 
-use WpPack\Component\Handler\Configuration;
-use WpPack\Component\HttpFoundation\RedirectResponse;
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\HttpFoundation\Response;
+use WPPack\Component\Handler\Configuration;
+use WPPack\Component\HttpFoundation\RedirectResponse;
+use WPPack\Component\HttpFoundation\Request;
+use WPPack\Component\HttpFoundation\Response;
 
 class TrailingSlashProcessor implements ProcessorInterface
 {

@@ -7,7 +7,7 @@
 **WordPress Hook:** `esc_html`
 
 ```php
-use WpPack\Component\Hook\Attribute\Escaper\Filter\EscHtmlFilter;
+use WPPack\Component\Hook\Attribute\Escaper\Filter\EscHtmlFilter;
 
 final class HtmlEscaper
 {
@@ -24,7 +24,7 @@ final class HtmlEscaper
 **WordPress Hook:** `esc_attr`
 
 ```php
-use WpPack\Component\Hook\Attribute\Escaper\Filter\EscAttrFilter;
+use WPPack\Component\Hook\Attribute\Escaper\Filter\EscAttrFilter;
 
 final class AttrEscaper
 {
@@ -41,7 +41,7 @@ final class AttrEscaper
 **WordPress Hook:** `esc_url`
 
 ```php
-use WpPack\Component\Hook\Attribute\Escaper\Filter\EscUrlFilter;
+use WPPack\Component\Hook\Attribute\Escaper\Filter\EscUrlFilter;
 
 final class UrlEscaper
 {
@@ -58,7 +58,7 @@ final class UrlEscaper
 **WordPress Hook:** `esc_js`
 
 ```php
-use WpPack\Component\Hook\Attribute\Escaper\Filter\EscJsFilter;
+use WPPack\Component\Hook\Attribute\Escaper\Filter\EscJsFilter;
 
 final class JsEscaper
 {

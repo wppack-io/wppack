@@ -8,7 +8,7 @@
  * @var list<string>                                                 $usedShortcodes Used shortcode tags
  * @var array                                                        $shortcodes     All shortcode info
  * @var list<array>                                                  $executions     Execution time records
- * @var \WpPack\Component\Debug\Toolbar\Panel\TemplateFormatters     $fmt            Template formatters
+ * @var \WPPack\Component\Debug\Toolbar\Panel\TemplateFormatters     $fmt            Template formatters
  */
 ?>
 <div class="wpd-section">

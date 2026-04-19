@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Scheduler\Scheduler;
+namespace WPPack\Component\Scheduler\Scheduler;
 
-use WpPack\Component\Scheduler\Message\ScheduledMessage;
+use WPPack\Component\Scheduler\Message\ScheduledMessage;
 
 final class NullScheduler implements SchedulerInterface
 {

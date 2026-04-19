@@ -4,36 +4,36 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/bootstrap.php';
 
-use WpPack\Component\Debug\DataCollector\AbstractDataCollector;
-use WpPack\Component\Debug\Profiler\Profile;
-use WpPack\Component\Debug\Toolbar\Panel\CachePanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\DatabasePanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\DumpPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\EnvironmentPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\EventPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\HttpClientPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\LoggerPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\MailPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\MemoryPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\PerformancePanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\PluginPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\RequestPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\RouterPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\SchedulerPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\ThemePanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\StopwatchPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\AdminPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\AjaxPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\AssetPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\ContainerPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\FeedPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\RestPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\SecurityPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\ShortcodePanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\TranslationPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\WidgetPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\WordPressPanelRenderer;
-use WpPack\Component\Debug\Toolbar\ToolbarRenderer;
+use WPPack\Component\Debug\DataCollector\AbstractDataCollector;
+use WPPack\Component\Debug\Profiler\Profile;
+use WPPack\Component\Debug\Toolbar\Panel\CachePanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\DatabasePanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\DumpPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\EnvironmentPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\EventPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\HttpClientPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\LoggerPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\MailPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\MemoryPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\PerformancePanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\PluginPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\RequestPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\RouterPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\SchedulerPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\ThemePanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\StopwatchPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\AdminPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\AjaxPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\AssetPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\ContainerPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\FeedPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\RestPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\SecurityPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\ShortcodePanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\TranslationPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\WidgetPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\WordPressPanelRenderer;
+use WPPack\Component\Debug\Toolbar\ToolbarRenderer;
 
 /**
  * Fake collector that injects pre-built data for demo purposes.
@@ -115,7 +115,7 @@ $collectors[] = new FakeCollector('request', 'Request', 'GET 200', 'green', [
     ],
     'response_headers' => [
         'Content-Type' => 'text/html; charset=UTF-8',
-        'X-Powered-By' => 'WpPack',
+        'X-Powered-By' => 'WPPack',
         'Cache-Control' => 'no-cache, must-revalidate, max-age=0',
         'X-Content-Type-Options' => 'nosniff',
         'X-Frame-Options' => 'SAMEORIGIN',
@@ -912,16 +912,16 @@ $collectors[] = new FakeCollector('container', 'Container', '24', 'default', [
     'autowired_count' => 20,
     'lazy_count' => 3,
     'services' => [
-        'app.mailer' => ['class' => 'WpPack\\Component\\Mailer\\Mailer', 'public' => true, 'autowired' => true, 'lazy' => false, 'tags' => []],
-        'app.cache' => ['class' => 'WpPack\\Component\\Cache\\CachePool', 'public' => true, 'autowired' => true, 'lazy' => true, 'tags' => ['cache.pool']],
-        'app.event_dispatcher' => ['class' => 'WpPack\\Component\\EventDispatcher\\EventDispatcher', 'public' => true, 'autowired' => true, 'lazy' => false, 'tags' => []],
-        'app.http_client' => ['class' => 'WpPack\\Component\\HttpClient\\HttpClient', 'public' => true, 'autowired' => true, 'lazy' => true, 'tags' => ['http_client']],
-        'app.logger' => ['class' => 'WpPack\\Component\\Logger\\Logger', 'public' => true, 'autowired' => true, 'lazy' => false, 'tags' => ['monolog.logger']],
+        'app.mailer' => ['class' => 'WPPack\\Component\\Mailer\\Mailer', 'public' => true, 'autowired' => true, 'lazy' => false, 'tags' => []],
+        'app.cache' => ['class' => 'WPPack\\Component\\Cache\\CachePool', 'public' => true, 'autowired' => true, 'lazy' => true, 'tags' => ['cache.pool']],
+        'app.event_dispatcher' => ['class' => 'WPPack\\Component\\EventDispatcher\\EventDispatcher', 'public' => true, 'autowired' => true, 'lazy' => false, 'tags' => []],
+        'app.http_client' => ['class' => 'WPPack\\Component\\HttpClient\\HttpClient', 'public' => true, 'autowired' => true, 'lazy' => true, 'tags' => ['http_client']],
+        'app.logger' => ['class' => 'WPPack\\Component\\Logger\\Logger', 'public' => true, 'autowired' => true, 'lazy' => false, 'tags' => ['monolog.logger']],
     ],
     'compiler_passes' => [
-        'WpPack\\Component\\DependencyInjection\\CompilerPass\\RegisterHooksPass',
-        'WpPack\\Component\\DependencyInjection\\CompilerPass\\AutowirePass',
-        'WpPack\\Component\\DependencyInjection\\CompilerPass\\ResolveTaggedPass',
+        'WPPack\\Component\\DependencyInjection\\CompilerPass\\RegisterHooksPass',
+        'WPPack\\Component\\DependencyInjection\\CompilerPass\\AutowirePass',
+        'WPPack\\Component\\DependencyInjection\\CompilerPass\\ResolveTaggedPass',
     ],
     'tagged_services' => [
         'cache.pool' => ['app.cache'],
@@ -998,7 +998,7 @@ $collectors[] = new FakeCollector('wordpress', 'WordPress', '6.7.1', 'default', 
     'environment_type' => 'development',
     'is_multisite' => false,
     'mu_plugins' => [
-        'wppack-loader.php' => 'WpPack Loader',
+        'wppack-loader.php' => 'WPPack Loader',
         'redis-cache-dropin.php' => 'Redis Object Cache Drop-in',
     ],
     'active_plugins' => [
@@ -1065,7 +1065,7 @@ $html = $renderer->render();
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WpPack Debug Toolbar Demo</title>
+<title>WPPack Debug Toolbar Demo</title>
 <style>
 body {
     margin: 0;
@@ -1091,10 +1091,10 @@ p { line-height: 1.8; color: #666; }
 </head>
 <body>
 <div class="demo-content">
-    <h1>WpPack Debug Toolbar Demo</h1>
+    <h1>WPPack Debug Toolbar Demo</h1>
     <div class="card">
         <h2>Hello World</h2>
-        <p>This is a demo page showing the WpPack Debug toolbar with sample data.
+        <p>This is a demo page showing the WPPack Debug toolbar with sample data.
         Click any indicator in the toolbar below to expand the corresponding panel.</p>
         <p>This demo simulates a FSE (block theme) environment with the "Flavor" theme,
         showing block template detection, template parts, and all data collectors.</p>

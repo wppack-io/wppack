@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,16 +11,16 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\AmazonMailerPlugin\Tests\Handler;
+namespace WPPack\Plugin\AmazonMailerPlugin\Tests\Handler;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
-use WpPack\Component\Option\OptionManager;
-use WpPack\Plugin\AmazonMailerPlugin\Handler\ComplaintHandler;
-use WpPack\Plugin\AmazonMailerPlugin\Message\SesComplaintMessage;
-use WpPack\Plugin\AmazonMailerPlugin\SuppressionList;
+use WPPack\Component\Option\OptionManager;
+use WPPack\Plugin\AmazonMailerPlugin\Handler\ComplaintHandler;
+use WPPack\Plugin\AmazonMailerPlugin\Message\SesComplaintMessage;
+use WPPack\Plugin\AmazonMailerPlugin\SuppressionList;
 
 #[CoversClass(ComplaintHandler::class)]
 final class ComplaintHandlerTest extends TestCase

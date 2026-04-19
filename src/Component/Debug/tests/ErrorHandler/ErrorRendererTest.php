@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Debug\Tests\ErrorHandler;
+namespace WPPack\Component\Debug\Tests\ErrorHandler;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Debug\ErrorHandler\ErrorRenderer;
-use WpPack\Component\Debug\ErrorHandler\FlattenException;
+use WPPack\Component\Debug\ErrorHandler\ErrorRenderer;
+use WPPack\Component\Debug\ErrorHandler\FlattenException;
 
 final class ErrorRendererTest extends TestCase
 {
@@ -187,7 +187,7 @@ final class ErrorRendererTest extends TestCase
     public function shortClassNameWithNamespace(): void
     {
         self::assertSame('RuntimeException', $this->renderer->shortClassName('RuntimeException'));
-        self::assertSame('FlattenException', $this->renderer->shortClassName('WpPack\\Component\\Debug\\ErrorHandler\\FlattenException'));
+        self::assertSame('FlattenException', $this->renderer->shortClassName('WPPack\\Component\\Debug\\ErrorHandler\\FlattenException'));
     }
 
     #[Test]
@@ -248,7 +248,7 @@ final class ErrorRendererTest extends TestCase
 
         $phpRenderer = $renderer->getPhpRenderer();
 
-        self::assertInstanceOf(\WpPack\Component\Templating\PhpRenderer::class, $phpRenderer);
+        self::assertInstanceOf(\WPPack\Component\Templating\PhpRenderer::class, $phpRenderer);
         // Same instance returned on second call
         self::assertSame($phpRenderer, $renderer->getPhpRenderer());
     }
@@ -256,7 +256,7 @@ final class ErrorRendererTest extends TestCase
     #[Test]
     public function getPhpRendererReturnsInjectedRenderer(): void
     {
-        $phpRenderer = new \WpPack\Component\Templating\PhpRenderer([
+        $phpRenderer = new \WPPack\Component\Templating\PhpRenderer([
             dirname(__DIR__, 2) . '/templates',
         ]);
         $renderer = new ErrorRenderer($phpRenderer);

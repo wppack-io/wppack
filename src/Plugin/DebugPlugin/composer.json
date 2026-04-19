@@ -15,12 +15,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Plugin\\DebugPlugin\\": "src/"
+            "WPPack\\Plugin\\DebugPlugin\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Plugin\\DebugPlugin\\Tests\\": "tests/"
+            "WPPack\\Plugin\\DebugPlugin\\Tests\\": "tests/"
         }
     },
     "extra": {

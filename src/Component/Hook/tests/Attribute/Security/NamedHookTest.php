@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,26 +11,26 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Hook\Tests\Attribute\Security;
+namespace WPPack\Component\Hook\Tests\Attribute\Security;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Hook\Attribute\Action;
-use WpPack\Component\Hook\Attribute\Filter;
-use WpPack\Component\Hook\Hook;
-use WpPack\Component\Hook\HookType;
-use WpPack\Component\Hook\Attribute\Security\Action\PasswordResetAction;
-use WpPack\Component\Hook\Attribute\Security\Action\RetrievePasswordAction;
-use WpPack\Component\Hook\Attribute\Security\Action\WpLoginAction;
-use WpPack\Component\Hook\Attribute\Security\Action\WpLoginFailedAction;
-use WpPack\Component\Hook\Attribute\Security\Action\WpLogoutAction;
-use WpPack\Component\Security\Attribute\AsAuthenticator;
-use WpPack\Component\Security\Attribute\AsVoter;
-use WpPack\Component\Hook\Attribute\Security\Filter\AuthenticateFilter;
-use WpPack\Component\Hook\Attribute\Security\Filter\CheckPasswordFilter;
-use WpPack\Component\Hook\Attribute\Security\Filter\DetermineCurrentUserFilter;
-use WpPack\Component\Hook\Attribute\Security\Filter\MapMetaCapFilter;
-use WpPack\Component\Hook\Attribute\Security\Filter\UserHasCapFilter;
+use WPPack\Component\Hook\Attribute\Action;
+use WPPack\Component\Hook\Attribute\Filter;
+use WPPack\Component\Hook\Hook;
+use WPPack\Component\Hook\HookType;
+use WPPack\Component\Hook\Attribute\Security\Action\PasswordResetAction;
+use WPPack\Component\Hook\Attribute\Security\Action\RetrievePasswordAction;
+use WPPack\Component\Hook\Attribute\Security\Action\WpLoginAction;
+use WPPack\Component\Hook\Attribute\Security\Action\WpLoginFailedAction;
+use WPPack\Component\Hook\Attribute\Security\Action\WpLogoutAction;
+use WPPack\Component\Security\Attribute\AsAuthenticator;
+use WPPack\Component\Security\Attribute\AsVoter;
+use WPPack\Component\Hook\Attribute\Security\Filter\AuthenticateFilter;
+use WPPack\Component\Hook\Attribute\Security\Filter\CheckPasswordFilter;
+use WPPack\Component\Hook\Attribute\Security\Filter\DetermineCurrentUserFilter;
+use WPPack\Component\Hook\Attribute\Security\Filter\MapMetaCapFilter;
+use WPPack\Component\Hook\Attribute\Security\Filter\UserHasCapFilter;
 
 final class NamedHookTest extends TestCase
 {

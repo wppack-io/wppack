@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -12,12 +12,12 @@
 declare(strict_types=1);
 
 /**
- * Plugin Name:       WpPack Multisite URL Fixer
+ * Plugin Name:       WPPack Multisite URL Fixer
  * Description:       Fix asset and content URLs for WordPress Multisite
  * Version:           1.0.0
  * Requires PHP:      8.2
  * Requires at least: 6.9
- * Author:            WpPack
+ * Author:            WPPack
  * License:           MIT
  *
  * Fixes asset and content URLs in WordPress Multisite installations
@@ -27,7 +27,7 @@ declare(strict_types=1);
  * Subdomain mode:    no URL fixing needed (paths are already correct)
  */
 
-use WpPack\MuPlugin\MultisiteUrlFixer\Subscriber\UrlFixerSubscriber;
+use WPPack\MuPlugin\MultisiteUrlFixer\Subscriber\UrlFixerSubscriber;
 
 if (!is_multisite()) {
     return;

@@ -1,4 +1,4 @@
-# WpPack DependencyInjection
+# WPPack DependencyInjection
 
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=dependency_injection)](https://codecov.io/github/wppack-io/wppack)
 
@@ -15,9 +15,9 @@ composer require wppack/dependency-injection
 `ContainerValueResolver` resolves method parameters by looking up their type in the PSR-11 container. Used with `ArgumentResolver` from the HttpFoundation component.
 
 ```php
-use WpPack\Component\DependencyInjection\ValueResolver\ContainerValueResolver;
-use WpPack\Component\HttpFoundation\ArgumentResolver;
-use WpPack\Component\HttpFoundation\RequestValueResolver;
+use WPPack\Component\DependencyInjection\ValueResolver\ContainerValueResolver;
+use WPPack\Component\HttpFoundation\ArgumentResolver;
+use WPPack\Component\HttpFoundation\RequestValueResolver;
 
 $argumentResolver = new ArgumentResolver([
     new RequestValueResolver($request),

@@ -1,7 +1,7 @@
 # EventDispatcher Component
 
 **パッケージ:** `wppack/event-dispatcher`
-**名前空間:** `WpPack\Component\EventDispatcher\`
+**名前空間:** `WPPack\Component\EventDispatcher\`
 **レイヤー:** Infrastructure
 
 PSR-14 準拠のイベントディスパッチャー。WordPress フックシステム（`$wp_filter`）をバックエンドとして使用し、型安全なイベントオブジェクト、アトリビュートベースのリスナー登録、イベント伝播制御、WordPress フックとの双方向連携を提供します。
@@ -35,11 +35,11 @@ function add_to_newsletter($user_id, $userdata) {
 do_action('user_registered', $user_id, $userdata);
 ```
 
-### After（WpPack）
+### After（WPPack）
 
 ```php
-use WpPack\Component\EventDispatcher\Event;
-use WpPack\Component\EventDispatcher\Attribute\AsEventListener;
+use WPPack\Component\EventDispatcher\Event;
+use WPPack\Component\EventDispatcher\Attribute\AsEventListener;
 
 final readonly class UserRegisteredEvent extends Event
 {
@@ -85,7 +85,7 @@ $this->dispatcher->dispatch($event);
 強い型付けのオブジェクトとしてイベントを定義します。`Event` 基底クラスは PSR-14 の `StoppableEventInterface` を実装済みです：
 
 ```php
-use WpPack\Component\EventDispatcher\Event;
+use WPPack\Component\EventDispatcher\Event;
 
 final readonly class OrderPlacedEvent extends Event
 {
@@ -102,7 +102,7 @@ final readonly class OrderPlacedEvent extends Event
 WordPress フックを PSR-14 イベントとしてラップするクラスです。フック名と引数を保持し、マジック getter でタイプセーフなアクセスを提供します：
 
 ```php
-use WpPack\Component\EventDispatcher\WordPressEvent;
+use WPPack\Component\EventDispatcher\WordPressEvent;
 
 // 汎用的な WordPressEvent として WordPress フックをリッスン
 $dispatcher->addListener('save_post', function (WordPressEvent $event): void {
@@ -165,7 +165,7 @@ $dispatcher->addListener('the_content', function (WordPressEvent $event): void {
 #### クラスレベル（単一イベント Invokable リスナー）
 
 ```php
-use WpPack\Component\EventDispatcher\Attribute\AsEventListener;
+use WPPack\Component\EventDispatcher\Attribute\AsEventListener;
 
 #[AsEventListener]
 final class SendWelcomeEmailListener
@@ -211,7 +211,7 @@ final class OrderEventHandler
 ### 手動登録
 
 ```php
-use WpPack\Component\EventDispatcher\EventDispatcher;
+use WPPack\Component\EventDispatcher\EventDispatcher;
 
 $dispatcher = new EventDispatcher();
 
@@ -249,7 +249,7 @@ $dispatcher->addListener(
 `EventSubscriberInterface` を実装して、関連するイベントハンドラーを1つのクラスにまとめます。DI コンテナの `RegisterEventListenersPass` で自動検出されます（`#[AsEventListener]` アトリビュートが付与されている場合はサブスクライバーとしての登録はスキップされます）。
 
 ```php
-use WpPack\Component\EventDispatcher\EventSubscriberInterface;
+use WPPack\Component\EventDispatcher\EventSubscriberInterface;
 
 final class UserLifecycleSubscriber implements EventSubscriberInterface
 {
@@ -307,7 +307,7 @@ final class UserLifecycleSubscriber implements EventSubscriberInterface
 ## イベントのディスパッチ
 
 ```php
-use WpPack\Component\EventDispatcher\EventDispatcher;
+use WPPack\Component\EventDispatcher\EventDispatcher;
 
 $dispatcher = new EventDispatcher();
 $event = $dispatcher->dispatch(new OrderPlacedEvent($order, $customer));
@@ -324,8 +324,8 @@ EventDispatcher は内部で WordPress のフックシステム（`$wp_filter` /
 `addListener()` で WordPress のアクションフックに登録できます：
 
 ```php
-use WpPack\Component\EventDispatcher\EventDispatcher;
-use WpPack\Component\EventDispatcher\WordPressEvent;
+use WPPack\Component\EventDispatcher\EventDispatcher;
+use WPPack\Component\EventDispatcher\WordPressEvent;
 
 $dispatcher = new EventDispatcher();
 
@@ -373,8 +373,8 @@ $dispatcher->addListener('body_class', function (WordPressEvent $event): void {
 `#[AsEventListener]` の `event` パラメータに WordPress フック名を指定します：
 
 ```php
-use WpPack\Component\EventDispatcher\Attribute\AsEventListener;
-use WpPack\Component\EventDispatcher\WordPressEvent;
+use WPPack\Component\EventDispatcher\Attribute\AsEventListener;
+use WPPack\Component\EventDispatcher\WordPressEvent;
 
 final class ContentEnhancer
 {
@@ -403,8 +403,8 @@ final class ContentEnhancer
 `EventSubscriberInterface` でも WordPress フックを扱えます。デフォルトで全引数を受信するため、`acceptedArgs` の指定は通常不要です：
 
 ```php
-use WpPack\Component\EventDispatcher\EventSubscriberInterface;
-use WpPack\Component\EventDispatcher\WordPressEvent;
+use WPPack\Component\EventDispatcher\EventSubscriberInterface;
+use WPPack\Component\EventDispatcher\WordPressEvent;
 
 final class ThemeSetupSubscriber implements EventSubscriberInterface
 {
@@ -451,8 +451,8 @@ final class ThemeSetupSubscriber implements EventSubscriberInterface
 頻繁に使用するフックには `WordPressEvent` サブクラスを定義すると、マジック getter で型安全なアクセスが可能です：
 
 ```php
-use WpPack\Component\EventDispatcher\WordPressEvent;
-use WpPack\Component\EventDispatcher\Attribute\AsEventListener;
+use WPPack\Component\EventDispatcher\WordPressEvent;
+use WPPack\Component\EventDispatcher\Attribute\AsEventListener;
 
 final class SavePostEvent extends WordPressEvent
 {
@@ -491,9 +491,9 @@ final class PostCacheInvalidator
 | **EventDispatcher + カスタムイベント** | ドメインイベント。WordPress フックに依存しないアプリケーションロジック |
 
 ```php
-use WpPack\Component\Hook\Attribute\Action\InitAction;
-use WpPack\Component\EventDispatcher\Attribute\AsEventListener;
-use WpPack\Component\EventDispatcher\WordPressEvent;
+use WPPack\Component\Hook\Attribute\Action\InitAction;
+use WPPack\Component\EventDispatcher\Attribute\AsEventListener;
+use WPPack\Component\EventDispatcher\WordPressEvent;
 
 final class PostTypeRegistrar
 {
@@ -520,7 +520,7 @@ final class PostTypeRegistrar
 `Event` 基底クラスは `StoppableEventInterface` を実装済みです。`stopPropagation()` を呼び出すと後続リスナーの実行がスキップされます：
 
 ```php
-use WpPack\Component\EventDispatcher\Event;
+use WPPack\Component\EventDispatcher\Event;
 
 final class PaymentProcessingEvent extends Event
 {
@@ -553,8 +553,8 @@ final class PaymentHandler
 ## DI 統合
 
 ```php
-use WpPack\Component\EventDispatcher\DependencyInjection\EventDispatcherServiceProvider;
-use WpPack\Component\EventDispatcher\DependencyInjection\RegisterEventListenersPass;
+use WPPack\Component\EventDispatcher\DependencyInjection\EventDispatcherServiceProvider;
+use WPPack\Component\EventDispatcher\DependencyInjection\RegisterEventListenersPass;
 
 $builder->addServiceProvider(new EventDispatcherServiceProvider());
 $builder->addCompilerPass(new RegisterEventListenersPass());
@@ -574,7 +574,7 @@ $builder->addCompilerPass(new RegisterEventListenersPass());
 テスト用のヘルパートレイト。イベントのディスパッチとアサーションを簡潔に記述できます：
 
 ```php
-use WpPack\Component\EventDispatcher\Test\EventDispatcherTestTrait;
+use WPPack\Component\EventDispatcher\Test\EventDispatcherTestTrait;
 
 class OrderServiceTest extends TestCase
 {

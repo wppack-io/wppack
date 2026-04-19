@@ -3,9 +3,9 @@
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=monolog_logger)](https://codecov.io/github/wppack-io/wppack)
 
 **Package:** `wppack/monolog-logger`
-**Namespace:** `WpPack\Component\Logger\Bridge\Monolog\`
+**Namespace:** `WPPack\Component\Logger\Bridge\Monolog\`
 
-A Monolog bridge for WpPack Logger. Keeps the WpPack Logger frontend (`LoggerFactory` + `Logger`) intact and routes log records to Monolog via `MonologHandler` (a WpPack `HandlerInterface` implementation).
+A Monolog bridge for WPPack Logger. Keeps the WPPack Logger frontend (`LoggerFactory` + `Logger`) intact and routes log records to Monolog via `MonologHandler` (a WPPack `HandlerInterface` implementation).
 
 ## Installation
 
@@ -16,9 +16,9 @@ composer require wppack/monolog-logger
 ## Usage
 
 ```php
-use WpPack\Component\Logger\Bridge\Monolog\MonologHandler;
-use WpPack\Component\Logger\Bridge\Monolog\MonologLoggerFactory;
-use WpPack\Component\Logger\LoggerFactory;
+use WPPack\Component\Logger\Bridge\Monolog\MonologHandler;
+use WPPack\Component\Logger\Bridge\Monolog\MonologLoggerFactory;
+use WPPack\Component\Logger\LoggerFactory;
 use Monolog\Handler\StreamHandler;
 
 $monologFactory = new MonologLoggerFactory(

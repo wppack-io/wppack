@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Templating\Tests;
+namespace WPPack\Component\Templating\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Templating\ChainRenderer;
-use WpPack\Component\Templating\Exception\TemplateNotFoundException;
-use WpPack\Component\Templating\PhpRenderer;
-use WpPack\Component\Templating\TemplateRendererInterface;
+use WPPack\Component\Templating\ChainRenderer;
+use WPPack\Component\Templating\Exception\TemplateNotFoundException;
+use WPPack\Component\Templating\PhpRenderer;
+use WPPack\Component\Templating\TemplateRendererInterface;
 
 final class ChainRendererTest extends TestCase
 {

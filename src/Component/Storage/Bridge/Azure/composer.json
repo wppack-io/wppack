@@ -1,6 +1,6 @@
 {
     "name": "wppack/azure-storage",
-    "description": "Azure Blob Storage adapter for WpPack Storage",
+    "description": "Azure Blob Storage adapter for WPPack Storage",
     "type": "library",
     "license": "MIT",
     "require": {
@@ -10,12 +10,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\Storage\\Bridge\\Azure\\": "src/"
+            "WPPack\\Component\\Storage\\Bridge\\Azure\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Component\\Storage\\Bridge\\Azure\\Tests\\": "tests/"
+            "WPPack\\Component\\Storage\\Bridge\\Azure\\Tests\\": "tests/"
         }
     }
 }

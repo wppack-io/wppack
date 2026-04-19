@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,18 +11,18 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Security\Tests\EventListener;
+namespace WPPack\Component\Security\Tests\EventListener;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Security\Authentication\Passport\Badge\CredentialsBadge;
-use WpPack\Component\Security\Authentication\Passport\Badge\UserBadge;
-use WpPack\Component\Security\Authentication\Passport\Passport;
-use WpPack\Component\Security\Authentication\Passport\SelfValidatingPassport;
-use WpPack\Component\Security\Event\CheckPassportEvent;
-use WpPack\Component\Security\EventListener\CheckCredentialsListener;
-use WpPack\Component\Security\Exception\InvalidCredentialsException;
+use WPPack\Component\Security\Authentication\Passport\Badge\CredentialsBadge;
+use WPPack\Component\Security\Authentication\Passport\Badge\UserBadge;
+use WPPack\Component\Security\Authentication\Passport\Passport;
+use WPPack\Component\Security\Authentication\Passport\SelfValidatingPassport;
+use WPPack\Component\Security\Event\CheckPassportEvent;
+use WPPack\Component\Security\EventListener\CheckCredentialsListener;
+use WPPack\Component\Security\Exception\InvalidCredentialsException;
 
 #[CoversClass(CheckCredentialsListener::class)]
 final class CheckCredentialsListenerTest extends TestCase
@@ -49,7 +49,7 @@ final class CheckCredentialsListenerTest extends TestCase
         $credentialsBadge = new CredentialsBadge($password);
         $passport = new Passport($userBadge, $credentialsBadge);
 
-        $authenticator = $this->createStub(\WpPack\Component\Security\Authentication\AuthenticatorInterface::class);
+        $authenticator = $this->createStub(\WPPack\Component\Security\Authentication\AuthenticatorInterface::class);
         $event = new CheckPassportEvent($authenticator, $passport);
 
         self::assertFalse($credentialsBadge->isResolved());
@@ -71,7 +71,7 @@ final class CheckCredentialsListenerTest extends TestCase
         $credentialsBadge = new CredentialsBadge('wrong-password');
         $passport = new Passport($userBadge, $credentialsBadge);
 
-        $authenticator = $this->createStub(\WpPack\Component\Security\Authentication\AuthenticatorInterface::class);
+        $authenticator = $this->createStub(\WPPack\Component\Security\Authentication\AuthenticatorInterface::class);
         $event = new CheckPassportEvent($authenticator, $passport);
 
         $this->expectException(InvalidCredentialsException::class);
@@ -85,7 +85,7 @@ final class CheckCredentialsListenerTest extends TestCase
         $userBadge = new UserBadge('test-user');
         $passport = new SelfValidatingPassport($userBadge);
 
-        $authenticator = $this->createStub(\WpPack\Component\Security\Authentication\AuthenticatorInterface::class);
+        $authenticator = $this->createStub(\WPPack\Component\Security\Authentication\AuthenticatorInterface::class);
         $event = new CheckPassportEvent($authenticator, $passport);
 
         // Should not throw, simply returns

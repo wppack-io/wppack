@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Mailer\Bridge\Azure\Tests\Transport;
+namespace WPPack\Component\Mailer\Bridge\Azure\Tests\Transport;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Mailer\Bridge\Azure\Transport\AzureApiTransport;
-use WpPack\Component\Mailer\Bridge\Azure\Transport\AzureTransportFactory;
-use WpPack\Component\Mailer\Transport\Dsn;
+use WPPack\Component\Mailer\Bridge\Azure\Transport\AzureApiTransport;
+use WPPack\Component\Mailer\Bridge\Azure\Transport\AzureTransportFactory;
+use WPPack\Component\Mailer\Transport\Dsn;
 
 final class AzureTransportFactoryTest extends TestCase
 {
@@ -67,7 +67,7 @@ final class AzureTransportFactoryTest extends TestCase
         $factory = new AzureTransportFactory();
         $dsn = Dsn::fromString('azure://default');
 
-        $this->expectException(\WpPack\Component\Mailer\Exception\InvalidArgumentException::class);
+        $this->expectException(\WPPack\Component\Mailer\Exception\InvalidArgumentException::class);
         $factory->create($dsn);
     }
 
@@ -77,7 +77,7 @@ final class AzureTransportFactoryTest extends TestCase
         $factory = new AzureTransportFactory();
         $dsn = Dsn::fromString('unsupported://default');
 
-        $this->expectException(\WpPack\Component\Mailer\Exception\UnsupportedSchemeException::class);
+        $this->expectException(\WPPack\Component\Mailer\Exception\UnsupportedSchemeException::class);
         $factory->create($dsn);
     }
 

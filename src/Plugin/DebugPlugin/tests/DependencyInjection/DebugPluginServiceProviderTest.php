@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,21 +11,21 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\DebugPlugin\Tests\DependencyInjection;
+namespace WPPack\Plugin\DebugPlugin\Tests\DependencyInjection;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Debug\DebugConfig;
-use WpPack\Component\Debug\ErrorHandler\ExceptionHandler;
-use WpPack\Component\Debug\ErrorHandler\RedirectHandler;
-use WpPack\Component\Debug\ErrorHandler\WpDieHandler;
-use WpPack\Component\Debug\Profiler\Profiler;
-use WpPack\Component\Debug\Toolbar\ToolbarSubscriber;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\DependencyInjection\ServiceProviderInterface;
-use WpPack\Component\Logger\LoggerFactory;
-use WpPack\Plugin\DebugPlugin\DependencyInjection\DebugPluginServiceProvider;
+use WPPack\Component\Debug\DebugConfig;
+use WPPack\Component\Debug\ErrorHandler\ExceptionHandler;
+use WPPack\Component\Debug\ErrorHandler\RedirectHandler;
+use WPPack\Component\Debug\ErrorHandler\WpDieHandler;
+use WPPack\Component\Debug\Profiler\Profiler;
+use WPPack\Component\Debug\Toolbar\ToolbarSubscriber;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\DependencyInjection\ServiceProviderInterface;
+use WPPack\Component\Logger\LoggerFactory;
+use WPPack\Plugin\DebugPlugin\DependencyInjection\DebugPluginServiceProvider;
 
 #[CoversClass(DebugPluginServiceProvider::class)]
 final class DebugPluginServiceProviderTest extends TestCase

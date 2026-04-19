@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Security\Bridge\OAuth\UserResolution;
+namespace WPPack\Component\Security\Bridge\OAuth\UserResolution;
 
 interface OAuthUserResolverInterface
 {
@@ -21,7 +21,7 @@ interface OAuthUserResolverInterface
      * @param string $subject The subject identifier (sub claim)
      * @param array<string, mixed> $claims All available claims from ID token or userinfo
      * @return \WP_User The resolved WordPress user
-     * @throws \WpPack\Component\Security\Exception\AuthenticationException If user cannot be resolved
+     * @throws \WPPack\Component\Security\Exception\AuthenticationException If user cannot be resolved
      */
     public function resolveUser(string $subject, array $claims): \WP_User;
 }

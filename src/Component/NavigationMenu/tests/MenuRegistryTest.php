@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\NavigationMenu\Tests;
+namespace WPPack\Component\NavigationMenu\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\NavigationMenu\MenuLocationProviderInterface;
-use WpPack\Component\NavigationMenu\MenuRegistry;
+use WPPack\Component\NavigationMenu\MenuLocationProviderInterface;
+use WPPack\Component\NavigationMenu\MenuRegistry;
 
 final class MenuRegistryTest extends TestCase
 {

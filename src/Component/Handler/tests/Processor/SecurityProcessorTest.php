@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Handler\Tests\Processor;
+namespace WPPack\Component\Handler\Tests\Processor;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Handler\Configuration;
-use WpPack\Component\Handler\Exception\SecurityException;
-use WpPack\Component\Handler\Processor\SecurityProcessor;
-use WpPack\Component\HttpFoundation\Request;
+use WPPack\Component\Handler\Configuration;
+use WPPack\Component\Handler\Exception\SecurityException;
+use WPPack\Component\Handler\Processor\SecurityProcessor;
+use WPPack\Component\HttpFoundation\Request;
 
 final class SecurityProcessorTest extends TestCase
 {

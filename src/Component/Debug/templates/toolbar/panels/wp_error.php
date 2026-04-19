@@ -5,7 +5,7 @@
  * @var int                                                          $totalCount       Total error count
  * @var int                                                          $uniqueObjects    Unique WP_Error object count
  * @var list<array>                                                  $errors           Error records
- * @var \WpPack\Component\Debug\Toolbar\Panel\TemplateFormatters     $fmt              Template formatters
+ * @var \WPPack\Component\Debug\Toolbar\Panel\TemplateFormatters     $fmt              Template formatters
  * @var float                                                        $requestTimeFloat Request start timestamp
  */
 ?>

@@ -34,7 +34,7 @@ Real-time metric cards with sparkline graphs, grouped by provider. Configurable 
 
 ### Auto-Discovery
 
-Automatically detects AWS services from existing WpPack plugin configurations:
+Automatically detects AWS services from existing WPPack plugin configurations:
 
 - **RDS / Aurora** from `DB_HOST` (detects cluster vs instance endpoints)
 - **ElastiCache (Redis)** from `WPPACK_CACHE_DSN`
@@ -62,7 +62,7 @@ CloudWatch access requires the following IAM policy:
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "WpPackMonitoring",
+      "Sid": "WPPackMonitoring",
       "Effect": "Allow",
       "Action": "cloudwatch:GetMetricData",
       "Resource": "*"

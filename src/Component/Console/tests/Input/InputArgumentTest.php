@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Console\Tests\Input;
+namespace WPPack\Component\Console\Tests\Input;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Console\Exception\InvalidArgumentException;
-use WpPack\Component\Console\Input\InputArgument;
+use WPPack\Component\Console\Exception\InvalidArgumentException;
+use WPPack\Component\Console\Input\InputArgument;
 
 final class InputArgumentTest extends TestCase
 {

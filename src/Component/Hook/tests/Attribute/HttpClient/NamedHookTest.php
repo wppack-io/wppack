@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,26 +11,26 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Hook\Tests\Attribute\HttpClient;
+namespace WPPack\Component\Hook\Tests\Attribute\HttpClient;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Hook\Attribute\Action;
-use WpPack\Component\Hook\Attribute\Filter;
-use WpPack\Component\Hook\Hook;
-use WpPack\Component\Hook\HookType;
-use WpPack\Component\Hook\Attribute\HttpClient\Action\HttpApiDebugAction;
-use WpPack\Component\Hook\Attribute\HttpClient\Filter\HttpApiCurlFilter;
-use WpPack\Component\Hook\Attribute\HttpClient\Filter\HttpApiTransportsFilter;
-use WpPack\Component\Hook\Attribute\HttpClient\Filter\HttpLocalRequestFilter;
-use WpPack\Component\Hook\Attribute\HttpClient\Filter\HttpRequestArgsFilter;
-use WpPack\Component\Hook\Attribute\HttpClient\Filter\HttpRequestHostIsExternalFilter;
-use WpPack\Component\Hook\Attribute\HttpClient\Filter\HttpRequestRedirectCountFilter;
-use WpPack\Component\Hook\Attribute\HttpClient\Filter\HttpRequestTimeoutFilter;
-use WpPack\Component\Hook\Attribute\HttpClient\Filter\HttpResponseFilter;
-use WpPack\Component\Hook\Attribute\HttpClient\Filter\HttpsLocalSslVerifyFilter;
-use WpPack\Component\Hook\Attribute\HttpClient\Filter\HttpsSslVerifyFilter;
-use WpPack\Component\Hook\Attribute\HttpClient\Filter\PreHttpRequestFilter;
+use WPPack\Component\Hook\Attribute\Action;
+use WPPack\Component\Hook\Attribute\Filter;
+use WPPack\Component\Hook\Hook;
+use WPPack\Component\Hook\HookType;
+use WPPack\Component\Hook\Attribute\HttpClient\Action\HttpApiDebugAction;
+use WPPack\Component\Hook\Attribute\HttpClient\Filter\HttpApiCurlFilter;
+use WPPack\Component\Hook\Attribute\HttpClient\Filter\HttpApiTransportsFilter;
+use WPPack\Component\Hook\Attribute\HttpClient\Filter\HttpLocalRequestFilter;
+use WPPack\Component\Hook\Attribute\HttpClient\Filter\HttpRequestArgsFilter;
+use WPPack\Component\Hook\Attribute\HttpClient\Filter\HttpRequestHostIsExternalFilter;
+use WPPack\Component\Hook\Attribute\HttpClient\Filter\HttpRequestRedirectCountFilter;
+use WPPack\Component\Hook\Attribute\HttpClient\Filter\HttpRequestTimeoutFilter;
+use WPPack\Component\Hook\Attribute\HttpClient\Filter\HttpResponseFilter;
+use WPPack\Component\Hook\Attribute\HttpClient\Filter\HttpsLocalSslVerifyFilter;
+use WPPack\Component\Hook\Attribute\HttpClient\Filter\HttpsSslVerifyFilter;
+use WPPack\Component\Hook\Attribute\HttpClient\Filter\PreHttpRequestFilter;
 
 final class NamedHookTest extends TestCase
 {

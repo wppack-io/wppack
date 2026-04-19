@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Security\Authorization\Voter;
+namespace WPPack\Component\Security\Authorization\Voter;
 
-use WpPack\Component\Security\Authentication\Token\TokenInterface;
+use WPPack\Component\Security\Authentication\Token\TokenInterface;
 
 final class RoleVoter implements VoterInterface
 {

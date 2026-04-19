@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\HttpClient\Tests;
+namespace WPPack\Component\HttpClient\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Client\ClientInterface;
-use WpPack\Component\HttpClient\HttpClient;
-use WpPack\Component\HttpClient\SafeHttpClient;
+use WPPack\Component\HttpClient\HttpClient;
+use WPPack\Component\HttpClient\SafeHttpClient;
 
 final class SafeHttpClientTest extends TestCase
 {

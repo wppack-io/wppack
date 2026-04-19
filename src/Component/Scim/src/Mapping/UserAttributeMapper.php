@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Scim\Mapping;
+namespace WPPack\Component\Scim\Mapping;
 
 use Psr\EventDispatcher\EventDispatcherInterface;
-use WpPack\Component\Sanitizer\Sanitizer;
-use WpPack\Component\Scim\Event\ScimUserAttributesMappedEvent;
-use WpPack\Component\Scim\Event\ScimUserSerializedEvent;
-use WpPack\Component\Scim\Schema\ScimConstants;
-use WpPack\Component\User\UserRepositoryInterface;
+use WPPack\Component\Sanitizer\Sanitizer;
+use WPPack\Component\Scim\Event\ScimUserAttributesMappedEvent;
+use WPPack\Component\Scim\Event\ScimUserSerializedEvent;
+use WPPack\Component\Scim\Schema\ScimConstants;
+use WPPack\Component\User\UserRepositoryInterface;
 
 final readonly class UserAttributeMapper implements UserAttributeMapperInterface
 {

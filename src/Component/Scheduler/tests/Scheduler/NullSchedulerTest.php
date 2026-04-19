@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,15 +11,15 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Scheduler\Tests\Scheduler;
+namespace WPPack\Component\Scheduler\Tests\Scheduler;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Scheduler\Message\RecurringMessage;
-use WpPack\Component\Scheduler\Scheduler\NullScheduler;
-use WpPack\Component\Scheduler\Scheduler\SchedulerInterface;
-use WpPack\Component\Scheduler\Trigger\IntervalTrigger;
+use WPPack\Component\Scheduler\Message\RecurringMessage;
+use WPPack\Component\Scheduler\Scheduler\NullScheduler;
+use WPPack\Component\Scheduler\Scheduler\SchedulerInterface;
+use WPPack\Component\Scheduler\Trigger\IntervalTrigger;
 
 #[CoversClass(NullScheduler::class)]
 final class NullSchedulerTest extends TestCase

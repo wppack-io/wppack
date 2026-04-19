@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Query\Tests\Builder;
+namespace WPPack\Component\Query\Tests\Builder;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Query\Builder\PostQueryBuilder;
-use WpPack\Component\Query\Condition\ConditionGroup;
-use WpPack\Component\Query\Enum\Order;
-use WpPack\Component\Query\Enum\PostStatus;
+use WPPack\Component\Query\Builder\PostQueryBuilder;
+use WPPack\Component\Query\Condition\ConditionGroup;
+use WPPack\Component\Query\Enum\Order;
+use WPPack\Component\Query\Enum\PostStatus;
 
 final class PostQueryBuilderTest extends TestCase
 {
@@ -1057,7 +1057,7 @@ final class PostQueryBuilderTest extends TestCase
             ->setMaxResults(5)
             ->get();
 
-        self::assertInstanceOf(\WpPack\Component\Query\Result\PostQueryResult::class, $result);
+        self::assertInstanceOf(\WPPack\Component\Query\Result\PostQueryResult::class, $result);
     }
 
     #[Test]

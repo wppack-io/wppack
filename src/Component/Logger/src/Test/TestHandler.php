@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Logger\Test;
+namespace WPPack\Component\Logger\Test;
 
-use WpPack\Component\Logger\Handler\HandlerInterface;
+use WPPack\Component\Logger\Handler\HandlerInterface;
 
 class TestHandler implements HandlerInterface
 {

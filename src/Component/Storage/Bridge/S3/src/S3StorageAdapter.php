@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Storage\Bridge\S3;
+namespace WPPack\Component\Storage\Bridge\S3;
 
 use AsyncAws\S3\Input\CopyObjectRequest;
 use AsyncAws\S3\Input\DeleteObjectRequest;
@@ -25,10 +25,10 @@ use AsyncAws\S3\Exception\NoSuchKeyException;
 use AsyncAws\S3\S3Client;
 use AsyncAws\S3\ValueObject\Delete;
 use AsyncAws\S3\ValueObject\ObjectIdentifier;
-use WpPack\Component\Storage\Adapter\AbstractStorageAdapter;
-use WpPack\Component\Storage\Exception\ObjectNotFoundException;
-use WpPack\Component\Storage\ObjectMetadata;
-use WpPack\Component\Storage\Visibility;
+use WPPack\Component\Storage\Adapter\AbstractStorageAdapter;
+use WPPack\Component\Storage\Exception\ObjectNotFoundException;
+use WPPack\Component\Storage\ObjectMetadata;
+use WPPack\Component\Storage\Visibility;
 
 final class S3StorageAdapter extends AbstractStorageAdapter
 {

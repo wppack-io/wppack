@@ -1,4 +1,4 @@
-# Japanese translation for WpPack Passkey Login
+# Japanese translation for WPPack Passkey Login
 msgid ""
 msgstr ""
 "Project-Id-Version: @wppack/passkey-login-plugin 1.0.0\n"
@@ -8,18 +8,18 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 "PO-Revision-Date: 2026-04-03 00:00+0900\n"
-"Last-Translator: WpPack <dev@wppack.io>\n"
-"Language-Team: WpPack <dev@wppack.io>\n"
+"Last-Translator: WPPack <dev@wppack.io>\n"
+"Language-Team: WPPack <dev@wppack.io>\n"
 "Language: ja\n"
 "X-Domain: wppack-passkey-login\n"
 
 #: wppack-passkey-login.php
 msgid "@wppack/passkey-login-plugin"
-msgstr "WpPack Passkey Login"
+msgstr "WPPack Passkey Login"
 
 #: wppack-passkey-login.php
-msgid "WpPack"
-msgstr "WpPack"
+msgid "WPPack"
+msgstr "WPPack"
 
 #: src/Admin/PasskeyLoginSettingsPage.php:28
 msgid "Passkey Login Settings"

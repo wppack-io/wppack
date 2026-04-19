@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\AmazonMailerPlugin\Tests\Admin;
+namespace WPPack\Plugin\AmazonMailerPlugin\Tests\Admin;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Rest\AbstractRestController;
-use WpPack\Plugin\AmazonMailerPlugin\Admin\AmazonMailerSettingsController;
-use WpPack\Plugin\AmazonMailerPlugin\Configuration\AmazonMailerConfiguration;
+use WPPack\Component\Rest\AbstractRestController;
+use WPPack\Plugin\AmazonMailerPlugin\Admin\AmazonMailerSettingsController;
+use WPPack\Plugin\AmazonMailerPlugin\Configuration\AmazonMailerConfiguration;
 
 #[CoversClass(AmazonMailerSettingsController::class)]
 final class AmazonMailerSettingsControllerTest extends TestCase

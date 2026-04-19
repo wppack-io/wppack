@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,15 +11,15 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Scim\Tests\Authentication;
+namespace WPPack\Component\Scim\Tests\Authentication;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\Scim\Authentication\ScimBearerAuthenticator;
-use WpPack\Component\Security\Authentication\Token\ServiceToken;
-use WpPack\Component\Security\Exception\AuthenticationException;
+use WPPack\Component\HttpFoundation\Request;
+use WPPack\Component\Scim\Authentication\ScimBearerAuthenticator;
+use WPPack\Component\Security\Authentication\Token\ServiceToken;
+use WPPack\Component\Security\Exception\AuthenticationException;
 
 #[CoversClass(ScimBearerAuthenticator::class)]
 final class ScimBearerAuthenticatorTest extends TestCase

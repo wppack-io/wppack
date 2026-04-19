@@ -1,4 +1,4 @@
-# WpPack SiteHealth
+# WPPack SiteHealth
 
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=site_health)](https://codecov.io/github/wppack-io/wppack)
 
@@ -13,12 +13,12 @@ composer require wppack/site-health
 ## Usage
 
 ```php
-use WpPack\Component\SiteHealth\Attribute\AsHealthCheck;
-use WpPack\Component\SiteHealth\Attribute\AsDebugInfo;
-use WpPack\Component\SiteHealth\DebugSectionInterface;
-use WpPack\Component\SiteHealth\HealthCheckInterface;
-use WpPack\Component\SiteHealth\Result;
-use WpPack\Component\SiteHealth\SiteHealthRegistry;
+use WPPack\Component\SiteHealth\Attribute\AsHealthCheck;
+use WPPack\Component\SiteHealth\Attribute\AsDebugInfo;
+use WPPack\Component\SiteHealth\DebugSectionInterface;
+use WPPack\Component\SiteHealth\HealthCheckInterface;
+use WPPack\Component\SiteHealth\Result;
+use WPPack\Component\SiteHealth\SiteHealthRegistry;
 
 #[AsHealthCheck(id: 'php_version', label: 'PHP Version', category: 'security')]
 class PhpVersionCheck implements HealthCheckInterface

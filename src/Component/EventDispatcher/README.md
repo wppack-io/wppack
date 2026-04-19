@@ -17,8 +17,8 @@ composer require wppack/event-dispatcher
 ### Dispatching Custom Events
 
 ```php
-use WpPack\Component\EventDispatcher\Event;
-use WpPack\Component\EventDispatcher\EventDispatcher;
+use WPPack\Component\EventDispatcher\Event;
+use WPPack\Component\EventDispatcher\EventDispatcher;
 
 // Define an event class
 class OrderPlacedEvent extends Event
@@ -42,7 +42,7 @@ $event = $dispatcher->dispatch(new OrderPlacedEvent(orderId: 42));
 ### Listening to WordPress Hooks
 
 ```php
-use WpPack\Component\EventDispatcher\WordPressEvent;
+use WPPack\Component\EventDispatcher\WordPressEvent;
 
 $dispatcher->addListener('save_post', function (WordPressEvent $event): void {
     [$postId, $post, $update] = $event->args;
@@ -77,7 +77,7 @@ $dispatcher->addListener(
 ### `#[AsEventListener]` Attribute
 
 ```php
-use WpPack\Component\EventDispatcher\Attribute\AsEventListener;
+use WPPack\Component\EventDispatcher\Attribute\AsEventListener;
 
 #[AsEventListener(event: OrderPlacedEvent::class)]
 final class SendOrderConfirmation
@@ -101,7 +101,7 @@ final class OrderHandler
 ### Subscribers
 
 ```php
-use WpPack\Component\EventDispatcher\EventSubscriberInterface;
+use WPPack\Component\EventDispatcher\EventSubscriberInterface;
 
 class OrderSubscriber implements EventSubscriberInterface
 {
@@ -123,8 +123,8 @@ class OrderSubscriber implements EventSubscriberInterface
 ## DI Integration
 
 ```php
-use WpPack\Component\EventDispatcher\DependencyInjection\EventDispatcherServiceProvider;
-use WpPack\Component\EventDispatcher\DependencyInjection\RegisterEventListenersPass;
+use WPPack\Component\EventDispatcher\DependencyInjection\EventDispatcherServiceProvider;
+use WPPack\Component\EventDispatcher\DependencyInjection\RegisterEventListenersPass;
 
 $builder->addServiceProvider(new EventDispatcherServiceProvider());
 $builder->addCompilerPass(new RegisterEventListenersPass());
@@ -137,7 +137,7 @@ $builder->addCompilerPass(new RegisterEventListenersPass());
 ## Test Utilities
 
 ```php
-use WpPack\Component\EventDispatcher\Test\EventDispatcherTestTrait;
+use WPPack\Component\EventDispatcher\Test\EventDispatcherTestTrait;
 
 class MyTest extends TestCase
 {

@@ -8,7 +8,7 @@
  * @var int                                                          $registeredStyles  Registered style count
  * @var array                                                        $scripts           Script asset data
  * @var array                                                        $styles            Style asset data
- * @var \WpPack\Component\Debug\Toolbar\Panel\TemplateFormatters     $fmt               Template formatters
+ * @var \WPPack\Component\Debug\Toolbar\Panel\TemplateFormatters     $fmt               Template formatters
  */
 ?>
 <div class="wpd-section">

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,10 +11,10 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\DatabaseExport\RowTransformer;
+namespace WPPack\Component\DatabaseExport\RowTransformer;
 
-use WpPack\Component\Database\Schema\TableSchema;
-use WpPack\Component\DatabaseExport\ExportConfiguration;
+use WPPack\Component\Database\Schema\TableSchema;
+use WPPack\Component\DatabaseExport\ExportConfiguration;
 
 /**
  * Transforms wp_options rows during export.

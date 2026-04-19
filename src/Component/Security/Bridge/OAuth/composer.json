@@ -1,6 +1,6 @@
 {
     "name": "wppack/oauth-security",
-    "description": "OAuth 2.0 / OpenID Connect authentication for WpPack Security",
+    "description": "OAuth 2.0 / OpenID Connect authentication for WPPack Security",
     "type": "library",
     "license": "MIT",
     "require": {
@@ -11,12 +11,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\Security\\Bridge\\OAuth\\": "src/"
+            "WPPack\\Component\\Security\\Bridge\\OAuth\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Component\\Security\\Bridge\\OAuth\\Tests\\": "tests/"
+            "WPPack\\Component\\Security\\Bridge\\OAuth\\Tests\\": "tests/"
         }
     }
 }

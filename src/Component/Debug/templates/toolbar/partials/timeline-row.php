@@ -3,7 +3,7 @@
  * @var array<string,mixed> $entry
  * @var string $color
  * @var float $totalTime
- * @var \WpPack\Component\Debug\Toolbar\Panel\TemplateFormatters $fmt
+ * @var \WPPack\Component\Debug\Toolbar\Panel\TemplateFormatters $fmt
  * @var float $unmeasuredMs
  * @var float $unmeasuredPct
  */

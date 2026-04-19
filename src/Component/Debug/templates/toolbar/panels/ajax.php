@@ -4,7 +4,7 @@
  *
  * @var int                                                          $totalActions Total registered AJAX actions
  * @var array                                                        $actions      AJAX action definitions
- * @var \WpPack\Component\Debug\Toolbar\Panel\TemplateFormatters     $fmt          Template formatters
+ * @var \WPPack\Component\Debug\Toolbar\Panel\TemplateFormatters     $fmt          Template formatters
  */
 ?>
 <div class="wpd-section">

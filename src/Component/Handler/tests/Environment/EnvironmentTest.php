@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Handler\Tests\Environment;
+namespace WPPack\Component\Handler\Tests\Environment;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Handler\Configuration;
-use WpPack\Component\Handler\Environment\Environment;
+use WPPack\Component\Handler\Configuration;
+use WPPack\Component\Handler\Environment\Environment;
 
 final class EnvironmentTest extends TestCase
 {

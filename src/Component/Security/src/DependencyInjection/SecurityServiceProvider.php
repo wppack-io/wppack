@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,28 +11,28 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Security\DependencyInjection;
+namespace WPPack\Component\Security\DependencyInjection;
 
 use Psr\EventDispatcher\EventDispatcherInterface;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\DependencyInjection\Reference;
-use WpPack\Component\DependencyInjection\ServiceProviderInterface;
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\Security\Authentication\AuthenticationManager;
-use WpPack\Component\Security\Authentication\AuthenticationManagerInterface;
-use WpPack\Component\Security\AuthenticationSession;
-use WpPack\Component\Security\Authentication\Provider\UserProviderInterface;
-use WpPack\Component\Security\Authentication\Provider\WordPressUserProvider;
-use WpPack\Component\Security\Authorization\AuthorizationChecker;
-use WpPack\Component\Security\Authorization\AuthorizationCheckerInterface;
-use WpPack\Component\Security\Authorization\Voter\AccessDecisionManager;
-use WpPack\Component\Security\Authorization\Voter\CapabilityVoter;
-use WpPack\Component\Security\Authorization\Voter\RoleVoter;
-use WpPack\Component\Role\Authorization\IsGrantedChecker;
-use WpPack\Component\Security\EventListener\CheckCredentialsListener;
-use WpPack\Component\Security\Security;
-use WpPack\Component\User\UserRepository;
-use WpPack\Component\User\UserRepositoryInterface;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\DependencyInjection\Reference;
+use WPPack\Component\DependencyInjection\ServiceProviderInterface;
+use WPPack\Component\HttpFoundation\Request;
+use WPPack\Component\Security\Authentication\AuthenticationManager;
+use WPPack\Component\Security\Authentication\AuthenticationManagerInterface;
+use WPPack\Component\Security\AuthenticationSession;
+use WPPack\Component\Security\Authentication\Provider\UserProviderInterface;
+use WPPack\Component\Security\Authentication\Provider\WordPressUserProvider;
+use WPPack\Component\Security\Authorization\AuthorizationChecker;
+use WPPack\Component\Security\Authorization\AuthorizationCheckerInterface;
+use WPPack\Component\Security\Authorization\Voter\AccessDecisionManager;
+use WPPack\Component\Security\Authorization\Voter\CapabilityVoter;
+use WPPack\Component\Security\Authorization\Voter\RoleVoter;
+use WPPack\Component\Role\Authorization\IsGrantedChecker;
+use WPPack\Component\Security\EventListener\CheckCredentialsListener;
+use WPPack\Component\Security\Security;
+use WPPack\Component\User\UserRepository;
+use WPPack\Component\User\UserRepositoryInterface;
 
 final class SecurityServiceProvider implements ServiceProviderInterface
 {

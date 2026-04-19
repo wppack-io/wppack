@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -15,8 +15,8 @@ declare(strict_types=1);
  * WordPress Multisite — subdirectory installation.
  */
 
-use WpPack\Component\Handler\Configuration;
-use WpPack\Component\Handler\Handler;
+use WPPack\Component\Handler\Configuration;
+use WPPack\Component\Handler\Handler;
 
 require dirname(__DIR__, 4) . '/vendor/autoload.php';
 

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Rest\Tests;
+namespace WPPack\Component\Rest\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Rest\Attribute\Permission;
-use WpPack\Component\Rest\RestEntry;
-use WpPack\Component\Rest\RestParamEntry;
+use WPPack\Component\Rest\Attribute\Permission;
+use WPPack\Component\Rest\RestEntry;
+use WPPack\Component\Rest\RestParamEntry;
 
 final class RestEntryTest extends TestCase
 {
@@ -66,7 +66,7 @@ final class RestEntryTest extends TestCase
     public function callbackConvertsResponseToWpRestResponse(): void
     {
 
-        $response = new \WpPack\Component\HttpFoundation\Response('', 200, ['X-Custom' => 'yes']);
+        $response = new \WPPack\Component\HttpFoundation\Response('', 200, ['X-Custom' => 'yes']);
         $entry = new RestEntry(
             'test/v1',
             '/response-items',
@@ -92,7 +92,7 @@ final class RestEntryTest extends TestCase
     public function callbackConvertsJsonResponseToWpRestResponse(): void
     {
 
-        $response = new \WpPack\Component\HttpFoundation\JsonResponse(['id' => 1], 201);
+        $response = new \WPPack\Component\HttpFoundation\JsonResponse(['id' => 1], 201);
         $entry = new RestEntry(
             'test/v1',
             '/created',
@@ -172,7 +172,7 @@ final class RestEntryTest extends TestCase
             new Permission(public: true),
             [],
             static function (\WP_REST_Request $request): never {
-                throw new \WpPack\Component\HttpFoundation\Exception\NotFoundException('Item not found.');
+                throw new \WPPack\Component\HttpFoundation\Exception\NotFoundException('Item not found.');
             },
         );
 
@@ -193,7 +193,7 @@ final class RestEntryTest extends TestCase
     public function callbackSetsResponseHeaders(): void
     {
 
-        $response = new \WpPack\Component\HttpFoundation\Response('', 200, ['X-Rate-Limit' => '100']);
+        $response = new \WPPack\Component\HttpFoundation\Response('', 200, ['X-Rate-Limit' => '100']);
         $entry = new RestEntry(
             'test/v1',
             '/headers',

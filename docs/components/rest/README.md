@@ -13,15 +13,15 @@ composer require wppack/rest
 ### コントローラーの定義
 
 ```php
-use WpPack\Component\Rest\AbstractRestController;
-use WpPack\Component\Rest\Attribute\RestRoute;
-use WpPack\Component\Rest\Attribute\Param;
-use WpPack\Component\Rest\Attribute\Permission;
-use WpPack\Component\HttpFoundation\Exception\NotFoundException;
-use WpPack\Component\Rest\HttpMethod;
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\HttpFoundation\JsonResponse;
-use WpPack\Component\Security\Attribute\IsGranted;
+use WPPack\Component\Rest\AbstractRestController;
+use WPPack\Component\Rest\Attribute\RestRoute;
+use WPPack\Component\Rest\Attribute\Param;
+use WPPack\Component\Rest\Attribute\Permission;
+use WPPack\Component\HttpFoundation\Exception\NotFoundException;
+use WPPack\Component\Rest\HttpMethod;
+use WPPack\Component\HttpFoundation\Request;
+use WPPack\Component\HttpFoundation\JsonResponse;
+use WPPack\Component\Security\Attribute\IsGranted;
 
 #[RestRoute('/products', namespace: 'my-plugin/v1')]
 #[Permission(public: true)]
@@ -78,7 +78,7 @@ class ProductController extends AbstractRestController
 ### ルート登録
 
 ```php
-use WpPack\Component\Rest\RestRegistry;
+use WPPack\Component\Rest\RestRegistry;
 
 $registry = new RestRegistry();
 $registry->register(new ProductController());
@@ -191,7 +191,7 @@ Controller メソッドの返り値 → WP REST API への変換
 コントローラーメソッドには `Request`（HttpFoundation）または `\WP_REST_Request`（WordPress ネイティブ）を注入できます。
 
 ```php
-use WpPack\Component\HttpFoundation\Request;
+use WPPack\Component\HttpFoundation\Request;
 
 public function show(Request $request): JsonResponse
 {
@@ -215,9 +215,9 @@ public function show(\WP_REST_Request $request): JsonResponse
 `HttpException` を throw すると自動的に `WP_Error` に変換される。
 
 ```php
-use WpPack\Component\HttpFoundation\Exception\NotFoundException;
-use WpPack\Component\HttpFoundation\Exception\BadRequestException;
-use WpPack\Component\HttpFoundation\Exception\ForbiddenException;
+use WPPack\Component\HttpFoundation\Exception\NotFoundException;
+use WPPack\Component\HttpFoundation\Exception\BadRequestException;
+use WPPack\Component\HttpFoundation\Exception\ForbiddenException;
 
 throw new NotFoundException('Product not found.');      // 404
 throw new BadRequestException('Invalid input.');        // 400
@@ -259,7 +259,7 @@ throw new ForbiddenException('Access denied.');         // 403
 REST API の URL を生成するユーティリティクラス。`rest_url()` / `rest_get_url_prefix()` のラッパーに加え、名前付きルートからの URL 生成をサポートする。
 
 ```php
-use WpPack\Component\Rest\RestUrlGenerator;
+use WPPack\Component\Rest\RestUrlGenerator;
 
 // DI コンテナまたは手動で RestRegistry を注入
 $restUrl = new RestUrlGenerator($registry);

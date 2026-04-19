@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database\Bridge\AuroraDsql\Tests;
+namespace WPPack\Component\Database\Bridge\AuroraDsql\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Database\Bridge\AuroraDsql\AuroraDsqlDriver;
-use WpPack\Component\Database\Bridge\AuroraDsql\AuroraDsqlDriverFactory;
-use WpPack\Component\Dsn\Dsn;
+use WPPack\Component\Database\Bridge\AuroraDsql\AuroraDsqlDriver;
+use WPPack\Component\Database\Bridge\AuroraDsql\AuroraDsqlDriverFactory;
+use WPPack\Component\Dsn\Dsn;
 
 final class AuroraDsqlDriverFactoryTest extends TestCase
 {
@@ -89,7 +89,7 @@ final class AuroraDsqlDriverFactoryTest extends TestCase
     #[Test]
     public function truncateConvertedToDeleteFromWithSequenceReset(): void
     {
-        $translator = new \WpPack\Component\Database\Bridge\AuroraDsql\Translator\AuroraDsqlQueryTranslator();
+        $translator = new \WPPack\Component\Database\Bridge\AuroraDsql\Translator\AuroraDsqlQueryTranslator();
 
         $result = $translator->translate('TRUNCATE TABLE `wp_posts`');
 
@@ -107,7 +107,7 @@ final class AuroraDsqlDriverFactoryTest extends TestCase
     #[Test]
     public function truncateWithoutTableKeyword(): void
     {
-        $translator = new \WpPack\Component\Database\Bridge\AuroraDsql\Translator\AuroraDsqlQueryTranslator();
+        $translator = new \WPPack\Component\Database\Bridge\AuroraDsql\Translator\AuroraDsqlQueryTranslator();
 
         $result = $translator->translate('TRUNCATE `wp_options`');
 
@@ -117,7 +117,7 @@ final class AuroraDsqlDriverFactoryTest extends TestCase
     #[Test]
     public function nonTruncateQueriesDelegateToPostgresql(): void
     {
-        $translator = new \WpPack\Component\Database\Bridge\AuroraDsql\Translator\AuroraDsqlQueryTranslator();
+        $translator = new \WPPack\Component\Database\Bridge\AuroraDsql\Translator\AuroraDsqlQueryTranslator();
 
         // Regular queries go through PostgreSQL translator
         $result = $translator->translate('SELECT * FROM `wp_posts` WHERE id = 1');
@@ -137,7 +137,7 @@ final class AuroraDsqlDriverFactoryTest extends TestCase
         $driver = $factory->create(Dsn::fromString('dsql://admin:token@abc.dsql.us-east-1.on.aws/mydb'));
 
         self::assertInstanceOf(
-            \WpPack\Component\Database\Bridge\AuroraDsql\Translator\AuroraDsqlQueryTranslator::class,
+            \WPPack\Component\Database\Bridge\AuroraDsql\Translator\AuroraDsqlQueryTranslator::class,
             $driver->getQueryTranslator(),
         );
     }
@@ -190,7 +190,7 @@ final class AuroraDsqlDriverFactoryTest extends TestCase
         // AuroraDsqlDriver's doConnect override silently dropped the
         // searchPath arg (fixed — applySearchPath is now invoked from
         // the subclass).
-        $reflection = new \ReflectionClass(\WpPack\Component\Database\Bridge\Pgsql\PgsqlDriver::class);
+        $reflection = new \ReflectionClass(\WPPack\Component\Database\Bridge\Pgsql\PgsqlDriver::class);
         self::assertSame(
             ['tenant_1', 'public'],
             $reflection->getProperty('searchPath')->getValue($driver),
@@ -209,7 +209,7 @@ final class AuroraDsqlDriverFactoryTest extends TestCase
             Dsn::fromString('dsql://admin:token@abc.dsql.us-east-1.on.aws/mydb?schema=tenant_42'),
         );
 
-        $reflection = new \ReflectionClass(\WpPack\Component\Database\Bridge\Pgsql\PgsqlDriver::class);
+        $reflection = new \ReflectionClass(\WPPack\Component\Database\Bridge\Pgsql\PgsqlDriver::class);
         self::assertSame(
             ['tenant_42'],
             $reflection->getProperty('searchPath')->getValue($driver),
@@ -230,7 +230,7 @@ final class AuroraDsqlDriverFactoryTest extends TestCase
         $result = $method->invoke($driver, static function () use (&$callCount): string {
             ++$callCount;
             if ($callCount < 3) {
-                throw new \WpPack\Component\Database\Exception\DriverException('SQLSTATE[40001]: serialization_failure');
+                throw new \WPPack\Component\Database\Exception\DriverException('SQLSTATE[40001]: serialization_failure');
             }
 
             return 'success';
@@ -246,10 +246,10 @@ final class AuroraDsqlDriverFactoryTest extends TestCase
         $driver = $this->createMockDriver(occMaxRetries: 2);
         $method = new \ReflectionMethod($driver, 'executeWithOccRetry');
 
-        $this->expectException(\WpPack\Component\Database\Exception\DriverException::class);
+        $this->expectException(\WPPack\Component\Database\Exception\DriverException::class);
 
         $method->invoke($driver, static function (): never {
-            throw new \WpPack\Component\Database\Exception\DriverException('OC000 conflict');
+            throw new \WPPack\Component\Database\Exception\DriverException('OC000 conflict');
         });
     }
 
@@ -263,9 +263,9 @@ final class AuroraDsqlDriverFactoryTest extends TestCase
         try {
             $method->invoke($driver, static function () use (&$callCount): never {
                 ++$callCount;
-                throw new \WpPack\Component\Database\Exception\DriverException('some other error');
+                throw new \WPPack\Component\Database\Exception\DriverException('some other error');
             });
-        } catch (\WpPack\Component\Database\Exception\DriverException) {
+        } catch (\WPPack\Component\Database\Exception\DriverException) {
         }
 
         // Should not retry — only called once
@@ -282,9 +282,9 @@ final class AuroraDsqlDriverFactoryTest extends TestCase
         try {
             $method->invoke($driver, static function () use (&$callCount): never {
                 ++$callCount;
-                throw new \WpPack\Component\Database\Exception\DriverException('SQLSTATE[40001]');
+                throw new \WPPack\Component\Database\Exception\DriverException('SQLSTATE[40001]');
             });
-        } catch (\WpPack\Component\Database\Exception\DriverException) {
+        } catch (\WPPack\Component\Database\Exception\DriverException) {
         }
 
         self::assertSame(1, $callCount);
@@ -320,7 +320,7 @@ final class AuroraDsqlDriverFactoryTest extends TestCase
             ++$callCount;
             if ($callCount < 2) {
                 // Simulate OCC conflict during transaction
-                throw new \WpPack\Component\Database\Exception\DriverException('SQLSTATE[40001]');
+                throw new \WPPack\Component\Database\Exception\DriverException('SQLSTATE[40001]');
             }
 
             return 'committed';

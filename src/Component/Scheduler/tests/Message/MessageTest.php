@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,23 +11,23 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Scheduler\Tests\Message;
+namespace WPPack\Component\Scheduler\Tests\Message;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Scheduler\Exception\InvalidArgumentException;
-use WpPack\Component\Scheduler\Message\ActionSchedulerMessage;
-use WpPack\Component\Scheduler\Message\OneTimeMessage;
-use WpPack\Component\Scheduler\Message\RecurringMessage;
-use WpPack\Component\Scheduler\Message\ScheduledMessage;
-use WpPack\Component\Scheduler\Message\WpCronMessage;
-use WpPack\Component\Scheduler\Schedule;
-use WpPack\Component\Scheduler\Trigger\CronExpressionTrigger;
-use WpPack\Component\Scheduler\Trigger\DateTimeTrigger;
-use WpPack\Component\Scheduler\Trigger\IntervalTrigger;
-use WpPack\Component\Scheduler\Trigger\TriggerInterface;
-use WpPack\Component\Scheduler\Trigger\WpCronScheduleTrigger;
+use WPPack\Component\Scheduler\Exception\InvalidArgumentException;
+use WPPack\Component\Scheduler\Message\ActionSchedulerMessage;
+use WPPack\Component\Scheduler\Message\OneTimeMessage;
+use WPPack\Component\Scheduler\Message\RecurringMessage;
+use WPPack\Component\Scheduler\Message\ScheduledMessage;
+use WPPack\Component\Scheduler\Message\WpCronMessage;
+use WPPack\Component\Scheduler\Schedule;
+use WPPack\Component\Scheduler\Trigger\CronExpressionTrigger;
+use WPPack\Component\Scheduler\Trigger\DateTimeTrigger;
+use WPPack\Component\Scheduler\Trigger\IntervalTrigger;
+use WPPack\Component\Scheduler\Trigger\TriggerInterface;
+use WPPack\Component\Scheduler\Trigger\WpCronScheduleTrigger;
 
 #[CoversClass(RecurringMessage::class)]
 #[CoversClass(OneTimeMessage::class)]

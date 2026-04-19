@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Debug\Tests\Profiler;
+namespace WPPack\Component\Debug\Tests\Profiler;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Debug\DataCollector\DataCollectorInterface;
-use WpPack\Component\Debug\Exception\InvalidArgumentException;
-use WpPack\Component\Debug\Profiler\Profile;
+use WPPack\Component\Debug\DataCollector\DataCollectorInterface;
+use WPPack\Component\Debug\Exception\InvalidArgumentException;
+use WPPack\Component\Debug\Profiler\Profile;
 
 final class ProfileTest extends TestCase
 {

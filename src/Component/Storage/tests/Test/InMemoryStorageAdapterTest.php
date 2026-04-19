@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Storage\Tests\Test;
+namespace WPPack\Component\Storage\Tests\Test;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Storage\Exception\ObjectNotFoundException;
-use WpPack\Component\Storage\Exception\UnsupportedOperationException;
-use WpPack\Component\Storage\Test\InMemoryStorageAdapter;
+use WPPack\Component\Storage\Exception\ObjectNotFoundException;
+use WPPack\Component\Storage\Exception\UnsupportedOperationException;
+use WPPack\Component\Storage\Test\InMemoryStorageAdapter;
 
 #[CoversClass(InMemoryStorageAdapter::class)]
 final class InMemoryStorageAdapterTest extends TestCase

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,17 +11,17 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database\Tests;
+namespace WPPack\Component\Database\Tests;
 
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Database\Driver\DriverInterface;
-use WpPack\Component\Database\WpPackWpdb;
+use WPPack\Component\Database\Driver\DriverInterface;
+use WPPack\Component\Database\WPPackWpdb;
 
 /**
- * WpPackWpdb integration tests against a MySQL backend.
+ * WPPackWpdb integration tests against a MySQL backend.
  *
  * Activates only when DATABASE_DSN selects the MySQL engine. The db.php
- * drop-in must have already configured the global $wpdb as a WpPackWpdb
+ * drop-in must have already configured the global $wpdb as a WPPackWpdb
  * backed by a MysqlDriver — this test reuses that driver so it shares
  * the connection (and therefore LAST_INSERT_ID semantics) with the
  * bootstrap.
@@ -30,7 +30,7 @@ final class MysqlWpdbIntegrationTest extends TestCase
 {
     use WpdbIntegrationTestTrait;
 
-    private WpPackWpdb $testWpdb;
+    private WPPackWpdb $testWpdb;
     private DriverInterface $driver;
     private ?\wpdb $originalWpdb = null;
     private ?string $originalTablePrefix = null;
@@ -45,8 +45,8 @@ final class MysqlWpdbIntegrationTest extends TestCase
 
         $this->originalWpdb = $GLOBALS['wpdb'] ?? null;
 
-        if (!$this->originalWpdb instanceof WpPackWpdb) {
-            self::markTestSkipped('Requires the db.php drop-in to have activated WpPackWpdb.');
+        if (!$this->originalWpdb instanceof WPPackWpdb) {
+            self::markTestSkipped('Requires the db.php drop-in to have activated WPPackWpdb.');
         }
 
         $this->originalTablePrefix = $GLOBALS['table_prefix'] ?? null;
@@ -55,7 +55,7 @@ final class MysqlWpdbIntegrationTest extends TestCase
         $this->driver = $this->originalWpdb->getWriter();
         $this->dropTestTables();
 
-        $this->testWpdb = new WpPackWpdb(
+        $this->testWpdb = new WPPackWpdb(
             writer: $this->driver,
             translator: $this->originalWpdb->getTranslator(),
             dbname: $this->originalWpdb->dbname,

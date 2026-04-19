@@ -1,6 +1,6 @@
 {
     "name": "wppack/amazon-mailer",
-    "description": "Amazon SES transport for WpPack Mailer",
+    "description": "Amazon SES transport for WPPack Mailer",
     "type": "library",
     "license": "MIT",
     "require": {
@@ -10,12 +10,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\Mailer\\Bridge\\Amazon\\": "src/"
+            "WPPack\\Component\\Mailer\\Bridge\\Amazon\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Component\\Mailer\\Bridge\\Amazon\\Tests\\": "tests/"
+            "WPPack\\Component\\Mailer\\Bridge\\Amazon\\Tests\\": "tests/"
         }
     }
 }

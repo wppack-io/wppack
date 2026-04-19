@@ -7,9 +7,9 @@
         "php": "^8.2"
     },
     "autoload": {
-        "psr-4": { "WpPack\\Component\\Serializer\\": "src/" }
+        "psr-4": { "WPPack\\Component\\Serializer\\": "src/" }
     },
     "autoload-dev": {
-        "psr-4": { "WpPack\\Component\\Serializer\\Tests\\": "tests/" }
+        "psr-4": { "WPPack\\Component\\Serializer\\Tests\\": "tests/" }
     }
 }

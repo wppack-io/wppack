@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Query;
+namespace WPPack\Component\Query;
 
-use WpPack\Component\Query\Builder\PostQueryBuilder;
-use WpPack\Component\Query\Builder\TermQueryBuilder;
-use WpPack\Component\Query\Builder\UserQueryBuilder;
+use WPPack\Component\Query\Builder\PostQueryBuilder;
+use WPPack\Component\Query\Builder\TermQueryBuilder;
+use WPPack\Component\Query\Builder\UserQueryBuilder;
 
 final class QueryFactory
 {

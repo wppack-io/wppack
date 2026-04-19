@@ -2,7 +2,7 @@
 
 ## 概要
 
-WpPack は AWS のサーバレスサービスを活用して、WordPress の非同期処理・スケジューリング・メール送信・メディア管理を実現します。Bref を使って PHP を Lambda 上で実行します。
+WPPack は AWS のサーバレスサービスを活用して、WordPress の非同期処理・スケジューリング・メール送信・メディア管理を実現します。Bref を使って PHP を Lambda 上で実行します。
 
 ## AsyncAWS 採用理由
 
@@ -57,7 +57,7 @@ AWS SDK として [AsyncAWS](https://async-aws.com/) を採用しています。
                                    └──────────┘
                                         │
                                         ▼
-                                   WpPack Messenger
+                                   WPPack Messenger
                                    → Handler 実行
                                    （サムネイル生成等）
 ```
@@ -66,7 +66,7 @@ AWS SDK として [AsyncAWS](https://async-aws.com/) を採用しています。
 2. ブラウザが S3 に直接アップロード（サーバーを経由しない）
 3. S3 Event が SQS にメッセージを送信
 4. Lambda が SQS からメッセージを受信
-5. WpPack Messenger がハンドラーを実行（サムネイル生成、メタデータ登録など）
+5. WPPack Messenger がハンドラーを実行（サムネイル生成、メタデータ登録など）
 
 ## SES メール送信フロー
 
@@ -102,7 +102,7 @@ AWS SDK として [AsyncAWS](https://async-aws.com/) を採用しています。
                                    └──────────┘
                                         │
                                         ▼
-                                   WpPack Messenger
+                                   WPPack Messenger
                                    → Handler 実行
                                    （バウンス処理等）
 ```
@@ -110,7 +110,7 @@ AWS SDK として [AsyncAWS](https://async-aws.com/) を採用しています。
 1. `wp_mail()` が Mailer コンポーネントにインターセプトされる
 2. `SesTransport` が SES API でメールを送信
 3. バウンス・苦情が発生すると SNS → SQS → Lambda の流れで通知される
-4. WpPack Messenger がハンドラーを実行（バウンスアドレスの記録など）
+4. WPPack Messenger がハンドラーを実行（バウンスアドレスの記録など）
 
 ## EventBridge Scheduler 統合
 
@@ -158,7 +158,7 @@ AWS SDK として [AsyncAWS](https://async-aws.com/) を採用しています。
 2. Action Scheduler DB に一次データとして保存
 3. EventBridge Scheduler にリアルタイム同期（作成・更新・削除）
 4. 指定時刻に EventBridge が SQS にメッセージを送信
-5. Lambda が SQS を消費し、WpPack Messenger がハンドラーを実行
+5. Lambda が SQS を消費し、WPPack Messenger がハンドラーを実行
 
 ### Action Scheduler が一次データソースである理由
 
@@ -172,7 +172,7 @@ AWS SDK として [AsyncAWS](https://async-aws.com/) を採用しています。
 
 ### Lambda の役割
 
-- **SQS Consumer**: SQS メッセージを受信し、WpPack Messenger でハンドラーを実行
+- **SQS Consumer**: SQS メッセージを受信し、WPPack Messenger でハンドラーを実行
 - **WordPress 環境**: Lambda 上で WordPress をブートストラップし、プラグイン・テーマの機能を利用可能
 
 ### Lambda ハンドラー

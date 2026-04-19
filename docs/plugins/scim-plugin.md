@@ -120,8 +120,8 @@ src/Plugin/ScimPlugin/
 `ScimAttributeMapping` で SCIM 属性パスと WordPress メタキーの対応を定義します:
 
 ```php
-use WpPack\Component\Scim\Mapping\ScimAttributeMapping;
-use WpPack\Component\Scim\Mapping\UserAttributeMapper;
+use WPPack\Component\Scim\Mapping\ScimAttributeMapping;
+use WPPack\Component\Scim\Mapping\UserAttributeMapper;
 
 // カスタム ServiceProvider でオーバーライド
 $builder->findDefinition(UserAttributeMapper::class)
@@ -140,8 +140,8 @@ $builder->findDefinition(UserAttributeMapper::class)
 条件分岐や値の結合など、宣言的マッピングで対応できない複雑なロジックにはイベントリスナーを使用します:
 
 ```php
-use WpPack\Component\EventDispatcher\Attribute\AsEventListener;
-use WpPack\Component\Scim\Event\ScimUserAttributesMappedEvent;
+use WPPack\Component\EventDispatcher\Attribute\AsEventListener;
+use WPPack\Component\Scim\Event\ScimUserAttributesMappedEvent;
 
 final class CustomScimMapper
 {
@@ -187,7 +187,7 @@ final class CustomScimMapper
 ## 名前空間
 
 ```
-WpPack\Plugin\ScimPlugin\
+WPPack\Plugin\ScimPlugin\
 ```
 
 ## 設定

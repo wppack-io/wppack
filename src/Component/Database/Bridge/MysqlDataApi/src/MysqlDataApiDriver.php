@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database\Bridge\MysqlDataApi;
+namespace WPPack\Component\Database\Bridge\MysqlDataApi;
 
 use AsyncAws\RdsDataService\RdsDataServiceClient;
-use WpPack\Component\Database\Driver\DataApiDriverTrait;
-use WpPack\Component\Database\Driver\MysqlDriver;
+use WPPack\Component\Database\Driver\DataApiDriverTrait;
+use WPPack\Component\Database\Driver\MysqlDriver;
 
 /**
  * Aurora MySQL Data API driver.

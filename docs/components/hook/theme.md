@@ -9,7 +9,7 @@
 **WordPress フック:** `wp_enqueue_scripts`
 
 ```php
-use WpPack\Component\Hook\Attribute\Theme\Action\WpEnqueueScriptsAction;
+use WPPack\Component\Hook\Attribute\Theme\Action\WpEnqueueScriptsAction;
 
 class ThemeAssets
 {
@@ -30,7 +30,7 @@ class ThemeAssets
 スタイルシートが出力される直前に実行されます。インラインスタイルの追加などに使用します。
 
 ```php
-use WpPack\Component\Hook\Attribute\Theme\Action\WpPrintStylesAction;
+use WPPack\Component\Hook\Attribute\Theme\Action\WpPrintStylesAction;
 
 class ThemeInlineStyles
 {
@@ -52,7 +52,7 @@ class ThemeInlineStyles
 スクリプトが出力される直前に実行されます。インラインスクリプトの追加などに使用します。
 
 ```php
-use WpPack\Component\Hook\Attribute\Theme\Action\WpPrintScriptsAction;
+use WPPack\Component\Hook\Attribute\Theme\Action\WpPrintScriptsAction;
 
 class ThemeInlineScripts
 {
@@ -72,9 +72,9 @@ class ThemeInlineScripts
 #### #[WpHeadAction(priority?: int = 10)] / #[WpFooterAction(priority?: int = 10)] / #[WpBodyOpenAction(priority?: int = 10)]
 
 ```php
-use WpPack\Component\Hook\Attribute\Theme\Action\WpHeadAction;
-use WpPack\Component\Hook\Attribute\Theme\Action\WpFooterAction;
-use WpPack\Component\Hook\Attribute\Theme\Action\WpBodyOpenAction;
+use WPPack\Component\Hook\Attribute\Theme\Action\WpHeadAction;
+use WPPack\Component\Hook\Attribute\Theme\Action\WpFooterAction;
+use WPPack\Component\Hook\Attribute\Theme\Action\WpBodyOpenAction;
 
 class ThemeOutput
 {
@@ -105,7 +105,7 @@ class ThemeOutput
 **WordPress フック:** `customize_register`
 
 ```php
-use WpPack\Component\Hook\Attribute\Theme\Action\CustomizeRegisterAction;
+use WPPack\Component\Hook\Attribute\Theme\Action\CustomizeRegisterAction;
 
 class ThemeCustomizer
 {
@@ -142,7 +142,7 @@ class ThemeCustomizer
 カスタマイザーのプレビュー画面でスクリプトを読み込みます。
 
 ```php
-use WpPack\Component\Hook\Attribute\Theme\Action\CustomizePreviewInitAction;
+use WPPack\Component\Hook\Attribute\Theme\Action\CustomizePreviewInitAction;
 
 class ThemeCustomizer
 {
@@ -165,7 +165,7 @@ class ThemeCustomizer
 #### #[BodyClassFilter(priority?: int = 10)] / #[PostClassFilter(priority?: int = 10)]
 
 ```php
-use WpPack\Component\Hook\Attribute\Theme\Filter\BodyClassFilter;
+use WPPack\Component\Hook\Attribute\Theme\Filter\BodyClassFilter;
 
 class ThemeBodyClass
 {
@@ -189,7 +189,7 @@ class ThemeBodyClass
 #### #[ScriptLoaderTagFilter(priority?: int = 10)] / #[StyleLoaderTagFilter(priority?: int = 10)]
 
 ```php
-use WpPack\Component\Hook\Attribute\Theme\Filter\ScriptLoaderTagFilter;
+use WPPack\Component\Hook\Attribute\Theme\Filter\ScriptLoaderTagFilter;
 
 class ThemePerformance
 {

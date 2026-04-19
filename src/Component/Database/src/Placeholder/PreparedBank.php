@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database\Placeholder;
+namespace WPPack\Component\Database\Placeholder;
 
 /**
  * Per-request storage mapping a deterministic id to the params array of a single
- * wpdb::prepare() call. WpPackWpdb uses this to keep values out of the returned
+ * wpdb::prepare() call. WPPackWpdb uses this to keep values out of the returned
  * SQL string while still delivering them to the driver at query() execution time
  * as native prepared-statement parameters.
  *
@@ -44,7 +44,7 @@ final class PreparedBank
      *     contain `/*WPP:deadbeefdeadbeef*\/` will almost never collide with
      *     a real entry, which is safer than relying on (sql, params) hash
      *     space alone.
-     *   - Markers don't carry across WpPackWpdb instances. If two requests
+     *   - Markers don't carry across WPPackWpdb instances. If two requests
      *     somehow share state (long-running worker, stale cache) one can't
      *     splice another's params into its own SQL.
      */
@@ -118,7 +118,7 @@ final class PreparedBank
 
     /**
      * Drop all remaining entries (orphans from prepare() calls that were never
-     * followed by a query()). Called from WpPackWpdb::resetPreparedBank().
+     * followed by a query()). Called from WPPackWpdb::resetPreparedBank().
      */
     public function reset(): void
     {

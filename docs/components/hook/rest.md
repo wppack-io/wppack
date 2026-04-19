@@ -21,8 +21,8 @@ REST API 関連の WordPress フックを Named Hook として提供。
 | `RestRequestAfterCallbacksFilter` | `rest_request_after_callbacks` |
 
 ```php
-use WpPack\Component\Hook\Attribute\Rest\Action\RestApiInitAction;
-use WpPack\Component\Hook\Attribute\Rest\Filter\RestPreDispatchFilter;
+use WPPack\Component\Hook\Attribute\Rest\Action\RestApiInitAction;
+use WPPack\Component\Hook\Attribute\Rest\Filter\RestPreDispatchFilter;
 
 class MyRestSubscriber
 {

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\SiteHealth\Tests;
+namespace WPPack\Component\SiteHealth\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\SiteHealth\Result;
-use WpPack\Component\SiteHealth\Status;
+use WPPack\Component\SiteHealth\Result;
+use WPPack\Component\SiteHealth\Status;
 
 final class ResultTest extends TestCase
 {

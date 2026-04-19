@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,16 +11,16 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\DashboardWidget\Tests;
+namespace WPPack\Component\DashboardWidget\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\DashboardWidget\AbstractDashboardWidget;
-use WpPack\Component\DashboardWidget\Attribute\AsDashboardWidget;
-use WpPack\Component\Role\Attribute\IsGranted;
-use WpPack\Component\Role\Authorization\AuthorizationCheckerInterface;
-use WpPack\Component\Role\Authorization\IsGrantedChecker;
-use WpPack\Component\Templating\TemplateRendererInterface;
+use WPPack\Component\DashboardWidget\AbstractDashboardWidget;
+use WPPack\Component\DashboardWidget\Attribute\AsDashboardWidget;
+use WPPack\Component\Role\Attribute\IsGranted;
+use WPPack\Component\Role\Authorization\AuthorizationCheckerInterface;
+use WPPack\Component\Role\Authorization\IsGrantedChecker;
+use WPPack\Component\Templating\TemplateRendererInterface;
 
 final class AbstractDashboardWidgetTest extends TestCase
 {

@@ -1,6 +1,6 @@
 {
     "name": "wppack/pgsql-data-api-database",
-    "description": "Aurora PostgreSQL Data API database driver for WpPack",
+    "description": "Aurora PostgreSQL Data API database driver for WPPack",
     "type": "library",
     "license": "MIT",
     "require": {
@@ -11,12 +11,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\Database\\Bridge\\PgsqlDataApi\\": "src/"
+            "WPPack\\Component\\Database\\Bridge\\PgsqlDataApi\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Component\\Database\\Bridge\\PgsqlDataApi\\Tests\\": "tests/"
+            "WPPack\\Component\\Database\\Bridge\\PgsqlDataApi\\Tests\\": "tests/"
         }
     }
 }

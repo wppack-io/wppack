@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,28 +11,28 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Security\Tests\Authentication;
+namespace WPPack\Component\Security\Tests\Authentication;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\HttpFoundation\Response;
-use WpPack\Component\Security\Authentication\AuthenticationManager;
-use WpPack\Component\Security\Authentication\AuthenticatorInterface;
-use WpPack\Component\Security\AuthenticationSession;
-use WpPack\Component\Security\Authentication\Passport\Badge\CredentialsBadge;
-use WpPack\Component\Security\Authentication\Passport\Badge\UserBadge;
-use WpPack\Component\Security\Authentication\Passport\Passport;
-use WpPack\Component\Security\Authentication\Passport\SelfValidatingPassport;
-use WpPack\Component\Security\Authentication\StatelessAuthenticatorInterface;
-use WpPack\Component\Security\Authentication\Token\PostAuthenticationToken;
-use WpPack\Component\Security\Authentication\Token\ServiceToken;
-use WpPack\Component\Security\Authentication\Token\TokenInterface;
-use WpPack\Component\Security\Event\AuthenticationFailureEvent;
-use WpPack\Component\Security\Event\AuthenticationSuccessEvent;
-use WpPack\Component\Security\Event\CheckPassportEvent;
-use WpPack\Component\Security\Exception\AuthenticationException;
+use WPPack\Component\HttpFoundation\Request;
+use WPPack\Component\HttpFoundation\Response;
+use WPPack\Component\Security\Authentication\AuthenticationManager;
+use WPPack\Component\Security\Authentication\AuthenticatorInterface;
+use WPPack\Component\Security\AuthenticationSession;
+use WPPack\Component\Security\Authentication\Passport\Badge\CredentialsBadge;
+use WPPack\Component\Security\Authentication\Passport\Badge\UserBadge;
+use WPPack\Component\Security\Authentication\Passport\Passport;
+use WPPack\Component\Security\Authentication\Passport\SelfValidatingPassport;
+use WPPack\Component\Security\Authentication\StatelessAuthenticatorInterface;
+use WPPack\Component\Security\Authentication\Token\PostAuthenticationToken;
+use WPPack\Component\Security\Authentication\Token\ServiceToken;
+use WPPack\Component\Security\Authentication\Token\TokenInterface;
+use WPPack\Component\Security\Event\AuthenticationFailureEvent;
+use WPPack\Component\Security\Event\AuthenticationSuccessEvent;
+use WPPack\Component\Security\Event\CheckPassportEvent;
+use WPPack\Component\Security\Exception\AuthenticationException;
 
 final class AuthenticationManagerTest extends TestCase
 {

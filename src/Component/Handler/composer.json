@@ -14,12 +14,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\Handler\\": "src/"
+            "WPPack\\Component\\Handler\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Component\\Handler\\Tests\\": "tests/"
+            "WPPack\\Component\\Handler\\Tests\\": "tests/"
         }
     },
     "minimum-stability": "stable"

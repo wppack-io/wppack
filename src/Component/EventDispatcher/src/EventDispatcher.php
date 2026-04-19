@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\EventDispatcher;
+namespace WPPack\Component\EventDispatcher;
 
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\EventDispatcher\StoppableEventInterface;
-use WpPack\Component\EventDispatcher\Exception\InvalidArgumentException;
+use WPPack\Component\EventDispatcher\Exception\InvalidArgumentException;
 
 final class EventDispatcher implements EventDispatcherInterface
 {

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,15 +11,15 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\DependencyInjection\Tests;
+namespace WPPack\Component\DependencyInjection\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\DependencyInjection\Tests\Fixtures\DependentService;
-use WpPack\Component\DependencyInjection\Tests\Fixtures\SampleImplementation;
-use WpPack\Component\DependencyInjection\Tests\Fixtures\SampleInterface;
-use WpPack\Component\DependencyInjection\Tests\Fixtures\SimpleService;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\DependencyInjection\Tests\Fixtures\DependentService;
+use WPPack\Component\DependencyInjection\Tests\Fixtures\SampleImplementation;
+use WPPack\Component\DependencyInjection\Tests\Fixtures\SampleInterface;
+use WPPack\Component\DependencyInjection\Tests\Fixtures\SimpleService;
 
 final class AutowiringTest extends TestCase
 {

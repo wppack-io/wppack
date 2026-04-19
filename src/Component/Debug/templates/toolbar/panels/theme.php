@@ -4,7 +4,7 @@
  *
  * @var array<string,mixed>                                          $data      Theme data
  * @var array                                                        $assetData Script/style asset data
- * @var \WpPack\Component\Debug\Toolbar\Panel\TemplateFormatters     $fmt       Template formatters
+ * @var \WPPack\Component\Debug\Toolbar\Panel\TemplateFormatters     $fmt       Template formatters
  */
 $name = (string) ($data['name'] ?? '');
 $version = (string) ($data['version'] ?? '');

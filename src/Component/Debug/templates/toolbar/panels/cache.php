@@ -10,7 +10,7 @@
  * @var string                                                       $dropin           Object cache drop-in name
  * @var list<array>                                                  $transientOps     Transient operation log
  * @var array<string,int>                                            $cacheGroups      Cache group entry counts
- * @var \WpPack\Component\Debug\Toolbar\Panel\TemplateFormatters     $fmt              Template formatters
+ * @var \WPPack\Component\Debug\Toolbar\Panel\TemplateFormatters     $fmt              Template formatters
  */
 $hitRateColor = match (true) {
     $hitRate >= 80 => 'wpd-text-green',

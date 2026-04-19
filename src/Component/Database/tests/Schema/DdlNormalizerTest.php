@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database\Tests\Schema;
+namespace WPPack\Component\Database\Tests\Schema;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Database\Schema\DdlNormalizer;
+use WPPack\Component\Database\Schema\DdlNormalizer;
 
 final class DdlNormalizerTest extends TestCase
 {

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Cache\Bridge\ElastiCacheAuth\Tests;
+namespace WPPack\Component\Cache\Bridge\ElastiCacheAuth\Tests;
 
 use AsyncAws\Core\Credentials\Credentials;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Cache\Bridge\ElastiCacheAuth\ElastiCacheIamTokenGenerator;
+use WPPack\Component\Cache\Bridge\ElastiCacheAuth\ElastiCacheIamTokenGenerator;
 
 final class ElastiCacheIamTokenGeneratorTest extends TestCase
 {

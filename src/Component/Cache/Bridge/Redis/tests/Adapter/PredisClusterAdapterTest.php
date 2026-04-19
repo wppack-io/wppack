@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Cache\Bridge\Redis\Tests\Adapter;
+namespace WPPack\Component\Cache\Bridge\Redis\Tests\Adapter;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Cache\Bridge\Redis\Adapter\PredisAdapter;
+use WPPack\Component\Cache\Bridge\Redis\Adapter\PredisAdapter;
 
 final class PredisClusterAdapterTest extends TestCase
 {

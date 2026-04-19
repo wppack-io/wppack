@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Storage\Bridge\Gcs;
+namespace WPPack\Component\Storage\Bridge\Gcs;
 
 use Google\Cloud\Storage\Bucket;
-use WpPack\Component\Storage\Adapter\AbstractStorageAdapter;
-use WpPack\Component\Storage\Exception\ObjectNotFoundException;
-use WpPack\Component\Storage\ObjectMetadata;
-use WpPack\Component\Storage\Visibility;
+use WPPack\Component\Storage\Adapter\AbstractStorageAdapter;
+use WPPack\Component\Storage\Exception\ObjectNotFoundException;
+use WPPack\Component\Storage\ObjectMetadata;
+use WPPack\Component\Storage\Visibility;
 use Google\Cloud\Core\Exception\NotFoundException;
 
 final class GcsStorageAdapter extends AbstractStorageAdapter

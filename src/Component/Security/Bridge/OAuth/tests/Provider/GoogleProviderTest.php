@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Security\Bridge\OAuth\Tests\Provider;
+namespace WPPack\Component\Security\Bridge\OAuth\Tests\Provider;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Security\Bridge\OAuth\Configuration\OAuthConfiguration;
-use WpPack\Component\Security\Bridge\OAuth\Provider\GoogleProvider;
-use WpPack\Component\Security\Exception\AuthenticationException;
+use WPPack\Component\Security\Bridge\OAuth\Configuration\OAuthConfiguration;
+use WPPack\Component\Security\Bridge\OAuth\Provider\GoogleProvider;
+use WPPack\Component\Security\Exception\AuthenticationException;
 
 #[CoversClass(GoogleProvider::class)]
 final class GoogleProviderTest extends TestCase
@@ -214,7 +214,7 @@ final class GoogleProviderTest extends TestCase
     {
         $provider = new GoogleProvider($this->configuration);
 
-        $discoveryDocument = new \WpPack\Component\Security\Bridge\OAuth\Token\DiscoveryDocument(
+        $discoveryDocument = new \WPPack\Component\Security\Bridge\OAuth\Token\DiscoveryDocument(
             issuer: 'https://custom-google.example.com',
             authorizationEndpoint: 'https://custom-google.example.com/authorize',
             tokenEndpoint: 'https://custom-google.example.com/token',
@@ -233,7 +233,7 @@ final class GoogleProviderTest extends TestCase
     #[Test]
     public function authorizationUrlUsesDiscoveryEndpoint(): void
     {
-        $discoveryDocument = new \WpPack\Component\Security\Bridge\OAuth\Token\DiscoveryDocument(
+        $discoveryDocument = new \WPPack\Component\Security\Bridge\OAuth\Token\DiscoveryDocument(
             issuer: 'https://custom.example.com',
             authorizationEndpoint: 'https://custom.example.com/authorize',
             tokenEndpoint: 'https://custom.example.com/token',

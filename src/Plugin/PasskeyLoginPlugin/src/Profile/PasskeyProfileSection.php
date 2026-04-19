@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\PasskeyLoginPlugin\Profile;
+namespace WPPack\Plugin\PasskeyLoginPlugin\Profile;
 
-use WpPack\Plugin\PasskeyLoginPlugin\Configuration\PasskeyLoginConfiguration;
+use WPPack\Plugin\PasskeyLoginPlugin\Configuration\PasskeyLoginConfiguration;
 
 final class PasskeyProfileSection
 {

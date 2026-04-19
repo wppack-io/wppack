@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Routing\Tests\Response;
+namespace WPPack\Component\Routing\Tests\Response;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\HttpFoundation\Response;
-use WpPack\Component\Routing\Response\BlockTemplateResponse;
-use WpPack\Component\Routing\Response\TemplateResponse;
+use WPPack\Component\HttpFoundation\Response;
+use WPPack\Component\Routing\Response\BlockTemplateResponse;
+use WPPack\Component\Routing\Response\TemplateResponse;
 
 final class TemplateResponseTest extends TestCase
 {

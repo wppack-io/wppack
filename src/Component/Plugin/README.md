@@ -1,4 +1,4 @@
-# WpPack Plugin
+# WPPack Plugin
 
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=plugin)](https://codecov.io/github/wppack-io/wppack)
 
@@ -15,7 +15,7 @@ composer require wppack/plugin
 ### Plugin Action Links
 
 ```php
-use WpPack\Component\Hook\Attribute\Plugin\Filter\PluginActionLinksFilter;
+use WPPack\Component\Hook\Attribute\Plugin\Filter\PluginActionLinksFilter;
 
 final class MyPluginLinks
 {
@@ -31,7 +31,7 @@ final class MyPluginLinks
 ### Plugin Activation Event
 
 ```php
-use WpPack\Component\Hook\Attribute\Plugin\Action\ActivatedPluginAction;
+use WPPack\Component\Hook\Attribute\Plugin\Action\ActivatedPluginAction;
 
 final class PluginWatcher
 {

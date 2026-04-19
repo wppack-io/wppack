@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Sanitizer\Tests;
+namespace WPPack\Component\Sanitizer\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Sanitizer\Sanitizer;
+use WPPack\Component\Sanitizer\Sanitizer;
 
 final class SanitizerTest extends TestCase
 {

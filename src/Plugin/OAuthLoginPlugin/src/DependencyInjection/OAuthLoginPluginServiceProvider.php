@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,68 +11,68 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\OAuthLoginPlugin\DependencyInjection;
+namespace WPPack\Plugin\OAuthLoginPlugin\DependencyInjection;
 
 use Psr\EventDispatcher\EventDispatcherInterface;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\DependencyInjection\Reference;
-use WpPack\Component\DependencyInjection\ServiceProviderInterface;
-use WpPack\Component\EventDispatcher\DependencyInjection\EventDispatcherServiceProvider;
-use WpPack\Component\EventDispatcher\EventDispatcher;
-use WpPack\Component\HttpClient\DependencyInjection\HttpClientServiceProvider;
-use WpPack\Component\HttpClient\HttpClient;
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\Routing\RouteRegistry;
-use WpPack\Component\Sanitizer\Sanitizer;
-use WpPack\Component\Security\Authentication\AuthenticationManager;
-use WpPack\Component\Security\Authentication\AuthenticationManagerInterface;
-use WpPack\Component\Security\AuthenticationSession;
-use WpPack\Component\Security\Bridge\OAuth\Configuration\OAuthConfiguration;
-use WpPack\Component\Security\Bridge\OAuth\Multisite\CrossSiteRedirector;
-use WpPack\Component\Security\Bridge\OAuth\OAuthAuthenticator;
-use WpPack\Component\Security\Bridge\OAuth\OAuthEntryPoint;
-use WpPack\Component\Security\Bridge\OAuth\Provider\AppleProvider;
-use WpPack\Component\Security\Bridge\OAuth\Provider\Auth0Provider;
-use WpPack\Component\Security\Bridge\OAuth\Provider\CognitoProvider;
-use WpPack\Component\Security\Bridge\OAuth\Provider\DAccountProvider;
-use WpPack\Component\Security\Bridge\OAuth\Provider\DiscordProvider;
-use WpPack\Component\Security\Bridge\OAuth\Provider\EntraIdProvider;
-use WpPack\Component\Security\Bridge\OAuth\Provider\FacebookProvider;
-use WpPack\Component\Security\Bridge\OAuth\Provider\GenericOidcProvider;
-use WpPack\Component\Security\Bridge\OAuth\Provider\GitHubProvider;
-use WpPack\Component\Security\Bridge\OAuth\Provider\GoogleProvider;
-use WpPack\Component\Security\Bridge\OAuth\Provider\KeycloakProvider;
-use WpPack\Component\Security\Bridge\OAuth\Provider\LineProvider;
-use WpPack\Component\Security\Bridge\OAuth\Provider\OktaProvider;
-use WpPack\Component\Security\Bridge\OAuth\Provider\OneLoginProvider;
-use WpPack\Component\Security\Bridge\OAuth\Provider\ProviderInterface;
-use WpPack\Component\Security\Bridge\OAuth\Provider\ProviderRegistry;
-use WpPack\Component\Security\Bridge\OAuth\Provider\SlackProvider;
-use WpPack\Component\Security\Bridge\OAuth\Provider\YahooJapanProvider;
-use WpPack\Component\Security\Bridge\OAuth\Provider\YahooProvider;
-use WpPack\Component\Security\Bridge\OAuth\State\OAuthStateStore;
-use WpPack\Component\Security\Bridge\OAuth\Token\IdTokenValidator;
-use WpPack\Component\Security\Bridge\OAuth\Token\JwksProvider;
-use WpPack\Component\Security\Bridge\OAuth\Token\TokenExchanger;
-use WpPack\Component\Security\Bridge\OAuth\UserResolution\OAuthUserResolver;
-use WpPack\Component\Security\Bridge\OAuth\OAuthCallbackController;
-use WpPack\Component\Security\Bridge\OAuth\OAuthVerifyController;
-use WpPack\Component\Security\Bridge\OAuth\UserResolution\OAuthUserResolverInterface;
-use WpPack\Component\Security\DependencyInjection\SecurityServiceProvider;
-use WpPack\Component\Site\BlogContext;
-use WpPack\Component\Site\BlogContextInterface;
-use WpPack\Component\Site\SiteRepository;
-use WpPack\Component\Site\SiteRepositoryInterface;
-use WpPack\Component\Transient\TransientManager;
-use WpPack\Component\User\UserRepositoryInterface;
-use WpPack\Component\Admin\AdminPageRegistry;
-use WpPack\Component\Rest\RestRegistry;
-use WpPack\Component\Role\RoleProvider;
-use WpPack\Plugin\OAuthLoginPlugin\Admin\OAuthLoginSettingsController;
-use WpPack\Plugin\OAuthLoginPlugin\Admin\OAuthLoginSettingsPage;
-use WpPack\Plugin\OAuthLoginPlugin\Configuration\OAuthLoginConfiguration;
-use WpPack\Plugin\OAuthLoginPlugin\Configuration\ProviderConfiguration;
-use WpPack\Plugin\OAuthLoginPlugin\OAuthLoginForm;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\DependencyInjection\Reference;
+use WPPack\Component\DependencyInjection\ServiceProviderInterface;
+use WPPack\Component\EventDispatcher\DependencyInjection\EventDispatcherServiceProvider;
+use WPPack\Component\EventDispatcher\EventDispatcher;
+use WPPack\Component\HttpClient\DependencyInjection\HttpClientServiceProvider;
+use WPPack\Component\HttpClient\HttpClient;
+use WPPack\Component\HttpFoundation\Request;
+use WPPack\Component\Routing\RouteRegistry;
+use WPPack\Component\Sanitizer\Sanitizer;
+use WPPack\Component\Security\Authentication\AuthenticationManager;
+use WPPack\Component\Security\Authentication\AuthenticationManagerInterface;
+use WPPack\Component\Security\AuthenticationSession;
+use WPPack\Component\Security\Bridge\OAuth\Configuration\OAuthConfiguration;
+use WPPack\Component\Security\Bridge\OAuth\Multisite\CrossSiteRedirector;
+use WPPack\Component\Security\Bridge\OAuth\OAuthAuthenticator;
+use WPPack\Component\Security\Bridge\OAuth\OAuthEntryPoint;
+use WPPack\Component\Security\Bridge\OAuth\Provider\AppleProvider;
+use WPPack\Component\Security\Bridge\OAuth\Provider\Auth0Provider;
+use WPPack\Component\Security\Bridge\OAuth\Provider\CognitoProvider;
+use WPPack\Component\Security\Bridge\OAuth\Provider\DAccountProvider;
+use WPPack\Component\Security\Bridge\OAuth\Provider\DiscordProvider;
+use WPPack\Component\Security\Bridge\OAuth\Provider\EntraIdProvider;
+use WPPack\Component\Security\Bridge\OAuth\Provider\FacebookProvider;
+use WPPack\Component\Security\Bridge\OAuth\Provider\GenericOidcProvider;
+use WPPack\Component\Security\Bridge\OAuth\Provider\GitHubProvider;
+use WPPack\Component\Security\Bridge\OAuth\Provider\GoogleProvider;
+use WPPack\Component\Security\Bridge\OAuth\Provider\KeycloakProvider;
+use WPPack\Component\Security\Bridge\OAuth\Provider\LineProvider;
+use WPPack\Component\Security\Bridge\OAuth\Provider\OktaProvider;
+use WPPack\Component\Security\Bridge\OAuth\Provider\OneLoginProvider;
+use WPPack\Component\Security\Bridge\OAuth\Provider\ProviderInterface;
+use WPPack\Component\Security\Bridge\OAuth\Provider\ProviderRegistry;
+use WPPack\Component\Security\Bridge\OAuth\Provider\SlackProvider;
+use WPPack\Component\Security\Bridge\OAuth\Provider\YahooJapanProvider;
+use WPPack\Component\Security\Bridge\OAuth\Provider\YahooProvider;
+use WPPack\Component\Security\Bridge\OAuth\State\OAuthStateStore;
+use WPPack\Component\Security\Bridge\OAuth\Token\IdTokenValidator;
+use WPPack\Component\Security\Bridge\OAuth\Token\JwksProvider;
+use WPPack\Component\Security\Bridge\OAuth\Token\TokenExchanger;
+use WPPack\Component\Security\Bridge\OAuth\UserResolution\OAuthUserResolver;
+use WPPack\Component\Security\Bridge\OAuth\OAuthCallbackController;
+use WPPack\Component\Security\Bridge\OAuth\OAuthVerifyController;
+use WPPack\Component\Security\Bridge\OAuth\UserResolution\OAuthUserResolverInterface;
+use WPPack\Component\Security\DependencyInjection\SecurityServiceProvider;
+use WPPack\Component\Site\BlogContext;
+use WPPack\Component\Site\BlogContextInterface;
+use WPPack\Component\Site\SiteRepository;
+use WPPack\Component\Site\SiteRepositoryInterface;
+use WPPack\Component\Transient\TransientManager;
+use WPPack\Component\User\UserRepositoryInterface;
+use WPPack\Component\Admin\AdminPageRegistry;
+use WPPack\Component\Rest\RestRegistry;
+use WPPack\Component\Role\RoleProvider;
+use WPPack\Plugin\OAuthLoginPlugin\Admin\OAuthLoginSettingsController;
+use WPPack\Plugin\OAuthLoginPlugin\Admin\OAuthLoginSettingsPage;
+use WPPack\Plugin\OAuthLoginPlugin\Configuration\OAuthLoginConfiguration;
+use WPPack\Plugin\OAuthLoginPlugin\Configuration\ProviderConfiguration;
+use WPPack\Plugin\OAuthLoginPlugin\OAuthLoginForm;
 
 final class OAuthLoginPluginServiceProvider implements ServiceProviderInterface
 {

@@ -1,4 +1,4 @@
-# WpPack Transient
+# WPPack Transient
 
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=transient)](https://codecov.io/github/wppack-io/wppack)
 
@@ -15,7 +15,7 @@ composer require wppack/transient
 ### TransientManager
 
 ```php
-use WpPack\Component\Transient\TransientManager;
+use WPPack\Component\Transient\TransientManager;
 
 $transient = new TransientManager();
 
@@ -30,7 +30,7 @@ $transient->delete('api_response');
 ### SiteTransientManager (Multisite)
 
 ```php
-use WpPack\Component\Transient\SiteTransientManager;
+use WPPack\Component\Transient\SiteTransientManager;
 
 $siteTransient = new SiteTransientManager();
 
@@ -43,8 +43,8 @@ $siteTransient->delete('network_status');
 ### Named Hook Attributes
 
 ```php
-use WpPack\Component\Hook\Attribute\Transient\Filter\PreTransientFilter;
-use WpPack\Component\Hook\Attribute\Transient\Action\SetTransientAction;
+use WPPack\Component\Hook\Attribute\Transient\Filter\PreTransientFilter;
+use WPPack\Component\Hook\Attribute\Transient\Action\SetTransientAction;
 
 final class TransientHooks
 {

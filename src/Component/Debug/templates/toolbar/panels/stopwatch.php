@@ -4,7 +4,7 @@
  *
  * @var float                                                        $totalTime Total elapsed time in ms
  * @var array                                                        $events    Stopwatch event records
- * @var \WpPack\Component\Debug\Toolbar\Panel\TemplateFormatters     $fmt       Template formatters
+ * @var \WPPack\Component\Debug\Toolbar\Panel\TemplateFormatters     $fmt       Template formatters
  */
 ?>
 <div class="wpd-section">

@@ -1,7 +1,7 @@
 # GCS Storage
 
 **パッケージ:** `wppack/gcs-storage`
-**名前空間:** `WpPack\Component\Storage\Bridge\Gcs\`
+**名前空間:** `WPPack\Component\Storage\Bridge\Gcs\`
 **レイヤー:** Abstraction（Bridge）
 
 [Storage コンポーネント](./README.md) の Google Cloud Storage アダプタです。`google/cloud-storage` を利用して GCS にアクセスします。
@@ -54,7 +54,7 @@ gcs://{bucket}.storage.googleapis.com/{prefix}
 ### DSN 経由
 
 ```php
-use WpPack\Component\Storage\Adapter\Storage;
+use WPPack\Component\Storage\Adapter\Storage;
 
 $adapter = Storage::fromDsn('gcs://my-bucket.storage.googleapis.com/uploads');
 
@@ -66,7 +66,7 @@ $url = $adapter->publicUrl('images/photo.jpg');
 
 ```php
 use Google\Cloud\Storage\StorageClient;
-use WpPack\Component\Storage\Bridge\Gcs\GcsStorageAdapter;
+use WPPack\Component\Storage\Bridge\Gcs\GcsStorageAdapter;
 
 $storageClient = new StorageClient(['projectId' => 'my-project-id']);
 $bucket = $storageClient->bucket('my-bucket');
@@ -177,8 +177,8 @@ $adapter->listContents('2024/01/');
 GCS 固有のエラーは `AbstractStorageAdapter` の `execute()` ラッパーにより `StorageException` に変換されます。ただし、404 系のエラーは `ObjectNotFoundException` として伝播します。
 
 ```php
-use WpPack\Component\Storage\Exception\ObjectNotFoundException;
-use WpPack\Component\Storage\Exception\StorageException;
+use WPPack\Component\Storage\Exception\ObjectNotFoundException;
+use WPPack\Component\Storage\Exception\StorageException;
 
 try {
     $contents = $adapter->read('nonexistent.txt');

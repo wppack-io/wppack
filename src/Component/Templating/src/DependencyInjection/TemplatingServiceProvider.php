@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Templating\DependencyInjection;
+namespace WPPack\Component\Templating\DependencyInjection;
 
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\DependencyInjection\ServiceProviderInterface;
-use WpPack\Component\Escaper\Escaper;
-use WpPack\Component\Templating\PhpRenderer;
-use WpPack\Component\Templating\TemplateLocator;
-use WpPack\Component\Templating\TemplateRendererInterface;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\DependencyInjection\ServiceProviderInterface;
+use WPPack\Component\Escaper\Escaper;
+use WPPack\Component\Templating\PhpRenderer;
+use WPPack\Component\Templating\TemplateLocator;
+use WPPack\Component\Templating\TemplateRendererInterface;
 
 final class TemplatingServiceProvider implements ServiceProviderInterface
 {

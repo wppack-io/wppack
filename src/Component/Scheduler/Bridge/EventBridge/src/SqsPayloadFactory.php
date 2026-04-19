@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,17 +11,17 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Scheduler\Bridge\EventBridge;
+namespace WPPack\Component\Scheduler\Bridge\EventBridge;
 
-use WpPack\Component\Messenger\Stamp\StampInterface;
-use WpPack\Component\Scheduler\Message\ActionSchedulerMessage;
-use WpPack\Component\Scheduler\Message\WpCronMessage;
-use WpPack\Component\Serializer\Encoder\JsonEncoder;
-use WpPack\Component\Serializer\Normalizer\BackedEnumNormalizer;
-use WpPack\Component\Serializer\Normalizer\DateTimeNormalizer;
-use WpPack\Component\Serializer\Normalizer\ObjectNormalizer;
-use WpPack\Component\Serializer\Serializer;
-use WpPack\Component\Serializer\SerializerInterface;
+use WPPack\Component\Messenger\Stamp\StampInterface;
+use WPPack\Component\Scheduler\Message\ActionSchedulerMessage;
+use WPPack\Component\Scheduler\Message\WpCronMessage;
+use WPPack\Component\Serializer\Encoder\JsonEncoder;
+use WPPack\Component\Serializer\Normalizer\BackedEnumNormalizer;
+use WPPack\Component\Serializer\Normalizer\DateTimeNormalizer;
+use WPPack\Component\Serializer\Normalizer\ObjectNormalizer;
+use WPPack\Component\Serializer\Serializer;
+use WPPack\Component\Serializer\SerializerInterface;
 
 /**
  * Builds SQS message payloads compatible with SqsEventHandler + JsonSerializer::decode().

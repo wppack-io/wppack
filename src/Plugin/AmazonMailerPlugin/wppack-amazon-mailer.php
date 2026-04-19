@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -12,17 +12,17 @@
 declare(strict_types=1);
 
 /**
- * Plugin Name: WpPack Amazon Mailer
+ * Plugin Name: WPPack Amazon Mailer
  * Description: SES-based email delivery with bounce and complaint handling.
  * Version: 1.0.0
  * Requires PHP: 8.2
  * Requires at least: 6.9
- * Author: WpPack
+ * Author: WPPack
  * License: MIT
  */
 
-use WpPack\Component\Kernel\Kernel;
-use WpPack\Plugin\AmazonMailerPlugin\AmazonMailerPlugin;
+use WPPack\Component\Kernel\Kernel;
+use WPPack\Plugin\AmazonMailerPlugin\AmazonMailerPlugin;
 
 if (!defined('ABSPATH')) {
     exit;

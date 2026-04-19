@@ -1,4 +1,4 @@
-# WpPack Console
+# WPPack Console
 
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=console)](https://codecov.io/github/wppack-io/wppack)
 
@@ -15,13 +15,13 @@ composer require wppack/console
 ### Command Definition
 
 ```php
-use WpPack\Component\Console\AbstractCommand;
-use WpPack\Component\Console\Attribute\AsCommand;
-use WpPack\Component\Console\Input\InputArgument;
-use WpPack\Component\Console\Input\InputDefinition;
-use WpPack\Component\Console\Input\InputInterface;
-use WpPack\Component\Console\Input\InputOption;
-use WpPack\Component\Console\Output\OutputStyle;
+use WPPack\Component\Console\AbstractCommand;
+use WPPack\Component\Console\Attribute\AsCommand;
+use WPPack\Component\Console\Input\InputArgument;
+use WPPack\Component\Console\Input\InputDefinition;
+use WPPack\Component\Console\Input\InputInterface;
+use WPPack\Component\Console\Input\InputOption;
+use WPPack\Component\Console\Output\OutputStyle;
 
 #[AsCommand(name: 'myapp import-users', description: 'Import users from CSV')]
 final class ImportUsersCommand extends AbstractCommand
@@ -71,8 +71,8 @@ final class SyncUsersCommand extends AbstractCommand
 ### Input Definition
 
 ```php
-use WpPack\Component\Console\Input\InputArgument;
-use WpPack\Component\Console\Input\InputOption;
+use WPPack\Component\Console\Input\InputArgument;
+use WPPack\Component\Console\Input\InputOption;
 
 // Required argument
 $definition->addArgument(new InputArgument('file', InputArgument::REQUIRED, 'CSV file path'));
@@ -117,7 +117,7 @@ $progress->finish();
 ### CommandRegistry
 
 ```php
-use WpPack\Component\Console\CommandRegistry;
+use WPPack\Component\Console\CommandRegistry;
 
 $registry = new CommandRegistry();
 $registry->add(new ImportUsersCommand());
@@ -127,9 +127,9 @@ $registry->register(); // Calls WP_CLI::add_command() for each command
 ### Testing
 
 ```php
-use WpPack\Component\Console\Input\ArrayInput;
-use WpPack\Component\Console\Output\BufferedOutput;
-use WpPack\Component\Console\Output\OutputStyle;
+use WPPack\Component\Console\Input\ArrayInput;
+use WPPack\Component\Console\Output\BufferedOutput;
+use WPPack\Component\Console\Output\OutputStyle;
 
 $input = new ArrayInput(
     arguments: ['file' => '/path/to/users.csv'],

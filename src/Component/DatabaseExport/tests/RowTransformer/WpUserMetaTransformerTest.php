@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\DatabaseExport\Tests\RowTransformer;
+namespace WPPack\Component\DatabaseExport\Tests\RowTransformer;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Database\Schema\ColumnSchema;
-use WpPack\Component\Database\Schema\TableSchema;
-use WpPack\Component\DatabaseExport\ExportConfiguration;
-use WpPack\Component\DatabaseExport\RowTransformer\WpUserMetaTransformer;
+use WPPack\Component\Database\Schema\ColumnSchema;
+use WPPack\Component\Database\Schema\TableSchema;
+use WPPack\Component\DatabaseExport\ExportConfiguration;
+use WPPack\Component\DatabaseExport\RowTransformer\WpUserMetaTransformer;
 
 final class WpUserMetaTransformerTest extends TestCase
 {

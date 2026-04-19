@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\EventDispatcher\Tests\DependencyInjection;
+namespace WPPack\Component\EventDispatcher\Tests\DependencyInjection;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\EventDispatcher\DependencyInjection\EventDispatcherServiceProvider;
-use WpPack\Component\EventDispatcher\EventDispatcher;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\EventDispatcher\DependencyInjection\EventDispatcherServiceProvider;
+use WPPack\Component\EventDispatcher\EventDispatcher;
 
 final class EventDispatcherServiceProviderTest extends TestCase
 {

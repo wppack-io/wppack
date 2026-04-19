@@ -17,12 +17,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\Scim\\": "src/"
+            "WPPack\\Component\\Scim\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Component\\Scim\\Tests\\": "tests/"
+            "WPPack\\Component\\Scim\\Tests\\": "tests/"
         }
     }
 }

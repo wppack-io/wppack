@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,15 +11,15 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Security\Bridge\OAuth\Tests\Multisite;
+namespace WPPack\Component\Security\Bridge\OAuth\Tests\Multisite;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Security\Bridge\OAuth\Multisite\CrossSiteRedirector;
-use WpPack\Component\Site\BlogContext;
-use WpPack\Component\Site\SiteRepository;
-use WpPack\Component\Transient\TransientManager;
+use WPPack\Component\Security\Bridge\OAuth\Multisite\CrossSiteRedirector;
+use WPPack\Component\Site\BlogContext;
+use WPPack\Component\Site\SiteRepository;
+use WPPack\Component\Transient\TransientManager;
 
 #[CoversClass(CrossSiteRedirector::class)]
 final class CrossSiteRedirectorTest extends TestCase

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Mailer\Bridge\Amazon\Tests\Transport;
+namespace WPPack\Component\Mailer\Bridge\Amazon\Tests\Transport;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Mailer\Bridge\Amazon\Transport\SesSmtpTransport;
-use WpPack\Component\Mailer\Exception\TransportException;
-use WpPack\Component\Mailer\PhpMailer;
+use WPPack\Component\Mailer\Bridge\Amazon\Transport\SesSmtpTransport;
+use WPPack\Component\Mailer\Exception\TransportException;
+use WPPack\Component\Mailer\PhpMailer;
 
 final class SesSmtpTransportTest extends TestCase
 {

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,16 +11,16 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database\Driver;
+namespace WPPack\Component\Database\Driver;
 
 use Psr\Log\LoggerInterface;
-use WpPack\Component\Database\Exception\ConnectionException;
-use WpPack\Component\Database\Exception\DriverException;
-use WpPack\Component\Database\Platform\MariadbPlatform;
-use WpPack\Component\Database\Platform\MysqlPlatform;
-use WpPack\Component\Database\Platform\PlatformInterface;
-use WpPack\Component\Database\Result;
-use WpPack\Component\Database\Statement;
+use WPPack\Component\Database\Exception\ConnectionException;
+use WPPack\Component\Database\Exception\DriverException;
+use WPPack\Component\Database\Platform\MariadbPlatform;
+use WPPack\Component\Database\Platform\MysqlPlatform;
+use WPPack\Component\Database\Platform\PlatformInterface;
+use WPPack\Component\Database\Result;
+use WPPack\Component\Database\Statement;
 
 class MysqlDriver extends AbstractDriver
 {

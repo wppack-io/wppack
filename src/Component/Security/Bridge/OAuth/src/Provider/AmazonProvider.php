@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Security\Bridge\OAuth\Provider;
+namespace WPPack\Component\Security\Bridge\OAuth\Provider;
 
-use WpPack\Component\Security\Bridge\OAuth\Configuration\OAuthConfiguration;
+use WPPack\Component\Security\Bridge\OAuth\Configuration\OAuthConfiguration;
 
 /**
  * Login with Amazon OAuth 2.0 provider.

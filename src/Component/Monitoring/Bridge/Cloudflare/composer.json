@@ -1,6 +1,6 @@
 {
     "name": "wppack/cloudflare-monitoring",
-    "description": "Cloudflare Analytics bridge for WpPack Monitoring",
+    "description": "Cloudflare Analytics bridge for WPPack Monitoring",
     "type": "library",
     "license": "MIT",
     "require": {
@@ -9,12 +9,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\Monitoring\\Bridge\\Cloudflare\\": "src/"
+            "WPPack\\Component\\Monitoring\\Bridge\\Cloudflare\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Component\\Monitoring\\Bridge\\Cloudflare\\Tests\\": "tests/"
+            "WPPack\\Component\\Monitoring\\Bridge\\Cloudflare\\Tests\\": "tests/"
         }
     }
 }

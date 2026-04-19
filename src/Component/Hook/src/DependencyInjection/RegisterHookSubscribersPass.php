@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Hook\DependencyInjection;
+namespace WPPack\Component\Hook\DependencyInjection;
 
-use WpPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\DependencyInjection\Reference;
-use WpPack\Component\Hook\Attribute\AsHookSubscriber;
-use WpPack\Component\Hook\HookDiscovery;
-use WpPack\Component\Hook\HookRegistry;
+use WPPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\DependencyInjection\Reference;
+use WPPack\Component\Hook\Attribute\AsHookSubscriber;
+use WPPack\Component\Hook\HookDiscovery;
+use WPPack\Component\Hook\HookRegistry;
 
 final class RegisterHookSubscribersPass implements CompilerPassInterface
 {

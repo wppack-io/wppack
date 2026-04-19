@@ -1,6 +1,6 @@
 {
     "name": "wppack/sqs-messenger",
-    "description": "Amazon SQS transport for WpPack Messenger",
+    "description": "Amazon SQS transport for WPPack Messenger",
     "type": "library",
     "license": "MIT",
     "require": {
@@ -12,12 +12,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\Messenger\\Bridge\\Sqs\\": "src/"
+            "WPPack\\Component\\Messenger\\Bridge\\Sqs\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Component\\Messenger\\Bridge\\Sqs\\Tests\\": "tests/"
+            "WPPack\\Component\\Messenger\\Bridge\\Sqs\\Tests\\": "tests/"
         }
     }
 }

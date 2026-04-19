@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,26 +11,26 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\PasskeyLoginPlugin;
+namespace WPPack\Plugin\PasskeyLoginPlugin;
 
-use WpPack\Component\Admin\AdminPageRegistry;
-use WpPack\Component\Database\SchemaManager;
-use WpPack\Component\DependencyInjection\Container;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\Kernel\AbstractPlugin;
-use WpPack\Component\Kernel\Attribute\TextDomain;
-use WpPack\Component\Rest\RestRegistry;
-use WpPack\Component\Security\Bridge\Passkey\Controller\AuthenticationController;
-use WpPack\Plugin\PasskeyLoginPlugin\Activation\PasskeyActivationController;
-use WpPack\Plugin\PasskeyLoginPlugin\Activation\PasskeyActivationPrompt;
-use WpPack\Component\Security\Bridge\Passkey\Controller\CredentialController;
-use WpPack\Component\Security\Bridge\Passkey\Controller\RegistrationController;
-use WpPack\Plugin\PasskeyLoginPlugin\Admin\PasskeyLoginSettingsController;
-use WpPack\Plugin\PasskeyLoginPlugin\Admin\PasskeyLoginSettingsPage;
-use WpPack\Plugin\PasskeyLoginPlugin\Configuration\PasskeyLoginConfiguration;
-use WpPack\Plugin\PasskeyLoginPlugin\DependencyInjection\PasskeyLoginPluginServiceProvider;
-use WpPack\Plugin\PasskeyLoginPlugin\LoginForm\PasskeyLoginForm;
-use WpPack\Plugin\PasskeyLoginPlugin\Profile\PasskeyProfileSection;
+use WPPack\Component\Admin\AdminPageRegistry;
+use WPPack\Component\Database\SchemaManager;
+use WPPack\Component\DependencyInjection\Container;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\Kernel\AbstractPlugin;
+use WPPack\Component\Kernel\Attribute\TextDomain;
+use WPPack\Component\Rest\RestRegistry;
+use WPPack\Component\Security\Bridge\Passkey\Controller\AuthenticationController;
+use WPPack\Plugin\PasskeyLoginPlugin\Activation\PasskeyActivationController;
+use WPPack\Plugin\PasskeyLoginPlugin\Activation\PasskeyActivationPrompt;
+use WPPack\Component\Security\Bridge\Passkey\Controller\CredentialController;
+use WPPack\Component\Security\Bridge\Passkey\Controller\RegistrationController;
+use WPPack\Plugin\PasskeyLoginPlugin\Admin\PasskeyLoginSettingsController;
+use WPPack\Plugin\PasskeyLoginPlugin\Admin\PasskeyLoginSettingsPage;
+use WPPack\Plugin\PasskeyLoginPlugin\Configuration\PasskeyLoginConfiguration;
+use WPPack\Plugin\PasskeyLoginPlugin\DependencyInjection\PasskeyLoginPluginServiceProvider;
+use WPPack\Plugin\PasskeyLoginPlugin\LoginForm\PasskeyLoginForm;
+use WPPack\Plugin\PasskeyLoginPlugin\Profile\PasskeyProfileSection;
 
 #[TextDomain(domain: 'wppack-passkey-login')]
 final class PasskeyLoginPlugin extends AbstractPlugin

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\AmazonMailerPlugin\Tests;
+namespace WPPack\Plugin\AmazonMailerPlugin\Tests;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Option\OptionManager;
-use WpPack\Plugin\AmazonMailerPlugin\SuppressionList;
+use WPPack\Component\Option\OptionManager;
+use WPPack\Plugin\AmazonMailerPlugin\SuppressionList;
 
 #[CoversClass(SuppressionList::class)]
 final class SuppressionListTest extends TestCase

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Security\Tests\Authentication\Provider;
+namespace WPPack\Component\Security\Tests\Authentication\Provider;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Security\Authentication\Provider\WordPressUserProvider;
-use WpPack\Component\Security\Exception\UserNotFoundException;
-use WpPack\Component\User\UserRepository;
+use WPPack\Component\Security\Authentication\Provider\WordPressUserProvider;
+use WPPack\Component\Security\Exception\UserNotFoundException;
+use WPPack\Component\User\UserRepository;
 
 final class WordPressUserProviderTest extends TestCase
 {

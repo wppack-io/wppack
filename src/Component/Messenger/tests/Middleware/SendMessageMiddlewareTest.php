@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,19 +11,19 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Messenger\Tests\Middleware;
+namespace WPPack\Component\Messenger\Tests\Middleware;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Messenger\Envelope;
-use WpPack\Component\Messenger\Middleware\MiddlewareStack;
-use WpPack\Component\Messenger\Middleware\SendMessageMiddleware;
-use WpPack\Component\Messenger\Stamp\ReceivedStamp;
-use WpPack\Component\Messenger\Stamp\SentStamp;
-use WpPack\Component\Messenger\Stamp\TransportStamp;
-use WpPack\Component\Messenger\Transport\SyncTransport;
-use WpPack\Component\Messenger\Transport\TransportInterface;
+use WPPack\Component\Messenger\Envelope;
+use WPPack\Component\Messenger\Middleware\MiddlewareStack;
+use WPPack\Component\Messenger\Middleware\SendMessageMiddleware;
+use WPPack\Component\Messenger\Stamp\ReceivedStamp;
+use WPPack\Component\Messenger\Stamp\SentStamp;
+use WPPack\Component\Messenger\Stamp\TransportStamp;
+use WPPack\Component\Messenger\Transport\SyncTransport;
+use WPPack\Component\Messenger\Transport\TransportInterface;
 
 #[CoversClass(SendMessageMiddleware::class)]
 final class SendMessageMiddlewareTest extends TestCase

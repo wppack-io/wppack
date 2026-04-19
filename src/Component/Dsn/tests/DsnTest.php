@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Dsn\Tests;
+namespace WPPack\Component\Dsn\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Dsn\Dsn;
-use WpPack\Component\Dsn\Exception\InvalidDsnException;
+use WPPack\Component\Dsn\Dsn;
+use WPPack\Component\Dsn\Exception\InvalidDsnException;
 
 final class DsnTest extends TestCase
 {

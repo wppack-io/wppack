@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,16 +11,16 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Security\Tests\Authentication;
+namespace WPPack\Component\Security\Tests\Authentication;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Security\Authentication\Passport\Badge\CredentialsBadge;
-use WpPack\Component\Security\Authentication\Passport\Badge\RememberMeBadge;
-use WpPack\Component\Security\Authentication\Passport\Badge\UserBadge;
-use WpPack\Component\Security\Authentication\Passport\Passport;
-use WpPack\Component\Security\Authentication\Passport\SelfValidatingPassport;
-use WpPack\Component\Security\Exception\AuthenticationException;
+use WPPack\Component\Security\Authentication\Passport\Badge\CredentialsBadge;
+use WPPack\Component\Security\Authentication\Passport\Badge\RememberMeBadge;
+use WPPack\Component\Security\Authentication\Passport\Badge\UserBadge;
+use WPPack\Component\Security\Authentication\Passport\Passport;
+use WPPack\Component\Security\Authentication\Passport\SelfValidatingPassport;
+use WPPack\Component\Security\Exception\AuthenticationException;
 
 final class PassportTest extends TestCase
 {

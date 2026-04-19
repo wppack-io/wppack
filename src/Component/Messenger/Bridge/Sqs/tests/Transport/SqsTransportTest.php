@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Messenger\Bridge\Sqs\Tests\Transport;
+namespace WPPack\Component\Messenger\Bridge\Sqs\Tests\Transport;
 
 use AsyncAws\Sqs\Input\SendMessageRequest;
 use AsyncAws\Sqs\Result\SendMessageResult;
@@ -19,12 +19,12 @@ use AsyncAws\Sqs\SqsClient;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Messenger\Bridge\Sqs\Transport\SqsTransport;
-use WpPack\Component\Messenger\Envelope;
-use WpPack\Component\Messenger\Exception\TransportException;
-use WpPack\Component\Messenger\Serializer\SerializerInterface;
-use WpPack\Component\Messenger\Stamp\DelayStamp;
-use WpPack\Component\Messenger\Stamp\SentStamp;
+use WPPack\Component\Messenger\Bridge\Sqs\Transport\SqsTransport;
+use WPPack\Component\Messenger\Envelope;
+use WPPack\Component\Messenger\Exception\TransportException;
+use WPPack\Component\Messenger\Serializer\SerializerInterface;
+use WPPack\Component\Messenger\Stamp\DelayStamp;
+use WPPack\Component\Messenger\Stamp\SentStamp;
 
 #[CoversClass(SqsTransport::class)]
 final class SqsTransportTest extends TestCase

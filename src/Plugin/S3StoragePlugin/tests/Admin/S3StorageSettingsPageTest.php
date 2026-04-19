@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\S3StoragePlugin\Tests\Admin;
+namespace WPPack\Plugin\S3StoragePlugin\Tests\Admin;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Admin\AbstractAdminPage;
-use WpPack\Plugin\S3StoragePlugin\Admin\S3StorageSettingsPage;
+use WPPack\Component\Admin\AbstractAdminPage;
+use WPPack\Plugin\S3StoragePlugin\Admin\S3StorageSettingsPage;
 
 #[CoversClass(S3StorageSettingsPage::class)]
 final class S3StorageSettingsPageTest extends TestCase

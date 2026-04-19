@@ -8,12 +8,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\Sanitizer\\": "src/"
+            "WPPack\\Component\\Sanitizer\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Component\\Sanitizer\\Tests\\": "tests/"
+            "WPPack\\Component\\Sanitizer\\Tests\\": "tests/"
         }
     }
 }

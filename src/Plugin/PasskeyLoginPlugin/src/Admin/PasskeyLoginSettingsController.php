@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\PasskeyLoginPlugin\Admin;
+namespace WPPack\Plugin\PasskeyLoginPlugin\Admin;
 
-use WpPack\Component\HttpFoundation\JsonResponse;
-use WpPack\Component\Rest\AbstractRestController;
-use WpPack\Component\Rest\Attribute\RestRoute;
-use WpPack\Component\Rest\HttpMethod;
-use WpPack\Component\Role\Attribute\IsGranted;
-use WpPack\Plugin\PasskeyLoginPlugin\Configuration\PasskeyLoginConfiguration;
+use WPPack\Component\HttpFoundation\JsonResponse;
+use WPPack\Component\Rest\AbstractRestController;
+use WPPack\Component\Rest\Attribute\RestRoute;
+use WPPack\Component\Rest\HttpMethod;
+use WPPack\Component\Role\Attribute\IsGranted;
+use WPPack\Plugin\PasskeyLoginPlugin\Configuration\PasskeyLoginConfiguration;
 
 #[RestRoute(namespace: 'wppack/v1/passkey-login')]
 #[IsGranted('manage_options')]

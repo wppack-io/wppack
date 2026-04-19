@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -12,17 +12,17 @@
 declare(strict_types=1);
 
 /**
- * Plugin Name: WpPack S3 Storage
+ * Plugin Name: WPPack S3 Storage
  * Description: S3-based media storage with browser-direct upload support.
  * Version: 1.0.0
  * Requires PHP: 8.2
  * Requires at least: 6.9
- * Author: WpPack
+ * Author: WPPack
  * License: MIT
  */
 
-use WpPack\Component\Kernel\Kernel;
-use WpPack\Plugin\S3StoragePlugin\S3StoragePlugin;
+use WPPack\Component\Kernel\Kernel;
+use WPPack\Plugin\S3StoragePlugin\S3StoragePlugin;
 
 if (!defined('ABSPATH')) {
     exit;

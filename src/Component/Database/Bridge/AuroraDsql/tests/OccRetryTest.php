@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database\Bridge\AuroraDsql\Tests;
+namespace WPPack\Component\Database\Bridge\AuroraDsql\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Database\Exception\DriverException;
+use WPPack\Component\Database\Exception\DriverException;
 
 /**
  * Tests for Aurora DSQL's OCC retry loop — the exponential-backoff +
@@ -33,7 +33,7 @@ final class OccRetryTest extends TestCase
         // requires async-aws/core wiring; we sidestep it via
         // ReflectionClass::newInstanceWithoutConstructor + property
         // injection.
-        $class = new \ReflectionClass(\WpPack\Component\Database\Bridge\AuroraDsql\AuroraDsqlDriver::class);
+        $class = new \ReflectionClass(\WPPack\Component\Database\Bridge\AuroraDsql\AuroraDsqlDriver::class);
         $driver = $class->newInstanceWithoutConstructor();
 
         $class->getProperty('occMaxRetries')->setValue($driver, $maxRetries);
@@ -46,7 +46,7 @@ final class OccRetryTest extends TestCase
 
     private static function invokeRetry(object $driver, \Closure $operation): mixed
     {
-        $class = new \ReflectionClass(\WpPack\Component\Database\Bridge\AuroraDsql\AuroraDsqlDriver::class);
+        $class = new \ReflectionClass(\WPPack\Component\Database\Bridge\AuroraDsql\AuroraDsqlDriver::class);
         $method = $class->getMethod('executeWithOccRetry');
 
         return $method->invoke($driver, $operation);

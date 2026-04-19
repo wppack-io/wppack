@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Security\Bridge\OAuth;
+namespace WPPack\Component\Security\Bridge\OAuth;
 
-use WpPack\Component\HttpFoundation\RedirectResponse;
-use WpPack\Component\HttpFoundation\Response;
-use WpPack\Component\Security\Authentication\AuthenticationManagerInterface;
+use WPPack\Component\HttpFoundation\RedirectResponse;
+use WPPack\Component\HttpFoundation\Response;
+use WPPack\Component\Security\Authentication\AuthenticationManagerInterface;
 
 /**
  * Handles /oauth/{provider}/verify — cross-site token verification.

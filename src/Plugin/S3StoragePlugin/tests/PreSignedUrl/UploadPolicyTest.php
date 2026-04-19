@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\S3StoragePlugin\Tests\PreSignedUrl;
+namespace WPPack\Plugin\S3StoragePlugin\Tests\PreSignedUrl;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Plugin\S3StoragePlugin\PreSignedUrl\UploadPolicy;
+use WPPack\Plugin\S3StoragePlugin\PreSignedUrl\UploadPolicy;
 
 final class UploadPolicyTest extends TestCase
 {

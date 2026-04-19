@@ -1,4 +1,4 @@
-# WpPack Database Export
+# WPPack Database Export
 
 Database export component for WordPress. Supports multiple output formats and source database engines.
 
@@ -22,14 +22,14 @@ composer require wppack/database-export
 ## Usage
 
 ```php
-use WpPack\Component\Database\DatabaseManager;
-use WpPack\Component\Database\SchemaReader\MysqlSchemaReader;
-use WpPack\Component\DatabaseExport\DatabaseExporter;
-use WpPack\Component\DatabaseExport\ExportConfiguration;
-use WpPack\Component\DatabaseExport\RowTransformer\WpOptionsTransformer;
-use WpPack\Component\DatabaseExport\RowTransformer\WpUserMetaTransformer;
-use WpPack\Component\DatabaseExport\TableFilter\PrefixTableFilter;
-use WpPack\Component\DatabaseExport\Writer\WpressSqlWriter;
+use WPPack\Component\Database\DatabaseManager;
+use WPPack\Component\Database\SchemaReader\MysqlSchemaReader;
+use WPPack\Component\DatabaseExport\DatabaseExporter;
+use WPPack\Component\DatabaseExport\ExportConfiguration;
+use WPPack\Component\DatabaseExport\RowTransformer\WpOptionsTransformer;
+use WPPack\Component\DatabaseExport\RowTransformer\WpUserMetaTransformer;
+use WPPack\Component\DatabaseExport\TableFilter\PrefixTableFilter;
+use WPPack\Component\DatabaseExport\Writer\WpressSqlWriter;
 
 $db = new DatabaseManager();
 $config = new ExportConfiguration(

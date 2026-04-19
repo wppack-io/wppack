@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,16 +11,16 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Monitoring\Bridge\Cloudflare;
+namespace WPPack\Component\Monitoring\Bridge\Cloudflare;
 
 use Psr\Log\LoggerInterface;
-use WpPack\Component\Monitoring\Bridge\Cloudflare\CloudflareProviderSettings;
-use WpPack\Component\Monitoring\MetricDefinition;
-use WpPack\Component\Monitoring\MetricPoint;
-use WpPack\Component\Monitoring\MetricProviderInterface;
-use WpPack\Component\Monitoring\MetricResult;
-use WpPack\Component\Monitoring\MetricTimeRange;
-use WpPack\Component\Monitoring\MonitoringProvider;
+use WPPack\Component\Monitoring\Bridge\Cloudflare\CloudflareProviderSettings;
+use WPPack\Component\Monitoring\MetricDefinition;
+use WPPack\Component\Monitoring\MetricPoint;
+use WPPack\Component\Monitoring\MetricProviderInterface;
+use WPPack\Component\Monitoring\MetricResult;
+use WPPack\Component\Monitoring\MetricTimeRange;
+use WPPack\Component\Monitoring\MonitoringProvider;
 
 /**
  * Cloudflare Analytics GraphQL API bridge.

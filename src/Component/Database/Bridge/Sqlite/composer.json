@@ -1,6 +1,6 @@
 {
     "name": "wppack/sqlite-database",
-    "description": "SQLite database driver for WpPack",
+    "description": "SQLite database driver for WPPack",
     "type": "library",
     "license": "MIT",
     "require": {
@@ -11,12 +11,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\Database\\Bridge\\Sqlite\\": "src/"
+            "WPPack\\Component\\Database\\Bridge\\Sqlite\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Component\\Database\\Bridge\\Sqlite\\Tests\\": "tests/"
+            "WPPack\\Component\\Database\\Bridge\\Sqlite\\Tests\\": "tests/"
         }
     }
 }

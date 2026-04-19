@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\DatabaseExport\Tests\TableFilter;
+namespace WPPack\Component\DatabaseExport\Tests\TableFilter;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\DatabaseExport\ExportConfiguration;
-use WpPack\Component\DatabaseExport\TableFilter\PrefixTableFilter;
+use WPPack\Component\DatabaseExport\ExportConfiguration;
+use WPPack\Component\DatabaseExport\TableFilter\PrefixTableFilter;
 
 final class PrefixTableFilterTest extends TestCase
 {

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\DatabaseExport\TableFilter;
+namespace WPPack\Component\DatabaseExport\TableFilter;
 
-use WpPack\Component\DatabaseExport\ExportConfiguration;
+use WPPack\Component\DatabaseExport\ExportConfiguration;
 
 /**
  * Filters tables by WordPress prefix, multisite blog IDs, and additional prefixes.

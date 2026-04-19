@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database\Translator;
+namespace WPPack\Component\Database\Translator;
 
 use PhpMyAdmin\SqlParser\Parser;
 use PhpMyAdmin\SqlParser\Token;
 use PhpMyAdmin\SqlParser\TokenType;
-use WpPack\Component\Database\Sql\QueryRewriter;
+use WPPack\Component\Database\Sql\QueryRewriter;
 
 /**
  * Helpers shared by every engine-specific QueryTranslator.

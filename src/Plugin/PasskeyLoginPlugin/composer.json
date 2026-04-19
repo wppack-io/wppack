@@ -15,12 +15,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Plugin\\PasskeyLoginPlugin\\": "src/"
+            "WPPack\\Plugin\\PasskeyLoginPlugin\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Plugin\\PasskeyLoginPlugin\\Tests\\": "tests/"
+            "WPPack\\Plugin\\PasskeyLoginPlugin\\Tests\\": "tests/"
         }
     },
     "extra": {

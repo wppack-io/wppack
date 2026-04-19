@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\PostType;
+namespace WPPack\Component\PostType;
 
-use WpPack\Component\PostType\Exception\PostException;
+use WPPack\Component\PostType\Exception\PostException;
 
 final readonly class PostRepository implements PostRepositoryInterface
 {

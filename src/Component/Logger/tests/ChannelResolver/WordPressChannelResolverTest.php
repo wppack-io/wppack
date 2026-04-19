@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Logger\Tests\ChannelResolver;
+namespace WPPack\Component\Logger\Tests\ChannelResolver;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Logger\ChannelResolver\ChannelResolverInterface;
-use WpPack\Component\Logger\ChannelResolver\WordPressChannelResolver;
+use WPPack\Component\Logger\ChannelResolver\ChannelResolverInterface;
+use WPPack\Component\Logger\ChannelResolver\WordPressChannelResolver;
 
 final class WordPressChannelResolverTest extends TestCase
 {

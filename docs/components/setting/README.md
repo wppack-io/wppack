@@ -1,7 +1,7 @@
 # Setting コンポーネント
 
 **パッケージ:** `wppack/setting`
-**名前空間:** `WpPack\Component\Setting\`
+**名前空間:** `WPPack\Component\Setting\`
 **レイヤー:** Application
 
 WordPress Settings API をモダンな PHP で扱うためのコンポーネントです。クラス定義だけで設定ページ・セクション・フィールドが自動登録されます。
@@ -41,13 +41,13 @@ add_action('admin_init', function () {
 // フォーム、バリデーション、保存のために50行以上の手続き型コードが必要...
 ```
 
-### After（WpPack）
+### After（WPPack）
 
 ```php
-use WpPack\Component\Setting\AbstractSettingsPage;
-use WpPack\Component\Setting\Attribute\AsSettingsPage;
-use WpPack\Component\Setting\SettingsConfigurator;
-use WpPack\Component\Setting\ValidationContext;
+use WPPack\Component\Setting\AbstractSettingsPage;
+use WPPack\Component\Setting\Attribute\AsSettingsPage;
+use WPPack\Component\Setting\SettingsConfigurator;
+use WPPack\Component\Setting\ValidationContext;
 
 #[AsSettingsPage(
     slug: 'my-plugin',
@@ -276,7 +276,7 @@ class MyPluginSettings extends AbstractSettingsPage { /* ... */ }
 デフォルトの `SettingsRenderer` は WordPress Admin 標準のHTMLを出力します。サブクラス化してプラグインごとにカスタマイズできます。
 
 ```php
-use WpPack\Component\Setting\SettingsRenderer;
+use WPPack\Component\Setting\SettingsRenderer;
 
 class MyPluginRenderer extends SettingsRenderer
 {
@@ -337,8 +337,8 @@ class MyPluginSettings extends AbstractSettingsPage
 `SettingsRegistry` に `TemplateRendererInterface` を渡すと、登録時に各ページへ自動注入されます。`render()` ショートカットメソッドで `__invoke()` をオーバーライドし、テンプレートベースのレンダリングに切り替えることができます。
 
 ```php
-use WpPack\Component\Setting\SettingsRegistry;
-use WpPack\Component\Templating\TemplateRendererInterface;
+use WPPack\Component\Setting\SettingsRegistry;
+use WPPack\Component\Templating\TemplateRendererInterface;
 
 // Registry に TemplateRendererInterface を渡す
 $registry = new SettingsRegistry($renderer);
@@ -372,7 +372,7 @@ class MyPluginSettings extends AbstractSettingsPage
 `AsSettingsPage` also accepts the `scope` parameter using `AdminScope` from the Admin component:
 
 ```php
-use WpPack\Component\Admin\Attribute\AdminScope;
+use WPPack\Component\Admin\Attribute\AdminScope;
 
 #[AsSettingsPage(
     slug: 'my-plugin',

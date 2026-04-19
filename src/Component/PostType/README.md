@@ -1,4 +1,4 @@
-# WpPack PostType
+# WPPack PostType
 
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=post_type)](https://codecov.io/github/wppack-io/wppack)
 
@@ -13,7 +13,7 @@ composer require wppack/post-type
 ## Quick Start
 
 ```php
-use WpPack\Component\PostType\PostRepository;
+use WPPack\Component\PostType\PostRepository;
 
 $repository = new PostRepository();
 

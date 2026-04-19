@@ -2,7 +2,7 @@
 
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=sendgrid_mailer)](https://codecov.io/github/wppack-io/wppack)
 
-SendGrid transport implementation for WpPack Mailer.
+SendGrid transport implementation for WPPack Mailer.
 
 ## Installation
 

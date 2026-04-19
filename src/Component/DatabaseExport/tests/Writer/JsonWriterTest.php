@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\DatabaseExport\Tests\Writer;
+namespace WPPack\Component\DatabaseExport\Tests\Writer;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Database\Schema\ColumnSchema;
-use WpPack\Component\Database\Schema\TableSchema;
-use WpPack\Component\DatabaseExport\ExportConfiguration;
-use WpPack\Component\DatabaseExport\Writer\JsonWriter;
+use WPPack\Component\Database\Schema\ColumnSchema;
+use WPPack\Component\Database\Schema\TableSchema;
+use WPPack\Component\DatabaseExport\ExportConfiguration;
+use WPPack\Component\DatabaseExport\Writer\JsonWriter;
 
 final class JsonWriterTest extends TestCase
 {

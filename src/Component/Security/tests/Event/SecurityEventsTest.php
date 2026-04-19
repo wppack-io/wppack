@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,20 +11,20 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Security\Tests\Event;
+namespace WPPack\Component\Security\Tests\Event;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Security\Authentication\AuthenticatorInterface;
-use WpPack\Component\Security\Authentication\Passport\Badge\UserBadge;
-use WpPack\Component\Security\Authentication\Passport\Passport;
-use WpPack\Component\Security\Authentication\Token\NullToken;
-use WpPack\Component\Security\Event\AuthenticationFailureEvent;
-use WpPack\Component\Security\Event\AuthenticationSuccessEvent;
-use WpPack\Component\Security\Event\CheckPassportEvent;
-use WpPack\Component\Security\Event\LoginSuccessEvent;
-use WpPack\Component\Security\Event\LogoutEvent;
-use WpPack\Component\Security\Exception\AuthenticationException;
+use WPPack\Component\Security\Authentication\AuthenticatorInterface;
+use WPPack\Component\Security\Authentication\Passport\Badge\UserBadge;
+use WPPack\Component\Security\Authentication\Passport\Passport;
+use WPPack\Component\Security\Authentication\Token\NullToken;
+use WPPack\Component\Security\Event\AuthenticationFailureEvent;
+use WPPack\Component\Security\Event\AuthenticationSuccessEvent;
+use WPPack\Component\Security\Event\CheckPassportEvent;
+use WPPack\Component\Security\Event\LoginSuccessEvent;
+use WPPack\Component\Security\Event\LogoutEvent;
+use WPPack\Component\Security\Exception\AuthenticationException;
 
 final class SecurityEventsTest extends TestCase
 {

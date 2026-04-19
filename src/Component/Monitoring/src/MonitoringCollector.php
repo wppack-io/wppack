@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,10 +11,10 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Monitoring;
+namespace WPPack\Component\Monitoring;
 
 use Psr\Log\LoggerInterface;
-use WpPack\Component\Transient\TransientManager;
+use WPPack\Component\Transient\TransientManager;
 
 final class MonitoringCollector
 {

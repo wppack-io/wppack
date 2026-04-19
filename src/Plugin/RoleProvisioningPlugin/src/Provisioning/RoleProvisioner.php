@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\RoleProvisioningPlugin\Provisioning;
+namespace WPPack\Plugin\RoleProvisioningPlugin\Provisioning;
 
 use Psr\Log\LoggerInterface;
-use WpPack\Component\Role\RoleProvider;
-use WpPack\Component\Site\BlogContextInterface;
-use WpPack\Component\User\UserRepositoryInterface;
-use WpPack\Plugin\RoleProvisioningPlugin\Configuration\RoleProvisioningConfiguration;
+use WPPack\Component\Role\RoleProvider;
+use WPPack\Component\Site\BlogContextInterface;
+use WPPack\Component\User\UserRepositoryInterface;
+use WPPack\Plugin\RoleProvisioningPlugin\Configuration\RoleProvisioningConfiguration;
 
 final class RoleProvisioner
 {

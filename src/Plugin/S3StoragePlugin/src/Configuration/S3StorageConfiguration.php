@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\S3StoragePlugin\Configuration;
+namespace WPPack\Plugin\S3StoragePlugin\Configuration;
 
-use WpPack\Component\Media\Storage\StorageConfiguration;
+use WPPack\Component\Media\Storage\StorageConfiguration;
 
 final readonly class S3StorageConfiguration
 {

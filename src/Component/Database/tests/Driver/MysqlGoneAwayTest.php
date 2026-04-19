@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database\Tests\Driver;
+namespace WPPack\Component\Database\Tests\Driver;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Database\Driver\MysqlDriver;
-use WpPack\Component\Database\Exception\DriverException;
+use WPPack\Component\Database\Driver\MysqlDriver;
+use WPPack\Component\Database\Exception\DriverException;
 
 /**
  * Regression tests for MysqlDriver::throwQueryError() — the gone-away
@@ -38,7 +38,7 @@ final class MysqlGoneAwayTest extends TestCase
             self::markTestSkipped('Requires mysql DSN');
         }
 
-        $parsed = \WpPack\Component\Dsn\Dsn::fromString($dsn);
+        $parsed = \WPPack\Component\Dsn\Dsn::fromString($dsn);
         $this->driver = new MysqlDriver(
             host: $parsed->getHost() ?? '127.0.0.1',
             username: $parsed->getUser() ?? 'root',
@@ -69,7 +69,7 @@ final class MysqlGoneAwayTest extends TestCase
         // Administer KILL via a fresh mysqli. This terminates our own
         // session without going through our driver (so we can observe
         // the gone-away path in isolation).
-        $parsed = \WpPack\Component\Dsn\Dsn::fromString((string) ($_SERVER['DATABASE_DSN'] ?? ''));
+        $parsed = \WPPack\Component\Dsn\Dsn::fromString((string) ($_SERVER['DATABASE_DSN'] ?? ''));
         $admin = new \mysqli(
             $parsed->getHost() ?? '127.0.0.1',
             $parsed->getUser() ?? 'root',

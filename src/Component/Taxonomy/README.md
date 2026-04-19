@@ -1,4 +1,4 @@
-# WpPack Taxonomy
+# WPPack Taxonomy
 
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=taxonomy)](https://codecov.io/github/wppack-io/wppack)
 
@@ -13,7 +13,7 @@ composer require wppack/taxonomy
 ## Quick Start
 
 ```php
-use WpPack\Component\Taxonomy\TermRepository;
+use WPPack\Component\Taxonomy\TermRepository;
 
 $repository = new TermRepository();
 

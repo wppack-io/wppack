@@ -73,7 +73,7 @@ define('WPPACK_CACHE_ENABLED', false); // Falls back to in-memory cache
 ## Drop-in Management
 
 - **Activation**: Copies `object-cache.php` from `wppack/cache` to `wp-content/`
-- **Deactivation**: Removes `wp-content/object-cache.php` only if it contains the WpPack signature (`WpPack Object Cache Drop-in`)
+- **Deactivation**: Removes `wp-content/object-cache.php` only if it contains the WPPack signature (`WPPack Object Cache Drop-in`)
 
 ## DI Services
 

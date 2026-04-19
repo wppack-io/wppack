@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\HttpClient\DependencyInjection;
+namespace WPPack\Component\HttpClient\DependencyInjection;
 
 use Psr\Http\Client\ClientInterface;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\DependencyInjection\ServiceProviderInterface;
-use WpPack\Component\HttpClient\HttpClient;
-use WpPack\Component\HttpClient\SafeHttpClient;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\DependencyInjection\ServiceProviderInterface;
+use WPPack\Component\HttpClient\HttpClient;
+use WPPack\Component\HttpClient\SafeHttpClient;
 
 final class HttpClientServiceProvider implements ServiceProviderInterface
 {

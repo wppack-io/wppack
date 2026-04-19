@@ -9,12 +9,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\Shortcode\\": "src/"
+            "WPPack\\Component\\Shortcode\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Component\\Shortcode\\Tests\\": "tests/"
+            "WPPack\\Component\\Shortcode\\Tests\\": "tests/"
         }
     }
 }

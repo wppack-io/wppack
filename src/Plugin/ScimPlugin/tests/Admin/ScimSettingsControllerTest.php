@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,15 +11,15 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\ScimPlugin\Tests\Admin;
+namespace WPPack\Plugin\ScimPlugin\Tests\Admin;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Rest\AbstractRestController;
-use WpPack\Component\Role\RoleProvider;
-use WpPack\Plugin\ScimPlugin\Admin\ScimSettingsController;
-use WpPack\Plugin\ScimPlugin\Configuration\ScimConfiguration;
+use WPPack\Component\Rest\AbstractRestController;
+use WPPack\Component\Role\RoleProvider;
+use WPPack\Plugin\ScimPlugin\Admin\ScimSettingsController;
+use WPPack\Plugin\ScimPlugin\Configuration\ScimConfiguration;
 
 #[CoversClass(ScimSettingsController::class)]
 final class ScimSettingsControllerTest extends TestCase

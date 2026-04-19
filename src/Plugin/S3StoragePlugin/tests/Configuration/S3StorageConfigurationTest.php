@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\S3StoragePlugin\Tests\Configuration;
+namespace WPPack\Plugin\S3StoragePlugin\Tests\Configuration;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Media\Storage\StorageConfiguration;
-use WpPack\Plugin\S3StoragePlugin\Configuration\S3StorageConfiguration;
+use WPPack\Component\Media\Storage\StorageConfiguration;
+use WPPack\Plugin\S3StoragePlugin\Configuration\S3StorageConfiguration;
 
 final class S3StorageConfigurationTest extends TestCase
 {

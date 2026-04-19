@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,18 +11,18 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Mailer\Tests;
+namespace WPPack\Component\Mailer\Tests;
 
 use PHPMailer\PHPMailer\PHPMailer as BasePhpMailer;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Mailer\Email;
-use WpPack\Component\Mailer\Exception\InvalidArgumentException;
-use WpPack\Component\Mailer\Mailer;
-use WpPack\Component\Mailer\PhpMailer;
-use WpPack\Component\Mailer\TemplatedEmail;
-use WpPack\Component\Mailer\TemplateRendererInterface;
-use WpPack\Component\Mailer\Transport\NullTransport;
+use WPPack\Component\Mailer\Email;
+use WPPack\Component\Mailer\Exception\InvalidArgumentException;
+use WPPack\Component\Mailer\Mailer;
+use WPPack\Component\Mailer\PhpMailer;
+use WPPack\Component\Mailer\TemplatedEmail;
+use WPPack\Component\Mailer\TemplateRendererInterface;
+use WPPack\Component\Mailer\Transport\NullTransport;
 
 final class MailerTest extends TestCase
 {
@@ -153,7 +153,7 @@ final class MailerTest extends TestCase
         self::assertNotNull($succeededData);
         self::assertArrayHasKey('sent_message', $succeededData);
         $sentMessage = $succeededData['sent_message'];
-        self::assertInstanceOf(\WpPack\Component\Mailer\SentMessage::class, $sentMessage);
+        self::assertInstanceOf(\WPPack\Component\Mailer\SentMessage::class, $sentMessage);
         self::assertSame('sender@example.com', $sentMessage->getEnvelope()->getSender()->address);
         self::assertCount(1, $sentMessage->getEnvelope()->getRecipients());
         self::assertSame('user@example.com', $sentMessage->getEnvelope()->getRecipients()[0]->address);
@@ -228,7 +228,7 @@ final class MailerTest extends TestCase
     #[Test]
     public function sendThrowsTransportExceptionOnFailure(): void
     {
-        $failingTransport = new class implements \WpPack\Component\Mailer\Transport\TransportInterface {
+        $failingTransport = new class implements \WPPack\Component\Mailer\Transport\TransportInterface {
             public function getName(): string
             {
                 return 'failing';
@@ -236,7 +236,7 @@ final class MailerTest extends TestCase
 
             public function send(PhpMailer $phpMailer): void
             {
-                throw new \WpPack\Component\Mailer\Exception\TransportException('Connection refused');
+                throw new \WPPack\Component\Mailer\Exception\TransportException('Connection refused');
             }
         };
 
@@ -247,7 +247,7 @@ final class MailerTest extends TestCase
             ->subject('Test')
             ->text('Hello');
 
-        $this->expectException(\WpPack\Component\Mailer\Exception\TransportException::class);
+        $this->expectException(\WPPack\Component\Mailer\Exception\TransportException::class);
         $this->expectExceptionMessage('Connection refused');
         $mailer->send($email);
     }
@@ -255,7 +255,7 @@ final class MailerTest extends TestCase
     #[Test]
     public function sendFiresWpMailFailedOnFailure(): void
     {
-        $failingTransport = new class implements \WpPack\Component\Mailer\Transport\TransportInterface {
+        $failingTransport = new class implements \WPPack\Component\Mailer\Transport\TransportInterface {
             public function getName(): string
             {
                 return 'failing';
@@ -263,7 +263,7 @@ final class MailerTest extends TestCase
 
             public function send(PhpMailer $phpMailer): void
             {
-                throw new \WpPack\Component\Mailer\Exception\TransportException('Send failed');
+                throw new \WPPack\Component\Mailer\Exception\TransportException('Send failed');
             }
         };
 
@@ -281,7 +281,7 @@ final class MailerTest extends TestCase
 
         try {
             $mailer->send($email);
-        } catch (\WpPack\Component\Mailer\Exception\TransportException) {
+        } catch (\WPPack\Component\Mailer\Exception\TransportException) {
             // Expected
         }
 
@@ -409,7 +409,7 @@ final class MailerTest extends TestCase
     #[Test]
     public function sendWrapsNonTransportException(): void
     {
-        $throwingTransport = new class implements \WpPack\Component\Mailer\Transport\TransportInterface {
+        $throwingTransport = new class implements \WPPack\Component\Mailer\Transport\TransportInterface {
             public function getName(): string
             {
                 return 'throwing';
@@ -428,7 +428,7 @@ final class MailerTest extends TestCase
             ->subject('Test')
             ->text('Hello');
 
-        $this->expectException(\WpPack\Component\Mailer\Exception\TransportException::class);
+        $this->expectException(\WPPack\Component\Mailer\Exception\TransportException::class);
         $this->expectExceptionMessage('Unexpected error');
         $mailer->send($email);
     }

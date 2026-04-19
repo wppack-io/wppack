@@ -13,12 +13,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\Monitoring\\": "src/"
+            "WPPack\\Component\\Monitoring\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Component\\Monitoring\\Tests\\": "tests/"
+            "WPPack\\Component\\Monitoring\\Tests\\": "tests/"
         }
     }
 }

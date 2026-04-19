@@ -1,7 +1,7 @@
 # Security Component
 
 **パッケージ:** `wppack/security`
-**名前空間:** `WpPack\Component\Security\`
+**名前空間:** `WPPack\Component\Security\`
 **レイヤー:** Abstraction
 
 WordPress 上でプラガブルな認証・認可フレームワークを提供するコンポーネントです。Authenticator パターンによるリクエストベース認証、Passport/Badge による認証要件の値オブジェクト化、Voter ベースの認可チェックを提供します。OAuth / SAML / 2FA は Bridge パッケージとして拡張可能です。
@@ -39,10 +39,10 @@ if (!current_user_can('edit_posts')) {
 }
 ```
 
-### After（WpPack Security）
+### After（WPPack Security）
 
 ```php
-use WpPack\Component\Security\Security;
+use WPPack\Component\Security\Security;
 
 // 認可チェック
 $security->denyAccessUnlessGranted('edit_posts');
@@ -94,9 +94,9 @@ return WP_User ← WordPress に渡す
 認証方式ごとに Authenticator を実装します:
 
 ```php
-use WpPack\Component\Security\Authentication\AuthenticatorInterface;
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\HttpFoundation\Response;
+use WPPack\Component\Security\Authentication\AuthenticatorInterface;
+use WPPack\Component\HttpFoundation\Request;
+use WPPack\Component\HttpFoundation\Response;
 
 interface AuthenticatorInterface
 {
@@ -113,10 +113,10 @@ interface AuthenticatorInterface
 Passport は認証に必要な情報（Badge）を集約する値オブジェクトです:
 
 ```php
-use WpPack\Component\Security\Authentication\Passport\Passport;
-use WpPack\Component\Security\Authentication\Passport\Badge\UserBadge;
-use WpPack\Component\Security\Authentication\Passport\Badge\CredentialsBadge;
-use WpPack\Component\Security\Authentication\Passport\Badge\RememberMeBadge;
+use WPPack\Component\Security\Authentication\Passport\Passport;
+use WPPack\Component\Security\Authentication\Passport\Badge\UserBadge;
+use WPPack\Component\Security\Authentication\Passport\Badge\CredentialsBadge;
+use WPPack\Component\Security\Authentication\Passport\Badge\RememberMeBadge;
 
 // フォームログイン認証の例
 $passport = new Passport(
@@ -129,7 +129,7 @@ $passport = new Passport(
 外部認証（OAuth / SAML）では `SelfValidatingPassport` を使用:
 
 ```php
-use WpPack\Component\Security\Authentication\Passport\SelfValidatingPassport;
+use WPPack\Component\Security\Authentication\Passport\SelfValidatingPassport;
 
 // OAuth で検証済みのユーザー
 $passport = new SelfValidatingPassport(
@@ -205,8 +205,8 @@ EntryPoint の詳細は各 Bridge ドキュメントを参照してください:
 ### カスタム Authenticator
 
 ```php
-use WpPack\Component\Security\Attribute\AsAuthenticator;
-use WpPack\Component\Security\Authentication\AuthenticatorInterface;
+use WPPack\Component\Security\Attribute\AsAuthenticator;
+use WPPack\Component\Security\Authentication\AuthenticatorInterface;
 
 #[AsAuthenticator]
 final class CustomLoginAuthenticator implements AuthenticatorInterface
@@ -253,7 +253,7 @@ final class CustomLoginAuthenticator implements AuthenticatorInterface
 `StatelessAuthenticatorInterface` を実装すると `determine_current_user` フィルター経由で毎リクエスト検証されます:
 
 ```php
-use WpPack\Component\Security\Authentication\StatelessAuthenticatorInterface;
+use WPPack\Component\Security\Authentication\StatelessAuthenticatorInterface;
 
 final class JwtAuthenticator implements StatelessAuthenticatorInterface
 {
@@ -288,7 +288,7 @@ final class JwtAuthenticator implements StatelessAuthenticatorInterface
 | `LogoutEvent` | `wp_logout` フック後 |
 
 ```php
-use WpPack\Component\Security\Event\CheckPassportEvent;
+use WPPack\Component\Security\Event\CheckPassportEvent;
 
 // 2FA 検証リスナーの例
 final class TwoFactorListener
@@ -310,7 +310,7 @@ final class TwoFactorListener
 認可チェックは Voter チェーンで判定されます:
 
 ```php
-use WpPack\Component\Security\Authorization\Voter\VoterInterface;
+use WPPack\Component\Security\Authorization\Voter\VoterInterface;
 
 interface VoterInterface
 {
@@ -340,8 +340,8 @@ interface VoterInterface
 ### カスタム Voter
 
 ```php
-use WpPack\Component\Security\Attribute\AsVoter;
-use WpPack\Component\Security\Authorization\Voter\VoterInterface;
+use WPPack\Component\Security\Attribute\AsVoter;
+use WPPack\Component\Security\Authorization\Voter\VoterInterface;
 
 #[AsVoter]
 final class PostOwnerVoter implements VoterInterface
@@ -368,7 +368,7 @@ final class PostOwnerVoter implements VoterInterface
 `Security` クラスは認証・認可の統合的なインターフェースを提供します:
 
 ```php
-use WpPack\Component\Security\Security;
+use WPPack\Component\Security\Security;
 
 final class Security
 {
@@ -417,9 +417,9 @@ class PostController
 ## DI 統合
 
 ```php
-use WpPack\Component\Security\DependencyInjection\SecurityServiceProvider;
-use WpPack\Component\Security\DependencyInjection\RegisterAuthenticatorsPass;
-use WpPack\Component\Security\DependencyInjection\RegisterVotersPass;
+use WPPack\Component\Security\DependencyInjection\SecurityServiceProvider;
+use WPPack\Component\Security\DependencyInjection\RegisterAuthenticatorsPass;
+use WPPack\Component\Security\DependencyInjection\RegisterVotersPass;
 
 // サービスプロバイダー登録
 $builder->registerServiceProvider(new SecurityServiceProvider());
@@ -477,7 +477,7 @@ if ($security->isGranted('ROLE_SUPER_ADMIN')) {
 別のブログでの権限をチェックするには、Database コンポーネントの `switch_to_blog()` と組み合わせます:
 
 ```php
-use WpPack\Component\Database\DatabaseManager;
+use WPPack\Component\Database\DatabaseManager;
 
 // ブログ 2 での権限チェック
 $db->switchToBlog(2, function () use ($security) {
@@ -492,8 +492,8 @@ $db->switchToBlog(2, function () use ($security) {
 Role コンポーネントの `GrantSuperAdminAction` / `RevokeSuperAdminAction` と連携して Super Admin の変更を監視できます:
 
 ```php
-use WpPack\Component\Hook\Attribute\Role\Action\GrantSuperAdminAction;
-use WpPack\Component\Hook\Attribute\Role\Action\RevokeSuperAdminAction;
+use WPPack\Component\Hook\Attribute\Role\Action\GrantSuperAdminAction;
+use WPPack\Component\Hook\Attribute\Role\Action\RevokeSuperAdminAction;
 
 class SuperAdminMonitor
 {
@@ -557,4 +557,4 @@ final class TwoFactorListener { /* ... */ }
 - **Nonce Component** — CSRF 保護
 
 > [!NOTE]
-> `#[IsGranted]` アトリビュートと `IsGrantedChecker` は Role コンポーネント（`WpPack\Component\Role\Attribute\IsGranted`、`WpPack\Component\Role\Authorization\IsGrantedChecker`）で提供されています。Security コンポーネントの `AuthorizationChecker` は Role の `AuthorizationCheckerInterface` を実装しており、Voter ベースの認可チェックを `IsGrantedChecker` に注入できます。
+> `#[IsGranted]` アトリビュートと `IsGrantedChecker` は Role コンポーネント（`WPPack\Component\Role\Attribute\IsGranted`、`WPPack\Component\Role\Authorization\IsGrantedChecker`）で提供されています。Security コンポーネントの `AuthorizationChecker` は Role の `AuthorizationCheckerInterface` を実装しており、Voter ベースの認可チェックを `IsGrantedChecker` に注入できます。

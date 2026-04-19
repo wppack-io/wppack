@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Debug\Tests\ErrorHandler;
+namespace WPPack\Component\Debug\Tests\ErrorHandler;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Debug\ErrorHandler\FlattenException;
+use WPPack\Component\Debug\ErrorHandler\FlattenException;
 
 final class FlattenExceptionTest extends TestCase
 {

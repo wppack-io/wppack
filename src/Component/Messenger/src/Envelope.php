@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Messenger;
+namespace WPPack\Component\Messenger;
 
-use WpPack\Component\Messenger\Stamp\StampInterface;
+use WPPack\Component\Messenger\Stamp\StampInterface;
 
 final class Envelope
 {

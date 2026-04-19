@@ -13,7 +13,7 @@
  * @var list<array>                                                  $nonceOps         Nonce operation log
  * @var int                                                          $nonceVerifyCount Total nonce verifications
  * @var int                                                          $nonceFailures    Failed nonce verifications
- * @var \WpPack\Component\Debug\Toolbar\Panel\TemplateFormatters     $fmt              Template formatters
+ * @var \WPPack\Component\Debug\Toolbar\Panel\TemplateFormatters     $fmt              Template formatters
  * @var float                                                        $requestTimeFloat Request start timestamp
  */
 ?>

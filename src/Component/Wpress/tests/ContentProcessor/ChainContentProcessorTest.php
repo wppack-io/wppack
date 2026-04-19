@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Wpress\Tests\ContentProcessor;
+namespace WPPack\Component\Wpress\Tests\ContentProcessor;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Wpress\ContentProcessor\ChainContentProcessor;
-use WpPack\Component\Wpress\Exception\EncryptionException;
+use WPPack\Component\Wpress\ContentProcessor\ChainContentProcessor;
+use WPPack\Component\Wpress\Exception\EncryptionException;
 
 final class ChainContentProcessorTest extends TestCase
 {
@@ -160,7 +160,7 @@ final class ChainContentProcessorTest extends TestCase
     #[Test]
     public function unsupportedCompressionTypeThrows(): void
     {
-        $this->expectException(\WpPack\Component\Wpress\Exception\ArchiveException::class);
+        $this->expectException(\WPPack\Component\Wpress\Exception\ArchiveException::class);
         $this->expectExceptionMessage('Unsupported compression type');
 
         new ChainContentProcessor('password', 'lz4');
@@ -171,7 +171,7 @@ final class ChainContentProcessorTest extends TestCase
     {
         $processor = new ChainContentProcessor('pw', 'gzip');
 
-        $this->expectException(\WpPack\Component\Wpress\Exception\ArchiveException::class);
+        $this->expectException(\WPPack\Component\Wpress\Exception\ArchiveException::class);
         $this->expectExceptionMessage('insufficient bytes for size header');
         $processor->decode("\x00\x01");
     }
@@ -184,7 +184,7 @@ final class ChainContentProcessorTest extends TestCase
         // Size header says 1000 bytes, but only 5 follow
         $data = pack('N', 1000) . 'short';
 
-        $this->expectException(\WpPack\Component\Wpress\Exception\ArchiveException::class);
+        $this->expectException(\WPPack\Component\Wpress\Exception\ArchiveException::class);
         $this->expectExceptionMessage('insufficient bytes for chunk data');
         $processor->decode($data);
     }

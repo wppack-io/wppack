@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,18 +11,18 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Logger\DependencyInjection;
+namespace WPPack\Component\Logger\DependencyInjection;
 
 use Psr\Log\LoggerInterface;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\DependencyInjection\Reference;
-use WpPack\Component\DependencyInjection\ServiceProviderInterface;
-use WpPack\Component\Logger\ChannelResolver\ChannelResolverInterface;
-use WpPack\Component\Logger\ChannelResolver\WordPressChannelResolver;
-use WpPack\Component\Logger\ErrorHandler;
-use WpPack\Component\Logger\ErrorLogInterceptor;
-use WpPack\Component\Logger\Handler\ErrorLogHandler;
-use WpPack\Component\Logger\LoggerFactory;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\DependencyInjection\Reference;
+use WPPack\Component\DependencyInjection\ServiceProviderInterface;
+use WPPack\Component\Logger\ChannelResolver\ChannelResolverInterface;
+use WPPack\Component\Logger\ChannelResolver\WordPressChannelResolver;
+use WPPack\Component\Logger\ErrorHandler;
+use WPPack\Component\Logger\ErrorLogInterceptor;
+use WPPack\Component\Logger\Handler\ErrorLogHandler;
+use WPPack\Component\Logger\LoggerFactory;
 
 final class LoggerServiceProvider implements ServiceProviderInterface
 {

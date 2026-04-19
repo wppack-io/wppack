@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Hook\Attribute\Admin\Action;
+namespace WPPack\Component\Hook\Attribute\Admin\Action;
 
-use WpPack\Component\Hook\Attribute\Action;
+use WPPack\Component\Hook\Attribute\Action;
 
 #[\Attribute(\Attribute::TARGET_METHOD | \Attribute::IS_REPEATABLE)]
 final class UserAdminMenuAction extends Action

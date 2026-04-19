@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,15 +11,15 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Debug\DependencyInjection;
+namespace WPPack\Component\Debug\DependencyInjection;
 
-use WpPack\Component\Debug\Attribute\AsDataCollector;
-use WpPack\Component\Debug\ErrorHandler\RedirectHandler;
-use WpPack\Component\Debug\Profiler\Profile;
-use WpPack\Component\Debug\Toolbar\ToolbarSubscriber;
-use WpPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\DependencyInjection\Reference;
+use WPPack\Component\Debug\Attribute\AsDataCollector;
+use WPPack\Component\Debug\ErrorHandler\RedirectHandler;
+use WPPack\Component\Debug\Profiler\Profile;
+use WPPack\Component\Debug\Toolbar\ToolbarSubscriber;
+use WPPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\DependencyInjection\Reference;
 
 final class RegisterDataCollectorsPass implements CompilerPassInterface
 {

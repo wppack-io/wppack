@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,19 +11,19 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Ajax\Tests;
+namespace WPPack\Component\Ajax\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Ajax\AbstractAjaxController;
-use WpPack\Component\Ajax\Access;
-use WpPack\Component\Ajax\AjaxHandlerRegistry;
-use WpPack\Component\Ajax\Attribute\Ajax;
-use WpPack\Component\HttpFoundation\JsonResponse;
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\Security\Attribute\CurrentUser;
-use WpPack\Component\Role\Attribute\IsGranted;
-use WpPack\Component\Security\Tests\SecurityTestTrait;
+use WPPack\Component\Ajax\AbstractAjaxController;
+use WPPack\Component\Ajax\Access;
+use WPPack\Component\Ajax\AjaxHandlerRegistry;
+use WPPack\Component\Ajax\Attribute\Ajax;
+use WPPack\Component\HttpFoundation\JsonResponse;
+use WPPack\Component\HttpFoundation\Request;
+use WPPack\Component\Security\Attribute\CurrentUser;
+use WPPack\Component\Role\Attribute\IsGranted;
+use WPPack\Component\Security\Tests\SecurityTestTrait;
 
 final class AjaxHandlerRegistryTest extends TestCase
 {

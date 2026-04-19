@@ -1,6 +1,6 @@
 {
     "name": "wppack/azure-mailer",
-    "description": "Azure Communication Services Email transport for WpPack Mailer",
+    "description": "Azure Communication Services Email transport for WPPack Mailer",
     "type": "library",
     "license": "MIT",
     "require": {
@@ -11,12 +11,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\Mailer\\Bridge\\Azure\\": "src/"
+            "WPPack\\Component\\Mailer\\Bridge\\Azure\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Component\\Mailer\\Bridge\\Azure\\Tests\\": "tests/"
+            "WPPack\\Component\\Mailer\\Bridge\\Azure\\Tests\\": "tests/"
         }
     }
 }

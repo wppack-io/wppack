@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\DependencyInjection\Compiler;
+namespace WPPack\Component\DependencyInjection\Compiler;
 
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface as SymfonyCompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder as SymfonyContainerBuilder;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
 
 /**
  * @internal

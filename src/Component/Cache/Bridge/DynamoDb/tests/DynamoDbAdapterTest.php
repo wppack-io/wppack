@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Cache\Bridge\DynamoDb\Tests;
+namespace WPPack\Component\Cache\Bridge\DynamoDb\Tests;
 
 use AsyncAws\DynamoDb\DynamoDbClient;
 use AsyncAws\DynamoDb\Input\CreateTableInput;
@@ -22,7 +22,7 @@ use AsyncAws\DynamoDb\ValueObject\KeySchemaElement;
 use AsyncAws\DynamoDb\ValueObject\WriteRequest;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Cache\Bridge\DynamoDb\DynamoDbAdapter;
+use WPPack\Component\Cache\Bridge\DynamoDb\DynamoDbAdapter;
 
 final class DynamoDbAdapterTest extends TestCase
 {
@@ -325,7 +325,7 @@ final class DynamoDbAdapterTest extends TestCase
         // Key like "wppack_test:nosecondcolon" has only one colon after prefix.
         // splitKey returns [$fullKey, ''] when there is no second colon.
         // DynamoDB does not allow empty string sort keys, so an exception is expected.
-        $this->expectException(\WpPack\Component\Cache\Exception\AdapterException::class);
+        $this->expectException(\WPPack\Component\Cache\Exception\AdapterException::class);
 
         $this->adapter->set('wppack_test:nosecondcolon', 'value');
     }

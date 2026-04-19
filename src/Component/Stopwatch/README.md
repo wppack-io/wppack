@@ -1,4 +1,4 @@
-# WpPack Stopwatch
+# WPPack Stopwatch
 
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=stopwatch)](https://codecov.io/github/wppack-io/wppack)
 
@@ -13,7 +13,7 @@ composer require wppack/stopwatch
 ## Usage
 
 ```php
-use WpPack\Component\Stopwatch\Stopwatch;
+use WPPack\Component\Stopwatch\Stopwatch;
 
 $stopwatch = new Stopwatch();
 

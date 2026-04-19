@@ -30,7 +30,7 @@
         </div>
     </div>
 </div>
-<div class="wpd-mini" title="Show WpPack Debug Toolbar">
+<div class="wpd-mini" title="Show WPPack Debug Toolbar">
     <?= $view->raw($wpMiniIcon) ?>
 </div>
 <div class="wpd-bar">

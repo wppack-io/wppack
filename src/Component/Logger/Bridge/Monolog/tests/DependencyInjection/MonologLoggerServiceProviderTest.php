@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Logger\Bridge\Monolog\Tests\DependencyInjection;
+namespace WPPack\Component\Logger\Bridge\Monolog\Tests\DependencyInjection;
 
 use Monolog\Handler\StreamHandler;
 use Monolog\Handler\TestHandler;
@@ -19,14 +19,14 @@ use Monolog\Processor\PsrLogMessageProcessor;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\DependencyInjection\ServiceProviderInterface;
-use WpPack\Component\Logger\Bridge\Monolog\DependencyInjection\MonologLoggerServiceProvider;
-use WpPack\Component\Logger\Bridge\Monolog\MonologHandler;
-use WpPack\Component\Logger\Bridge\Monolog\MonologLoggerFactory;
-use WpPack\Component\Logger\DependencyInjection\LoggerServiceProvider;
-use WpPack\Component\Logger\Logger;
-use WpPack\Component\Logger\LoggerFactory;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\DependencyInjection\ServiceProviderInterface;
+use WPPack\Component\Logger\Bridge\Monolog\DependencyInjection\MonologLoggerServiceProvider;
+use WPPack\Component\Logger\Bridge\Monolog\MonologHandler;
+use WPPack\Component\Logger\Bridge\Monolog\MonologLoggerFactory;
+use WPPack\Component\Logger\DependencyInjection\LoggerServiceProvider;
+use WPPack\Component\Logger\Logger;
+use WPPack\Component\Logger\LoggerFactory;
 
 final class MonologLoggerServiceProviderTest extends TestCase
 {
@@ -127,7 +127,7 @@ final class MonologLoggerServiceProviderTest extends TestCase
     }
 
     #[Test]
-    public function compiledContainerResolvesWpPackLogger(): void
+    public function compiledContainerResolvesWPPackLogger(): void
     {
         $builder = new ContainerBuilder();
         $builder->addServiceProvider(new LoggerServiceProvider());

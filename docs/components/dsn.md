@@ -1,7 +1,7 @@
 # Dsn コンポーネント
 
 **パッケージ:** `wppack/dsn`
-**名前空間:** `WpPack\Component\Dsn\`
+**名前空間:** `WPPack\Component\Dsn\`
 **レイヤー:** Infrastructure
 
 Data Source Name（DSN）文字列を解析する共通コンポーネントです。Database、Cache、Mailer、Storage の各コンポーネントで共有されます。
@@ -15,7 +15,7 @@ composer require wppack/dsn
 ## 使用方法
 
 ```php
-use WpPack\Component\Dsn\Dsn;
+use WPPack\Component\Dsn\Dsn;
 
 $dsn = Dsn::fromString('mysql://user:pass@host:3306/dbname?charset=utf8mb4');
 

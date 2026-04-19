@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,15 +11,15 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database\Bridge\Sqlite\Tests;
+namespace WPPack\Component\Database\Bridge\Sqlite\Tests;
 
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Database\Bridge\Sqlite\SqliteDriver;
-use WpPack\Component\Database\Tests\WpdbIntegrationTestTrait;
-use WpPack\Component\Database\WpPackWpdb;
+use WPPack\Component\Database\Bridge\Sqlite\SqliteDriver;
+use WPPack\Component\Database\Tests\WpdbIntegrationTestTrait;
+use WPPack\Component\Database\WPPackWpdb;
 
 /**
- * WpPackWpdb integration tests with SQLite driver and SqliteQueryTranslator.
+ * WPPackWpdb integration tests with SQLite driver and SqliteQueryTranslator.
  *
  * Activates only when DATABASE_DSN selects the SQLite engine. The DSN path
  * is ignored — every test runs against a fresh ':memory:' database because
@@ -30,7 +30,7 @@ final class SqliteWpdbIntegrationTest extends TestCase
 {
     use WpdbIntegrationTestTrait;
 
-    private WpPackWpdb $testWpdb;
+    private WPPackWpdb $testWpdb;
     private SqliteDriver $driver;
     private ?\wpdb $originalWpdb = null;
     private ?string $originalTablePrefix = null;
@@ -50,7 +50,7 @@ final class SqliteWpdbIntegrationTest extends TestCase
         $this->driver = new SqliteDriver(':memory:');
         $this->driver->connect();
 
-        $this->testWpdb = new WpPackWpdb(
+        $this->testWpdb = new WPPackWpdb(
             writer: $this->driver,
             translator: $this->driver->getQueryTranslator(),
             dbname: 'test',

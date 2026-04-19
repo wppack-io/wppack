@@ -1,7 +1,7 @@
 # Option Component
 
 **Package:** `wppack/option`
-**Namespace:** `WpPack\Component\Option\`
+**Namespace:** `WPPack\Component\Option\`
 **Layer:** Infrastructure
 
 WordPress オプション API のモダンなオブジェクト指向ラッパーです。シンプルなマネージャークラスによるオプション操作と、オプション関連の WordPress フックの名前付きフックアトリビュートを提供します。
@@ -28,11 +28,11 @@ $networkValue = get_site_option('network_settings');
 update_site_option('network_settings', ['key' => 'value']);
 ```
 
-### After（WpPack）
+### After（WPPack）
 
 ```php
-use WpPack\Component\Option\OptionManager;
-use WpPack\Component\Option\SiteOptionManager;
+use WPPack\Component\Option\OptionManager;
+use WPPack\Component\Option\SiteOptionManager;
 
 // DI コンテナ経由で注入
 public function __construct(
@@ -67,7 +67,7 @@ $this->siteOption->update('network_settings', ['key' => 'value']);
 ### 使用例
 
 ```php
-use WpPack\Component\Option\OptionManager;
+use WPPack\Component\Option\OptionManager;
 
 $option = new OptionManager();
 
@@ -107,7 +107,7 @@ $option->delete('my_plugin_old_setting');
 ### 使用例
 
 ```php
-use WpPack\Component\Option\SiteOptionManager;
+use WPPack\Component\Option\SiteOptionManager;
 
 $siteOption = new SiteOptionManager();
 

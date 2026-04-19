@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,22 +11,22 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Hook\Tests\Attribute\Scheduler;
+namespace WPPack\Component\Hook\Tests\Attribute\Scheduler;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Hook\Attribute\Action;
-use WpPack\Component\Hook\Attribute\Filter;
-use WpPack\Component\Hook\Hook;
-use WpPack\Component\Hook\HookType;
-use WpPack\Component\Hook\Attribute\Scheduler\Action\ScheduledEventAction;
-use WpPack\Component\Hook\Attribute\Scheduler\Action\WpCronAction;
-use WpPack\Component\Hook\Attribute\Scheduler\Filter\CronSchedulesFilter;
-use WpPack\Component\Hook\Attribute\Scheduler\Filter\GetScheduleFilter;
-use WpPack\Component\Hook\Attribute\Scheduler\Filter\PreDoEventFilter;
-use WpPack\Component\Hook\Attribute\Scheduler\Filter\PreScheduleEventFilter;
-use WpPack\Component\Hook\Attribute\Scheduler\Filter\PreUnscheduleEventFilter;
-use WpPack\Component\Hook\Attribute\Scheduler\Filter\ScheduleEventFilter;
+use WPPack\Component\Hook\Attribute\Action;
+use WPPack\Component\Hook\Attribute\Filter;
+use WPPack\Component\Hook\Hook;
+use WPPack\Component\Hook\HookType;
+use WPPack\Component\Hook\Attribute\Scheduler\Action\ScheduledEventAction;
+use WPPack\Component\Hook\Attribute\Scheduler\Action\WpCronAction;
+use WPPack\Component\Hook\Attribute\Scheduler\Filter\CronSchedulesFilter;
+use WPPack\Component\Hook\Attribute\Scheduler\Filter\GetScheduleFilter;
+use WPPack\Component\Hook\Attribute\Scheduler\Filter\PreDoEventFilter;
+use WPPack\Component\Hook\Attribute\Scheduler\Filter\PreScheduleEventFilter;
+use WPPack\Component\Hook\Attribute\Scheduler\Filter\PreUnscheduleEventFilter;
+use WPPack\Component\Hook\Attribute\Scheduler\Filter\ScheduleEventFilter;
 
 final class NamedHookTest extends TestCase
 {

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Media\Tests\Storage;
+namespace WPPack\Component\Media\Tests\Storage;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Media\Storage\PrivateAttachmentChecker;
+use WPPack\Component\Media\Storage\PrivateAttachmentChecker;
 
 #[CoversClass(PrivateAttachmentChecker::class)]
 final class PrivateAttachmentCheckerTest extends TestCase

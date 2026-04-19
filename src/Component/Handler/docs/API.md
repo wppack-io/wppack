@@ -3,8 +3,8 @@
 ## Handler
 
 ```php
-use WpPack\Component\Handler\Handler;
-use WpPack\Component\Handler\Configuration;
+use WPPack\Component\Handler\Handler;
+use WPPack\Component\Handler\Configuration;
 use Psr\Log\LoggerInterface;
 
 $handler = new Handler(?Configuration $config = null, ?LoggerInterface $logger = null);

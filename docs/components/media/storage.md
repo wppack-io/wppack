@@ -1,7 +1,7 @@
 # Media Storage 連携
 
 **パッケージ:** `wppack/media`
-**名前空間:** `WpPack\Component\Media\Storage\`
+**名前空間:** `WPPack\Component\Media\Storage\`
 
 WordPress のメディアアップロード（`wp-content/uploads/`）をオブジェクトストレージ（S3, Azure Blob, GCS 等）に差し替えるための仕組みです。Storage コンポーネントの `StorageAdapterInterface` と `StorageStreamWrapper` を利用し、ストレージプロバイダに依存しない形で WordPress のメディア管理を統合します。
 
@@ -41,7 +41,7 @@ Media Storage 連携は、WordPress フックを介して動作する 3 つの S
 `upload_dir` フィルタをフックし、WordPress のアップロードパスを stream wrapper パスに書き換えます。
 
 ```php
-use WpPack\Component\Media\Storage\Subscriber\UploadDirSubscriber;
+use WPPack\Component\Media\Storage\Subscriber\UploadDirSubscriber;
 ```
 
 **フィルタ:** `upload_dir`
@@ -60,7 +60,7 @@ use WpPack\Component\Media\Storage\Subscriber\UploadDirSubscriber;
 WordPress のアタッチメント関連フックを包括的にハンドリングします。
 
 ```php
-use WpPack\Component\Media\Storage\Subscriber\AttachmentSubscriber;
+use WPPack\Component\Media\Storage\Subscriber\AttachmentSubscriber;
 ```
 
 | フック | メソッド | 動作 |
@@ -78,7 +78,7 @@ use WpPack\Component\Media\Storage\Subscriber\AttachmentSubscriber;
 WordPress の画像エディタリストに `StorageImageEditor` を優先的に差し込みます。
 
 ```php
-use WpPack\Component\Media\Storage\Subscriber\ImageEditorSubscriber;
+use WPPack\Component\Media\Storage\Subscriber\ImageEditorSubscriber;
 ```
 
 **フック:** `wp_image_editors`（priority: 9）
@@ -90,7 +90,7 @@ WordPress が画像をリサイズする際に `StorageImageEditor` が選択さ
 `WP_Image_Editor_Imagick` を拡張し、stream wrapper パスの画像を処理するエディタです。
 
 ```php
-use WpPack\Component\Media\Storage\ImageEditor\StorageImageEditor;
+use WPPack\Component\Media\Storage\ImageEditor\StorageImageEditor;
 ```
 
 ### 処理フロー
@@ -121,7 +121,7 @@ use WpPack\Component\Media\Storage\ImageEditor\StorageImageEditor;
 ストレージ接続の設定を保持する Value Object です。
 
 ```php
-use WpPack\Component\Media\Storage\StorageConfiguration;
+use WPPack\Component\Media\Storage\StorageConfiguration;
 
 $config = new StorageConfiguration(
     protocol: 's3',           // stream wrapper のプロトコル
@@ -134,7 +134,7 @@ $config = new StorageConfiguration(
 プロバイダ固有の設定クラス（例: `S3StorageConfiguration`）から `toStorageConfiguration()` で変換できます:
 
 ```php
-use WpPack\Plugin\S3StoragePlugin\Configuration\S3StorageConfiguration;
+use WPPack\Plugin\S3StoragePlugin\Configuration\S3StorageConfiguration;
 
 $s3Config = S3StorageConfiguration::fromEnvironmentOrOptions();
 $storageConfig = $s3Config->toStorageConfiguration();
@@ -150,7 +150,7 @@ $storageConfig = $s3Config->toStorageConfiguration();
 ストレージキーを公開 URL に変換するリゾルバです。CDN URL が設定されている場合はそちらを優先します。
 
 ```php
-use WpPack\Component\Media\Storage\UrlResolver;
+use WPPack\Component\Media\Storage\UrlResolver;
 
 $resolver = new UrlResolver(
     adapter: $storageAdapter,

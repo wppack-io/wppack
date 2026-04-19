@@ -1,4 +1,4 @@
-# WpPack Shortcode
+# WPPack Shortcode
 
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=shortcode)](https://codecov.io/github/wppack-io/wppack)
 
@@ -17,9 +17,9 @@ composer require wppack/shortcode
 Override `configureAttributes()` to declaratively define default values and validation. The `render()` method receives the resolved attributes. Since `shortcode_atts()` is also called internally, compatibility with the `shortcode_atts_{shortcode}` filter is maintained.
 
 ```php
-use WpPack\Component\OptionsResolver\OptionsResolver;
-use WpPack\Component\Shortcode\AbstractShortcode;
-use WpPack\Component\Shortcode\Attribute\AsShortcode;
+use WPPack\Component\OptionsResolver\OptionsResolver;
+use WPPack\Component\Shortcode\AbstractShortcode;
+use WPPack\Component\Shortcode\Attribute\AsShortcode;
 
 #[AsShortcode(name: 'button', description: 'Styled button shortcode')]
 class ButtonShortcode extends AbstractShortcode
@@ -81,7 +81,7 @@ class RecentPostsShortcode extends AbstractShortcode
 ### ShortcodeRegistry
 
 ```php
-use WpPack\Component\Shortcode\ShortcodeRegistry;
+use WPPack\Component\Shortcode\ShortcodeRegistry;
 
 $registry = new ShortcodeRegistry();
 $registry->register(new ButtonShortcode());
@@ -92,11 +92,11 @@ $registry->unregister('button');
 ### Named Hook Attributes
 
 ```php
-use WpPack\Component\Hook\Attribute\Shortcode\Filter\ShortcodeAttsFilter;
-use WpPack\Component\Hook\Attribute\Shortcode\Filter\DoShortcodeTagFilter;
-use WpPack\Component\Hook\Attribute\Shortcode\Filter\PreDoShortcodeTagFilter;
-use WpPack\Component\Hook\Attribute\Shortcode\Filter\NoTexturizeShortcodesFilter;
-use WpPack\Component\Hook\Attribute\Shortcode\Filter\StripShortcodesTagNamesFilter;
+use WPPack\Component\Hook\Attribute\Shortcode\Filter\ShortcodeAttsFilter;
+use WPPack\Component\Hook\Attribute\Shortcode\Filter\DoShortcodeTagFilter;
+use WPPack\Component\Hook\Attribute\Shortcode\Filter\PreDoShortcodeTagFilter;
+use WPPack\Component\Hook\Attribute\Shortcode\Filter\NoTexturizeShortcodesFilter;
+use WPPack\Component\Hook\Attribute\Shortcode\Filter\StripShortcodesTagNamesFilter;
 
 final class ShortcodeHooks
 {

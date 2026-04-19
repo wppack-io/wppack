@@ -16,12 +16,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Plugin\\MonitoringPlugin\\": "src/"
+            "WPPack\\Plugin\\MonitoringPlugin\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Plugin\\MonitoringPlugin\\Tests\\": "tests/"
+            "WPPack\\Plugin\\MonitoringPlugin\\Tests\\": "tests/"
         }
     },
     "extra": {

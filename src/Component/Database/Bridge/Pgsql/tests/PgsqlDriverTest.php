@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database\Bridge\Pgsql\Tests;
+namespace WPPack\Component\Database\Bridge\Pgsql\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Database\Bridge\Pgsql\PgsqlDriver;
-use WpPack\Component\Dsn\Dsn;
+use WPPack\Component\Database\Bridge\Pgsql\PgsqlDriver;
+use WPPack\Component\Dsn\Dsn;
 
 /**
  * Integration tests for PgsqlDriver.
@@ -189,7 +189,7 @@ final class PgsqlDriverTest extends TestCase
         $translator = $this->driver->getQueryTranslator();
 
         self::assertInstanceOf(
-            \WpPack\Component\Database\Bridge\Pgsql\Translator\PostgresqlQueryTranslator::class,
+            \WPPack\Component\Database\Bridge\Pgsql\Translator\PostgresqlQueryTranslator::class,
             $translator,
         );
     }

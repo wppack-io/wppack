@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,16 +11,16 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Security\Authentication;
+namespace WPPack\Component\Security\Authentication;
 
 use Psr\EventDispatcher\EventDispatcherInterface;
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\Security\Authentication\Token\TokenInterface;
-use WpPack\Component\Security\AuthenticationSession;
-use WpPack\Component\Security\Event\AuthenticationFailureEvent;
-use WpPack\Component\Security\Event\AuthenticationSuccessEvent;
-use WpPack\Component\Security\Event\CheckPassportEvent;
-use WpPack\Component\Security\Exception\AuthenticationException;
+use WPPack\Component\HttpFoundation\Request;
+use WPPack\Component\Security\Authentication\Token\TokenInterface;
+use WPPack\Component\Security\AuthenticationSession;
+use WPPack\Component\Security\Event\AuthenticationFailureEvent;
+use WPPack\Component\Security\Event\AuthenticationSuccessEvent;
+use WPPack\Component\Security\Event\CheckPassportEvent;
+use WPPack\Component\Security\Exception\AuthenticationException;
 
 final class AuthenticationManager implements AuthenticationManagerInterface
 {

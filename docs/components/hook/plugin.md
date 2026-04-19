@@ -16,7 +16,7 @@ Plugin コンポーネントは、WordPress プラグイン関連フックのた
 他のプラグインが有効化された際のイベントを購読します。自プラグインの有効化処理は `PluginInterface::onActivate()` を使用してください。
 
 ```php
-use WpPack\Component\Hook\Attribute\Plugin\Action\ActivatedPluginAction;
+use WPPack\Component\Hook\Attribute\Plugin\Action\ActivatedPluginAction;
 
 class PluginCompatibility
 {
@@ -37,7 +37,7 @@ class PluginCompatibility
 他のプラグインが無効化された際のイベントを購読します。自プラグインの無効化処理は `PluginInterface::onDeactivate()` を使用してください。
 
 ```php
-use WpPack\Component\Hook\Attribute\Plugin\Action\DeactivatedPluginAction;
+use WPPack\Component\Hook\Attribute\Plugin\Action\DeactivatedPluginAction;
 
 class PluginCompatibility
 {
@@ -58,7 +58,7 @@ class PluginCompatibility
 **WordPress フック:** `plugin_action_links_{plugin}`
 
 ```php
-use WpPack\Component\Hook\Attribute\Plugin\Filter\PluginActionLinksFilter;
+use WPPack\Component\Hook\Attribute\Plugin\Filter\PluginActionLinksFilter;
 
 class PluginActionLinks
 {
@@ -84,7 +84,7 @@ class PluginActionLinks
 マルチサイトのネットワーク管理画面でのプラグインアクションリンクをカスタマイズします。
 
 ```php
-use WpPack\Component\Hook\Attribute\Plugin\Filter\NetworkPluginActionLinksFilter;
+use WPPack\Component\Hook\Attribute\Plugin\Filter\NetworkPluginActionLinksFilter;
 
 class NetworkPluginActionLinks
 {
@@ -108,7 +108,7 @@ class NetworkPluginActionLinks
 **WordPress フック:** `plugin_row_meta`
 
 ```php
-use WpPack\Component\Hook\Attribute\Plugin\Filter\PluginRowMetaFilter;
+use WPPack\Component\Hook\Attribute\Plugin\Filter\PluginRowMetaFilter;
 
 class PluginRowMeta
 {
@@ -137,7 +137,7 @@ class PluginRowMeta
 プラグイン一覧テーブルの各行の後にカスタムコンテンツを出力します。
 
 ```php
-use WpPack\Component\Hook\Attribute\Plugin\Action\AfterPluginRowAction;
+use WPPack\Component\Hook\Attribute\Plugin\Action\AfterPluginRowAction;
 
 class PluginRowInfo
 {
@@ -163,7 +163,7 @@ class PluginRowInfo
 **WordPress フック:** `upgrader_process_complete`
 
 ```php
-use WpPack\Component\Hook\Attribute\Plugin\Action\UpgraderProcessCompleteAction;
+use WPPack\Component\Hook\Attribute\Plugin\Action\UpgraderProcessCompleteAction;
 
 class PluginUpdater
 {
@@ -190,7 +190,7 @@ class PluginUpdater
 プラグイン更新情報のトランジェントを変更し、カスタム更新サーバーからの更新を統合します。
 
 ```php
-use WpPack\Component\Hook\Attribute\Plugin\Filter\PreSetSiteTransientUpdatePluginsFilter;
+use WPPack\Component\Hook\Attribute\Plugin\Filter\PreSetSiteTransientUpdatePluginsFilter;
 
 class CustomUpdateChecker
 {
@@ -219,7 +219,7 @@ class CustomUpdateChecker
 プラグイン情報 API の結果をフィルタリングします。プラグイン詳細ダイアログのカスタマイズに使用します。
 
 ```php
-use WpPack\Component\Hook\Attribute\Plugin\Filter\PluginsApiFilter;
+use WPPack\Component\Hook\Attribute\Plugin\Filter\PluginsApiFilter;
 
 class CustomPluginInfo
 {
@@ -245,7 +245,7 @@ class CustomPluginInfo
 個別プラグインが読み込まれた際に実行されます。
 
 ```php
-use WpPack\Component\Hook\Attribute\Plugin\Action\PluginLoadedAction;
+use WPPack\Component\Hook\Attribute\Plugin\Action\PluginLoadedAction;
 
 class PluginLoadTracker
 {
@@ -266,7 +266,7 @@ class PluginLoadTracker
 マルチサイトのネットワークプラグインが読み込まれた際に実行されます。
 
 ```php
-use WpPack\Component\Hook\Attribute\Plugin\Action\NetworkPluginsLoadedAction;
+use WPPack\Component\Hook\Attribute\Plugin\Action\NetworkPluginsLoadedAction;
 
 class NetworkSetup
 {
@@ -285,7 +285,7 @@ class NetworkSetup
 Must-Use プラグインが読み込まれた際に実行されます。
 
 ```php
-use WpPack\Component\Hook\Attribute\Plugin\Action\MuPluginsLoadedAction;
+use WPPack\Component\Hook\Attribute\Plugin\Action\MuPluginsLoadedAction;
 
 class EarlySetup
 {

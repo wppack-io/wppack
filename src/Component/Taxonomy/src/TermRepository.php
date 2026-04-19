@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Taxonomy;
+namespace WPPack\Component\Taxonomy;
 
-use WpPack\Component\Taxonomy\Exception\TermException;
+use WPPack\Component\Taxonomy\Exception\TermException;
 
 final readonly class TermRepository implements TermRepositoryInterface
 {

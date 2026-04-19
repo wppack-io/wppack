@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -15,11 +15,11 @@ declare(strict_types=1);
  * Custom processor — add maintenance mode to the processor chain.
  */
 
-use WpPack\Component\Handler\Configuration;
-use WpPack\Component\Handler\Handler;
-use WpPack\Component\Handler\Processor\ProcessorInterface;
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\HttpFoundation\Response;
+use WPPack\Component\Handler\Configuration;
+use WPPack\Component\Handler\Handler;
+use WPPack\Component\Handler\Processor\ProcessorInterface;
+use WPPack\Component\HttpFoundation\Request;
+use WPPack\Component\HttpFoundation\Response;
 
 require dirname(__DIR__, 4) . '/vendor/autoload.php';
 

@@ -1,7 +1,7 @@
 # Wpress コンポーネント
 
 **パッケージ:** `wppack/wpress`
-**名前空間:** `WpPack\Component\Wpress\`
+**名前空間:** `WPPack\Component\Wpress\`
 **レイヤー:** Feature
 
 All-in-One WP Migration が使用する `.wpress` アーカイブ形式を操作するコンポーネントです。`ZipArchive` と同様のインターフェースで `.wpress` ファイルの読み書き・エントリの追加・削除を行えます。
@@ -36,10 +36,10 @@ while (!feof($handle)) {
 fclose($handle);
 ```
 
-### After（WpPack）
+### After（WPPack）
 
 ```php
-use WpPack\Component\Wpress\WpressArchive;
+use WPPack\Component\Wpress\WpressArchive;
 
 $archive = new WpressArchive('backup.wpress');
 $archive->extractTo('/dest');
@@ -106,7 +106,7 @@ archive.wpress
 ### アーカイブを開く
 
 ```php
-use WpPack\Component\Wpress\WpressArchive;
+use WPPack\Component\Wpress\WpressArchive;
 
 // 既存のアーカイブを開く
 $archive = new WpressArchive('/path/to/backup.wpress');
@@ -153,7 +153,7 @@ $sql = $entry->getContents();
 // エントリが存在しない場合は EntryNotFoundException
 try {
     $entry = $archive->getEntry('nonexistent.txt');
-} catch (\WpPack\Component\Wpress\Exception\EntryNotFoundException $e) {
+} catch (\WPPack\Component\Wpress\Exception\EntryNotFoundException $e) {
     // エントリが見つからない
 }
 ```
@@ -337,11 +337,11 @@ $archive->close();
 アーカイブのメタデータを表します。サイト URL、WordPress バージョン、データベース情報、暗号化設定などを含みます：
 
 ```php
-use WpPack\Component\Wpress\Metadata\PackageMetadata;
-use WpPack\Component\Wpress\Metadata\WordPressInfo;
-use WpPack\Component\Wpress\Metadata\DatabaseInfo;
-use WpPack\Component\Wpress\Metadata\PhpInfo;
-use WpPack\Component\Wpress\Metadata\PluginInfo;
+use WPPack\Component\Wpress\Metadata\PackageMetadata;
+use WPPack\Component\Wpress\Metadata\WordPressInfo;
+use WPPack\Component\Wpress\Metadata\DatabaseInfo;
+use WPPack\Component\Wpress\Metadata\PhpInfo;
+use WPPack\Component\Wpress\Metadata\PluginInfo;
 
 // アーカイブから読み取り
 $archive = new WpressArchive('backup.wpress');
@@ -371,12 +371,12 @@ if ($meta->compression?->enabled) {
 #### PackageMetadata の構築
 
 ```php
-use WpPack\Component\Wpress\Metadata\PackageMetadata;
-use WpPack\Component\Wpress\Metadata\WordPressInfo;
-use WpPack\Component\Wpress\Metadata\DatabaseInfo;
-use WpPack\Component\Wpress\Metadata\PhpInfo;
-use WpPack\Component\Wpress\Metadata\PluginInfo;
-use WpPack\Component\Wpress\Metadata\ServerInfo;
+use WPPack\Component\Wpress\Metadata\PackageMetadata;
+use WPPack\Component\Wpress\Metadata\WordPressInfo;
+use WPPack\Component\Wpress\Metadata\DatabaseInfo;
+use WPPack\Component\Wpress\Metadata\PhpInfo;
+use WPPack\Component\Wpress\Metadata\PluginInfo;
+use WPPack\Component\Wpress\Metadata\ServerInfo;
 
 $meta = new PackageMetadata(
     siteUrl: get_site_url(),
@@ -510,7 +510,7 @@ $archive->addFromString('package.json', $json);
 マルチサイト構成のメタデータを表します：
 
 ```php
-use WpPack\Component\Wpress\Metadata\MultisiteMetadata;
+use WPPack\Component\Wpress\Metadata\MultisiteMetadata;
 
 // アーカイブから読み取り
 $archive = new WpressArchive('multisite-backup.wpress');
@@ -544,9 +544,9 @@ foreach ($multisite->admins as $admin) {
 #### MultisiteMetadata の構築
 
 ```php
-use WpPack\Component\Wpress\Metadata\MultisiteMetadata;
-use WpPack\Component\Wpress\Metadata\SiteInfo;
-use WpPack\Component\Wpress\Metadata\SiteWordPressInfo;
+use WPPack\Component\Wpress\Metadata\MultisiteMetadata;
+use WPPack\Component\Wpress\Metadata\SiteInfo;
+use WPPack\Component\Wpress\Metadata\SiteWordPressInfo;
 
 $multisite = new MultisiteMetadata(
     network: true,
@@ -611,8 +611,8 @@ $archive->addFromString('multisite.json', $json);
 ### バックアップアーカイブの内容検査
 
 ```php
-use WpPack\Component\Wpress\WpressArchive;
-use WpPack\Component\Wpress\Metadata\PackageMetadata;
+use WPPack\Component\Wpress\WpressArchive;
+use WPPack\Component\Wpress\Metadata\PackageMetadata;
 
 $archive = new WpressArchive('backup.wpress');
 
@@ -652,7 +652,7 @@ $archive->close();
 ### アーカイブからの選択的復元
 
 ```php
-use WpPack\Component\Wpress\WpressArchive;
+use WPPack\Component\Wpress\WpressArchive;
 
 $archive = new WpressArchive('backup.wpress');
 
@@ -669,7 +669,7 @@ $archive->close();
 ### アーカイブの編集（不要ファイルの除去）
 
 ```php
-use WpPack\Component\Wpress\WpressArchive;
+use WPPack\Component\Wpress\WpressArchive;
 
 $archive = new WpressArchive('backup.wpress');
 
@@ -684,12 +684,12 @@ $archive->close();
 ### 新規アーカイブの完全な作成
 
 ```php
-use WpPack\Component\Wpress\WpressArchive;
-use WpPack\Component\Wpress\Metadata\PackageMetadata;
-use WpPack\Component\Wpress\Metadata\WordPressInfo;
-use WpPack\Component\Wpress\Metadata\DatabaseInfo;
-use WpPack\Component\Wpress\Metadata\PhpInfo;
-use WpPack\Component\Wpress\Metadata\PluginInfo;
+use WPPack\Component\Wpress\WpressArchive;
+use WPPack\Component\Wpress\Metadata\PackageMetadata;
+use WPPack\Component\Wpress\Metadata\WordPressInfo;
+use WPPack\Component\Wpress\Metadata\DatabaseInfo;
+use WPPack\Component\Wpress\Metadata\PhpInfo;
+use WPPack\Component\Wpress\Metadata\PluginInfo;
 
 // 1. package.json を生成
 $meta = new PackageMetadata(
@@ -732,11 +732,11 @@ $archive->close();
 すべての例外は `ExceptionInterface` を実装しています：
 
 ```php
-use WpPack\Component\Wpress\Exception\ExceptionInterface;
-use WpPack\Component\Wpress\Exception\ArchiveException;
-use WpPack\Component\Wpress\Exception\EntryNotFoundException;
-use WpPack\Component\Wpress\Exception\EncryptionException;
-use WpPack\Component\Wpress\Exception\InvalidArgumentException;
+use WPPack\Component\Wpress\Exception\ExceptionInterface;
+use WPPack\Component\Wpress\Exception\ArchiveException;
+use WPPack\Component\Wpress\Exception\EntryNotFoundException;
+use WPPack\Component\Wpress\Exception\EncryptionException;
+use WPPack\Component\Wpress\Exception\InvalidArgumentException;
 
 try {
     $archive = new WpressArchive('backup.wpress', password: 'wrong-password');

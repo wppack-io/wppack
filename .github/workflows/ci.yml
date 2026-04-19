@@ -143,7 +143,7 @@ jobs:
 
       # Resolve DATABASE_DSN from the matrix db-engine dimension. The db.php
       # drop-in is active in tests/ (via WP_CONTENT_DIR symlink) and routes
-      # WpPackWpdb to the driver selected by DATABASE_DSN. The 'wpdb' variant
+      # WPPackWpdb to the driver selected by DATABASE_DSN. The 'wpdb' variant
       # short-circuits the drop-in so standard $wpdb (mysqli) is used.
       - name: Resolve DATABASE_DSN
         id: dsn

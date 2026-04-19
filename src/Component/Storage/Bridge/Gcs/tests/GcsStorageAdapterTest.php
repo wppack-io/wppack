@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Storage\Bridge\Gcs\Tests;
+namespace WPPack\Component\Storage\Bridge\Gcs\Tests;
 
 use Google\Cloud\Storage\Bucket;
 use Google\Cloud\Storage\StorageObject;
@@ -19,8 +19,8 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\StreamInterface;
-use WpPack\Component\Storage\Bridge\Gcs\GcsStorageAdapter;
-use WpPack\Component\Storage\Exception\ObjectNotFoundException;
+use WPPack\Component\Storage\Bridge\Gcs\GcsStorageAdapter;
+use WPPack\Component\Storage\Exception\ObjectNotFoundException;
 use Google\Cloud\Core\Exception\NotFoundException;
 
 #[CoversClass(GcsStorageAdapter::class)]

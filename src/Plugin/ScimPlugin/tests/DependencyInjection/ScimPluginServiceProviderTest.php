@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,27 +11,27 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\ScimPlugin\Tests\DependencyInjection;
+namespace WPPack\Plugin\ScimPlugin\Tests\DependencyInjection;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\DependencyInjection\Reference;
-use WpPack\Component\DependencyInjection\ServiceProviderInterface;
-use WpPack\Component\EventDispatcher\EventDispatcher;
-use WpPack\Component\Scim\Authentication\ScimBearerAuthenticator;
-use WpPack\Component\Scim\Controller\GroupController;
-use WpPack\Component\Scim\Controller\ResourceTypeController;
-use WpPack\Component\Scim\Controller\SchemaController;
-use WpPack\Component\Scim\Controller\ServiceProviderConfigController;
-use WpPack\Component\Scim\Controller\UserController;
-use WpPack\Component\Scim\Schema\ServiceProviderConfig;
-use WpPack\Component\Security\Authentication\AuthenticationManager;
-use WpPack\Plugin\ScimPlugin\Admin\ScimSettingsController;
-use WpPack\Plugin\ScimPlugin\Admin\ScimSettingsPage;
-use WpPack\Plugin\ScimPlugin\Configuration\ScimConfiguration;
-use WpPack\Plugin\ScimPlugin\DependencyInjection\ScimPluginServiceProvider;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\DependencyInjection\Reference;
+use WPPack\Component\DependencyInjection\ServiceProviderInterface;
+use WPPack\Component\EventDispatcher\EventDispatcher;
+use WPPack\Component\Scim\Authentication\ScimBearerAuthenticator;
+use WPPack\Component\Scim\Controller\GroupController;
+use WPPack\Component\Scim\Controller\ResourceTypeController;
+use WPPack\Component\Scim\Controller\SchemaController;
+use WPPack\Component\Scim\Controller\ServiceProviderConfigController;
+use WPPack\Component\Scim\Controller\UserController;
+use WPPack\Component\Scim\Schema\ServiceProviderConfig;
+use WPPack\Component\Security\Authentication\AuthenticationManager;
+use WPPack\Plugin\ScimPlugin\Admin\ScimSettingsController;
+use WPPack\Plugin\ScimPlugin\Admin\ScimSettingsPage;
+use WPPack\Plugin\ScimPlugin\Configuration\ScimConfiguration;
+use WPPack\Plugin\ScimPlugin\DependencyInjection\ScimPluginServiceProvider;
 
 #[CoversClass(ScimPluginServiceProvider::class)]
 final class ScimPluginServiceProviderTest extends TestCase

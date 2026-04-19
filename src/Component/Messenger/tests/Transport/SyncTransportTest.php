@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,15 +11,15 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Messenger\Tests\Transport;
+namespace WPPack\Component\Messenger\Tests\Transport;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Messenger\Envelope;
-use WpPack\Component\Messenger\Stamp\SentStamp;
-use WpPack\Component\Messenger\Transport\SyncTransport;
-use WpPack\Component\Messenger\Transport\TransportInterface;
+use WPPack\Component\Messenger\Envelope;
+use WPPack\Component\Messenger\Stamp\SentStamp;
+use WPPack\Component\Messenger\Transport\SyncTransport;
+use WPPack\Component\Messenger\Transport\TransportInterface;
 
 #[CoversClass(SyncTransport::class)]
 final class SyncTransportTest extends TestCase

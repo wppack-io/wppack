@@ -36,7 +36,7 @@ EventBridgeSchedulerPlugin は PHP アトリビュートによる宣言的なス
 ┌─ メッセージキュー ─────────────────────────┐
 │ Amazon SQS                                   │
 └──────────────────────────────────────────────┘
-            ↓ WpPack\Component\Messenger
+            ↓ WPPack\Component\Messenger
 ┌─ 実行 ──────────────────────────────────────┐
 │ Lambda (Bref WordPress)                      │
 │ #[AsMessageHandler] を実行                   │
@@ -56,7 +56,7 @@ EventBridgeSchedulerPlugin は PHP アトリビュートによる宣言的なス
 ## 名前空間
 
 ```
-WpPack\Plugin\EventBridgeSchedulerPlugin\
+WPPack\Plugin\EventBridgeSchedulerPlugin\
 ```
 
 ## 主要クラス
@@ -66,7 +66,7 @@ WpPack\Plugin\EventBridgeSchedulerPlugin\
 プラグインのエントリポイント。WordPress のアクティベーション・ディアクティベーション処理、各コンポーネントの初期化を行う。
 
 ```php
-namespace WpPack\Plugin\EventBridgeSchedulerPlugin;
+namespace WPPack\Plugin\EventBridgeSchedulerPlugin;
 
 final class Plugin
 {
@@ -81,7 +81,7 @@ final class Plugin
 `#[AsSchedule]` アトリビュートが付与されたクラスを自動検出し、スケジュールプロバイダーとして登録する。
 
 ```php
-namespace WpPack\Plugin\EventBridgeSchedulerPlugin;
+namespace WPPack\Plugin\EventBridgeSchedulerPlugin;
 
 final class ScheduleDiscovery
 {
@@ -95,7 +95,7 @@ final class ScheduleDiscovery
 `#[AsMessageHandler]` アトリビュートが付与されたクラスを自動検出し、メッセージハンドラとして登録する。
 
 ```php
-namespace WpPack\Plugin\EventBridgeSchedulerPlugin;
+namespace WPPack\Plugin\EventBridgeSchedulerPlugin;
 
 final class HandlerDiscovery
 {
@@ -109,7 +109,7 @@ final class HandlerDiscovery
 WordPress の WP-Cron イベントをインターセプトし、Action Scheduler に変換する。
 
 ```php
-namespace WpPack\Plugin\EventBridgeSchedulerPlugin;
+namespace WPPack\Plugin\EventBridgeSchedulerPlugin;
 
 final class WpCronInterceptor
 {
@@ -123,7 +123,7 @@ final class WpCronInterceptor
 Action Scheduler の自動実行を無効化し、EventBridge 経由の実行に切り替える。
 
 ```php
-namespace WpPack\Plugin\EventBridgeSchedulerPlugin;
+namespace WPPack\Plugin\EventBridgeSchedulerPlugin;
 
 final class ActionSchedulerInterceptor
 {
@@ -136,7 +136,7 @@ final class ActionSchedulerInterceptor
 Action Scheduler のスケジュールデータを EventBridge Scheduler にリアルタイム同期する。
 
 ```php
-namespace WpPack\Plugin\EventBridgeSchedulerPlugin;
+namespace WPPack\Plugin\EventBridgeSchedulerPlugin;
 
 final class EventBridgeSynchronizer
 {
@@ -174,7 +174,7 @@ wp wppack scheduler status --show-eventbridge
 
 ## 管理画面 UI
 
-`WpPack > Scheduler` メニューで以下の情報を表示:
+`WPPack > Scheduler` メニューで以下の情報を表示:
 
 - 登録済みスケジュール一覧
 - 各スケジュールの次回実行時刻
@@ -229,10 +229,10 @@ WPPACK_USE_EVENTBRIDGE=true
 ### スケジュール定義
 
 ```php
-use WpPack\Component\Scheduler\Attribute\AsSchedule;
-use WpPack\Component\Scheduler\RecurringMessage;
-use WpPack\Component\Scheduler\Schedule;
-use WpPack\Component\Scheduler\ScheduleProviderInterface;
+use WPPack\Component\Scheduler\Attribute\AsSchedule;
+use WPPack\Component\Scheduler\RecurringMessage;
+use WPPack\Component\Scheduler\Schedule;
+use WPPack\Component\Scheduler\ScheduleProviderInterface;
 
 #[AsSchedule]
 final class MaintenanceScheduleProvider implements ScheduleProviderInterface
@@ -249,7 +249,7 @@ final class MaintenanceScheduleProvider implements ScheduleProviderInterface
 ### メッセージハンドラ
 
 ```php
-use WpPack\Component\Messenger\Attribute\AsMessageHandler;
+use WPPack\Component\Messenger\Attribute\AsMessageHandler;
 
 #[AsMessageHandler]
 final class CleanupMessageHandler

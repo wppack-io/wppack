@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Cache\Adapter;
+namespace WPPack\Component\Cache\Adapter;
 
-use WpPack\Component\Cache\Bridge\Apcu\ApcuAdapterFactory;
-use WpPack\Component\Cache\Bridge\DynamoDb\DynamoDbAdapterFactory;
-use WpPack\Component\Cache\Bridge\Memcached\MemcachedAdapterFactory;
-use WpPack\Component\Cache\Bridge\Redis\Adapter\RedisAdapterFactory;
-use WpPack\Component\Cache\Exception\UnsupportedSchemeException;
+use WPPack\Component\Cache\Bridge\Apcu\ApcuAdapterFactory;
+use WPPack\Component\Cache\Bridge\DynamoDb\DynamoDbAdapterFactory;
+use WPPack\Component\Cache\Bridge\Memcached\MemcachedAdapterFactory;
+use WPPack\Component\Cache\Bridge\Redis\Adapter\RedisAdapterFactory;
+use WPPack\Component\Cache\Exception\UnsupportedSchemeException;
 
 final class Adapter
 {

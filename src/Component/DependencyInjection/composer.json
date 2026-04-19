@@ -13,12 +13,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\DependencyInjection\\": "src/"
+            "WPPack\\Component\\DependencyInjection\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Component\\DependencyInjection\\Tests\\": "tests/"
+            "WPPack\\Component\\DependencyInjection\\Tests\\": "tests/"
         }
     },
     "minimum-stability": "stable"

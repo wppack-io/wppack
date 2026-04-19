@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Setting\Tests;
+namespace WPPack\Component\Setting\Tests;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Setting\FieldDefinition;
+use WPPack\Component\Setting\FieldDefinition;
 
 #[CoversClass(FieldDefinition::class)]
 final class FieldDefinitionTest extends TestCase

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,32 +11,32 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Scim\Controller;
+namespace WPPack\Component\Scim\Controller;
 
 use Psr\EventDispatcher\EventDispatcherInterface;
-use WpPack\Component\HttpFoundation\JsonResponse;
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\HttpFoundation\Response;
-use WpPack\Component\Rest\AbstractRestController;
-use WpPack\Component\Rest\Attribute\RestRoute;
-use WpPack\Component\Rest\HttpMethod;
-use WpPack\Component\Role\Attribute\IsGranted;
-use WpPack\Component\Scim\Event\GroupDeletedEvent;
-use WpPack\Component\Scim\Event\GroupMembershipChangedEvent;
-use WpPack\Component\Scim\Event\GroupProvisionedEvent;
-use WpPack\Component\Scim\Event\GroupUpdatedEvent;
-use WpPack\Component\Scim\Exception\InvalidValueException;
-use WpPack\Component\Scim\Exception\ResourceConflictException;
-use WpPack\Component\Scim\Exception\ResourceNotFoundException;
-use WpPack\Component\Scim\Exception\ScimException;
-use WpPack\Component\Sanitizer\Sanitizer;
-use WpPack\Component\Scim\Patch\PatchProcessor;
-use WpPack\Component\Scim\Patch\PatchRequest;
-use WpPack\Component\Scim\Repository\ScimGroupRepository;
-use WpPack\Component\Scim\Schema\ScimConstants;
-use WpPack\Component\Scim\Serialization\ErrorSerializer;
-use WpPack\Component\Scim\Serialization\ListResponseSerializer;
-use WpPack\Component\Scim\Serialization\ScimGroupSerializer;
+use WPPack\Component\HttpFoundation\JsonResponse;
+use WPPack\Component\HttpFoundation\Request;
+use WPPack\Component\HttpFoundation\Response;
+use WPPack\Component\Rest\AbstractRestController;
+use WPPack\Component\Rest\Attribute\RestRoute;
+use WPPack\Component\Rest\HttpMethod;
+use WPPack\Component\Role\Attribute\IsGranted;
+use WPPack\Component\Scim\Event\GroupDeletedEvent;
+use WPPack\Component\Scim\Event\GroupMembershipChangedEvent;
+use WPPack\Component\Scim\Event\GroupProvisionedEvent;
+use WPPack\Component\Scim\Event\GroupUpdatedEvent;
+use WPPack\Component\Scim\Exception\InvalidValueException;
+use WPPack\Component\Scim\Exception\ResourceConflictException;
+use WPPack\Component\Scim\Exception\ResourceNotFoundException;
+use WPPack\Component\Scim\Exception\ScimException;
+use WPPack\Component\Sanitizer\Sanitizer;
+use WPPack\Component\Scim\Patch\PatchProcessor;
+use WPPack\Component\Scim\Patch\PatchRequest;
+use WPPack\Component\Scim\Repository\ScimGroupRepository;
+use WPPack\Component\Scim\Schema\ScimConstants;
+use WPPack\Component\Scim\Serialization\ErrorSerializer;
+use WPPack\Component\Scim\Serialization\ListResponseSerializer;
+use WPPack\Component\Scim\Serialization\ScimGroupSerializer;
 
 #[RestRoute(namespace: 'scim/v2', route: '/Groups')]
 #[IsGranted(ScimConstants::CAPABILITY_PROVISION)]

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,17 +11,17 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Debug\Tests\DependencyInjection;
+namespace WPPack\Component\Debug\Tests\DependencyInjection;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Debug\DependencyInjection\RegisterDataCollectorsPass;
-use WpPack\Component\Debug\Profiler\Profile;
-use WpPack\Component\Debug\Tests\DependencyInjection\Fixtures\DefaultPriorityCollector;
-use WpPack\Component\Debug\Tests\DependencyInjection\Fixtures\HighPriorityCollector;
-use WpPack\Component\Debug\Tests\DependencyInjection\Fixtures\LowPriorityCollector;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\DependencyInjection\Reference;
+use WPPack\Component\Debug\DependencyInjection\RegisterDataCollectorsPass;
+use WPPack\Component\Debug\Profiler\Profile;
+use WPPack\Component\Debug\Tests\DependencyInjection\Fixtures\DefaultPriorityCollector;
+use WPPack\Component\Debug\Tests\DependencyInjection\Fixtures\HighPriorityCollector;
+use WPPack\Component\Debug\Tests\DependencyInjection\Fixtures\LowPriorityCollector;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\DependencyInjection\Reference;
 
 final class RegisterDataCollectorsPassTest extends TestCase
 {

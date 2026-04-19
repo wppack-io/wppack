@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,15 +11,15 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Mailer\Bridge\Amazon\Transport;
+namespace WPPack\Component\Mailer\Bridge\Amazon\Transport;
 
 use AsyncAws\Ses\SesClient;
-use WpPack\Component\Mailer\Exception\UnsupportedSchemeException;
-use WpPack\Component\Mailer\Transport\Dsn;
-use WpPack\Component\Mailer\Transport\TransportDefinition;
-use WpPack\Component\Mailer\Transport\TransportFactoryInterface;
-use WpPack\Component\Mailer\Transport\TransportField;
-use WpPack\Component\Mailer\Transport\TransportInterface;
+use WPPack\Component\Mailer\Exception\UnsupportedSchemeException;
+use WPPack\Component\Mailer\Transport\Dsn;
+use WPPack\Component\Mailer\Transport\TransportDefinition;
+use WPPack\Component\Mailer\Transport\TransportFactoryInterface;
+use WPPack\Component\Mailer\Transport\TransportField;
+use WPPack\Component\Mailer\Transport\TransportInterface;
 
 final class SesTransportFactory implements TransportFactoryInterface
 {

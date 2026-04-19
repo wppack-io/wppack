@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,35 +11,35 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Security\Bridge\OAuth\Tests;
+namespace WPPack\Component\Security\Bridge\OAuth\Tests;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
-use WpPack\Component\HttpClient\HttpClient;
-use WpPack\Component\HttpFoundation\RedirectResponse;
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\Security\Authentication\Passport\Badge\UserBadge;
-use WpPack\Component\Security\Authentication\Passport\SelfValidatingPassport;
-use WpPack\Component\Security\Authentication\Token\PostAuthenticationToken;
-use WpPack\Component\Security\Bridge\OAuth\Badge\OAuthTokenBadge;
-use WpPack\Component\Security\Bridge\OAuth\Configuration\OAuthConfiguration;
-use WpPack\Component\Security\Bridge\OAuth\Multisite\CrossSiteRedirector;
-use WpPack\Component\Security\Bridge\OAuth\OAuthAuthenticator;
-use WpPack\Component\Security\Bridge\OAuth\Provider\ProviderInterface;
-use WpPack\Component\Security\Bridge\OAuth\State\OAuthStateStore;
-use WpPack\Component\Security\Bridge\OAuth\State\StoredState;
-use WpPack\Component\Security\Bridge\OAuth\Token\IdTokenValidator;
-use WpPack\Component\Security\Bridge\OAuth\Token\JwksProvider;
-use WpPack\Component\Security\Bridge\OAuth\Token\OAuthTokenSet;
-use WpPack\Component\Security\Bridge\OAuth\Token\TokenExchanger;
-use WpPack\Component\Security\Bridge\OAuth\UserResolution\OAuthUserResolverInterface;
-use WpPack\Component\Security\Exception\AuthenticationException;
-use WpPack\Component\Site\BlogContext;
-use WpPack\Component\Site\SiteRepository;
-use WpPack\Component\Transient\TransientManager;
-use WpPack\Component\User\UserRepository;
+use WPPack\Component\HttpClient\HttpClient;
+use WPPack\Component\HttpFoundation\RedirectResponse;
+use WPPack\Component\HttpFoundation\Request;
+use WPPack\Component\Security\Authentication\Passport\Badge\UserBadge;
+use WPPack\Component\Security\Authentication\Passport\SelfValidatingPassport;
+use WPPack\Component\Security\Authentication\Token\PostAuthenticationToken;
+use WPPack\Component\Security\Bridge\OAuth\Badge\OAuthTokenBadge;
+use WPPack\Component\Security\Bridge\OAuth\Configuration\OAuthConfiguration;
+use WPPack\Component\Security\Bridge\OAuth\Multisite\CrossSiteRedirector;
+use WPPack\Component\Security\Bridge\OAuth\OAuthAuthenticator;
+use WPPack\Component\Security\Bridge\OAuth\Provider\ProviderInterface;
+use WPPack\Component\Security\Bridge\OAuth\State\OAuthStateStore;
+use WPPack\Component\Security\Bridge\OAuth\State\StoredState;
+use WPPack\Component\Security\Bridge\OAuth\Token\IdTokenValidator;
+use WPPack\Component\Security\Bridge\OAuth\Token\JwksProvider;
+use WPPack\Component\Security\Bridge\OAuth\Token\OAuthTokenSet;
+use WPPack\Component\Security\Bridge\OAuth\Token\TokenExchanger;
+use WPPack\Component\Security\Bridge\OAuth\UserResolution\OAuthUserResolverInterface;
+use WPPack\Component\Security\Exception\AuthenticationException;
+use WPPack\Component\Site\BlogContext;
+use WPPack\Component\Site\SiteRepository;
+use WPPack\Component\Transient\TransientManager;
+use WPPack\Component\User\UserRepository;
 
 #[CoversClass(OAuthAuthenticator::class)]
 final class OAuthAuthenticatorTest extends TestCase

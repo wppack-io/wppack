@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,24 +11,24 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Monitoring\DependencyInjection;
+namespace WPPack\Component\Monitoring\DependencyInjection;
 
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\DependencyInjection\Reference;
-use WpPack\Component\DependencyInjection\ServiceProviderInterface;
-use WpPack\Component\Monitoring\Bridge\Cloudflare\CloudflareMetricProvider;
-use WpPack\Component\Monitoring\Bridge\CloudWatch\CloudWatchMetricProvider;
-use WpPack\Component\Monitoring\MockMetricProvider;
-use WpPack\Component\Monitoring\Bridge\CloudWatch\MockCloudWatchMonitoringProvider;
-use WpPack\Component\Monitoring\Bridge\Cloudflare\MockCloudflareMonitoringProvider;
-use WpPack\Component\Monitoring\MonitoringCollector;
-use WpPack\Component\Monitoring\MonitoringRegistry;
-use WpPack\Component\Monitoring\MonitoringStore;
-use WpPack\Component\Monitoring\Rest\MonitoringController;
-use WpPack\Component\Monitoring\Rest\MonitoringSettingsController;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\DependencyInjection\Reference;
+use WPPack\Component\DependencyInjection\ServiceProviderInterface;
+use WPPack\Component\Monitoring\Bridge\Cloudflare\CloudflareMetricProvider;
+use WPPack\Component\Monitoring\Bridge\CloudWatch\CloudWatchMetricProvider;
+use WPPack\Component\Monitoring\MockMetricProvider;
+use WPPack\Component\Monitoring\Bridge\CloudWatch\MockCloudWatchMonitoringProvider;
+use WPPack\Component\Monitoring\Bridge\Cloudflare\MockCloudflareMonitoringProvider;
+use WPPack\Component\Monitoring\MonitoringCollector;
+use WPPack\Component\Monitoring\MonitoringRegistry;
+use WPPack\Component\Monitoring\MonitoringStore;
+use WPPack\Component\Monitoring\Rest\MonitoringController;
+use WPPack\Component\Monitoring\Rest\MonitoringSettingsController;
 use Psr\Log\LoggerInterface;
-use WpPack\Component\Option\OptionManager;
-use WpPack\Component\Transient\TransientManager;
+use WPPack\Component\Option\OptionManager;
+use WPPack\Component\Transient\TransientManager;
 
 final class MonitoringServiceProvider implements ServiceProviderInterface
 {

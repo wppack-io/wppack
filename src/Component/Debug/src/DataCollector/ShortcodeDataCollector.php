@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Debug\DataCollector;
+namespace WPPack\Component\Debug\DataCollector;
 
-use WpPack\Component\Debug\Attribute\AsDataCollector;
+use WPPack\Component\Debug\Attribute\AsDataCollector;
 
 #[AsDataCollector(name: 'shortcode', priority: 70)]
 final class ShortcodeDataCollector extends AbstractDataCollector

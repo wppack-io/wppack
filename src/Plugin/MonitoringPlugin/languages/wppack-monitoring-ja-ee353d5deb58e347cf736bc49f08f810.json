@@ -1,6 +1,6 @@
 {
     "translation-revision-date": "2026-04-02T00:00:00+00:00",
-    "generator": "WpPack",
+    "generator": "WPPack",
     "source": "js/build/dashboard.js",
     "domain": "wppack-monitoring",
     "locale_data": {

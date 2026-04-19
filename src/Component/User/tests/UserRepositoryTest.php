@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\User\Tests;
+namespace WPPack\Component\User\Tests;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\User\Exception\UserException;
-use WpPack\Component\User\UserRepository;
+use WPPack\Component\User\Exception\UserException;
+use WPPack\Component\User\UserRepository;
 
 #[CoversClass(UserRepository::class)]
 final class UserRepositoryTest extends TestCase

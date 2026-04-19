@@ -1,7 +1,7 @@
 # Shortcode コンポーネント
 
 **パッケージ:** `wppack/shortcode`
-**名前空間:** `WpPack\Component\Shortcode\`
+**名前空間:** `WPPack\Component\Shortcode\`
 **レイヤー:** Feature
 
 Shortcode コンポーネントは、アトリビュートベースの設定、依存性注入サポートを備えた、モダンでオブジェクト指向な WordPress ショートコード開発アプローチを提供します。
@@ -48,12 +48,12 @@ function my_gallery_shortcode($atts, $content = null) {
 }
 ```
 
-### After（WpPack）
+### After（WPPack）
 
 ```php
-use WpPack\Component\OptionsResolver\OptionsResolver;
-use WpPack\Component\Shortcode\AbstractShortcode;
-use WpPack\Component\Shortcode\Attribute\AsShortcode;
+use WPPack\Component\OptionsResolver\OptionsResolver;
+use WPPack\Component\Shortcode\AbstractShortcode;
+use WPPack\Component\Shortcode\Attribute\AsShortcode;
 
 #[AsShortcode(name: 'gallery', description: 'Display an image gallery')]
 class GalleryShortcode extends AbstractShortcode
@@ -93,9 +93,9 @@ class GalleryShortcode extends AbstractShortcode
 `configureAttributes()` をオーバーライドして、デフォルト値・バリデーションを宣言的に定義します。`render()` には解決済みのアトリビュートが渡されます。内部で `shortcode_atts()` も呼ばれるため、`shortcode_atts_{shortcode}` フィルターとの互換性も維持されます。
 
 ```php
-use WpPack\Component\OptionsResolver\OptionsResolver;
-use WpPack\Component\Shortcode\AbstractShortcode;
-use WpPack\Component\Shortcode\Attribute\AsShortcode;
+use WPPack\Component\OptionsResolver\OptionsResolver;
+use WPPack\Component\Shortcode\AbstractShortcode;
+use WPPack\Component\Shortcode\Attribute\AsShortcode;
 
 #[AsShortcode(name: 'button', description: 'Styled button shortcode')]
 class ButtonShortcode extends AbstractShortcode
@@ -138,7 +138,7 @@ class ButtonShortcode extends AbstractShortcode
 ### 依存性注入を使用したショートコード
 
 ```php
-use WpPack\Component\OptionsResolver\OptionsResolver;
+use WPPack\Component\OptionsResolver\OptionsResolver;
 
 #[AsShortcode(name: 'recent_posts', description: 'Display recent posts')]
 class RecentPostsShortcode extends AbstractShortcode
@@ -184,7 +184,7 @@ class RecentPostsShortcode extends AbstractShortcode
 `ShortcodeRegistry` を使用してショートコードを WordPress に登録します。
 
 ```php
-use WpPack\Component\Shortcode\ShortcodeRegistry;
+use WPPack\Component\Shortcode\ShortcodeRegistry;
 
 $registry = new ShortcodeRegistry();
 

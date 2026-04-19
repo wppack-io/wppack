@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Shortcode\Tests;
+namespace WPPack\Component\Shortcode\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\OptionsResolver\OptionsResolver;
-use WpPack\Component\Shortcode\AbstractShortcode;
-use WpPack\Component\Shortcode\Attribute\AsShortcode;
-use WpPack\Component\Shortcode\ShortcodeRegistry;
+use WPPack\Component\OptionsResolver\OptionsResolver;
+use WPPack\Component\Shortcode\AbstractShortcode;
+use WPPack\Component\Shortcode\Attribute\AsShortcode;
+use WPPack\Component\Shortcode\ShortcodeRegistry;
 
 final class ShortcodeRegistryTest extends TestCase
 {

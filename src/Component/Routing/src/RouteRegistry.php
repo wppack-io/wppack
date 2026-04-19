@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,20 +11,20 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Routing;
+namespace WPPack\Component\Routing;
 
-use WpPack\Component\HttpFoundation\ArgumentResolver;
-use WpPack\Component\HttpFoundation\Exception\ForbiddenException;
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\Option\OptionManager;
-use WpPack\Component\Role\Attribute\IsGranted;
-use WpPack\Component\Role\Authorization\IsGrantedChecker;
-use WpPack\Component\Role\Exception\AccessDeniedException;
-use WpPack\Component\Routing\Attribute\RewriteTag;
-use WpPack\Component\Routing\Attribute\Route;
-use WpPack\Component\Routing\Exception\RouteNotFoundException;
-use WpPack\Component\Security\Security;
-use WpPack\Component\Templating\TemplateRendererInterface;
+use WPPack\Component\HttpFoundation\ArgumentResolver;
+use WPPack\Component\HttpFoundation\Exception\ForbiddenException;
+use WPPack\Component\HttpFoundation\Request;
+use WPPack\Component\Option\OptionManager;
+use WPPack\Component\Role\Attribute\IsGranted;
+use WPPack\Component\Role\Authorization\IsGrantedChecker;
+use WPPack\Component\Role\Exception\AccessDeniedException;
+use WPPack\Component\Routing\Attribute\RewriteTag;
+use WPPack\Component\Routing\Attribute\Route;
+use WPPack\Component\Routing\Exception\RouteNotFoundException;
+use WPPack\Component\Security\Security;
+use WPPack\Component\Templating\TemplateRendererInterface;
 
 final class RouteRegistry
 {

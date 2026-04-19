@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Mailer\Bridge\SendGrid\Transport;
+namespace WPPack\Component\Mailer\Bridge\SendGrid\Transport;
 
-use WpPack\Component\Mailer\Transport\SmtpTransport;
+use WPPack\Component\Mailer\Transport\SmtpTransport;
 
 final class SendGridSmtpTransport extends SmtpTransport
 {

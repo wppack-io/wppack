@@ -1,4 +1,4 @@
-# WpPack Block
+# WPPack Block
 
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=block)](https://codecov.io/github/wppack-io/wppack)
 

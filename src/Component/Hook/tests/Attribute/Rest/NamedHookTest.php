@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,20 +11,20 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Hook\Tests\Attribute\Rest;
+namespace WPPack\Component\Hook\Tests\Attribute\Rest;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Hook\Attribute\Action;
-use WpPack\Component\Hook\Attribute\Filter;
-use WpPack\Component\Hook\Hook;
-use WpPack\Component\Hook\HookType;
-use WpPack\Component\Hook\Attribute\Rest\Action\RestApiInitAction;
-use WpPack\Component\Hook\Attribute\Rest\Filter\RestAuthenticationErrorsFilter;
-use WpPack\Component\Hook\Attribute\Rest\Filter\RestPreDispatchFilter;
-use WpPack\Component\Hook\Attribute\Rest\Filter\RestPreServeRequestFilter;
-use WpPack\Component\Hook\Attribute\Rest\Filter\RestPreparePostFilter;
-use WpPack\Component\Hook\Attribute\Rest\Filter\RestRequestAfterCallbacksFilter;
+use WPPack\Component\Hook\Attribute\Action;
+use WPPack\Component\Hook\Attribute\Filter;
+use WPPack\Component\Hook\Hook;
+use WPPack\Component\Hook\HookType;
+use WPPack\Component\Hook\Attribute\Rest\Action\RestApiInitAction;
+use WPPack\Component\Hook\Attribute\Rest\Filter\RestAuthenticationErrorsFilter;
+use WPPack\Component\Hook\Attribute\Rest\Filter\RestPreDispatchFilter;
+use WPPack\Component\Hook\Attribute\Rest\Filter\RestPreServeRequestFilter;
+use WPPack\Component\Hook\Attribute\Rest\Filter\RestPreparePostFilter;
+use WPPack\Component\Hook\Attribute\Rest\Filter\RestRequestAfterCallbacksFilter;
 
 final class NamedHookTest extends TestCase
 {

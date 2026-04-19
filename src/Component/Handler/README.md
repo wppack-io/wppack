@@ -1,4 +1,4 @@
-# WpPack Handler
+# WPPack Handler
 
 A modern PHP request handler for WordPress. Provides intelligent request routing, static file serving, and comprehensive security features. Designed as a front controller similar to Symfony's `index.php`.
 
@@ -12,7 +12,7 @@ composer require wppack/handler
 
 ```php
 // web/index.php
-use WpPack\Component\Handler\Handler;
+use WPPack\Component\Handler\Handler;
 
 require dirname(__DIR__) . '/vendor/autoload.php';
 
@@ -26,8 +26,8 @@ For PHP built-in server (`php -S`), the router script should return `false` to d
 
 ```php
 // web/handler.php
-use WpPack\Component\Handler\Handler;
-use WpPack\Component\Handler\Configuration;
+use WPPack\Component\Handler\Handler;
+use WPPack\Component\Handler\Configuration;
 
 require dirname(__DIR__) . '/vendor/autoload.php';
 
@@ -54,16 +54,16 @@ return false;
 - **Multisite Support** — URL rewriting for WordPress Multisite subdirectory installations
 - **CLI Server Optimized** — Delegates static files to PHP built-in server for direct serving
 - **AWS Lambda Ready** — Automatic environment detection and `/tmp` directory setup
-- **Kernel Integration** — Optionally initializes WpPack Kernel with the pre-built Request
+- **Kernel Integration** — Optionally initializes WPPack Kernel with the pre-built Request
 - **Extensible** — Custom processors can be inserted at any point in the chain
 - **PSR-3 Logging** — Error logging via `LoggerInterface`
 
 ## Configuration
 
 ```php
-use WpPack\Component\Handler\Configuration;
-use WpPack\Component\Handler\Handler;
-use WpPack\Component\HttpFoundation\Request;
+use WPPack\Component\Handler\Configuration;
+use WPPack\Component\Handler\Handler;
+use WPPack\Component\HttpFoundation\Request;
 
 $config = new Configuration([
     'web_root'        => __DIR__,
@@ -114,10 +114,10 @@ Requests are processed through this chain in order:
 ### Custom Processors
 
 ```php
-use WpPack\Component\Handler\Configuration;
-use WpPack\Component\Handler\Processor\ProcessorInterface;
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\HttpFoundation\Response;
+use WPPack\Component\Handler\Configuration;
+use WPPack\Component\Handler\Processor\ProcessorInterface;
+use WPPack\Component\HttpFoundation\Request;
+use WPPack\Component\HttpFoundation\Response;
 
 class MaintenanceProcessor implements ProcessorInterface
 {

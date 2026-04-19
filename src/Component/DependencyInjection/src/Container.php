@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\DependencyInjection;
+namespace WPPack\Component\DependencyInjection;
 
 use Psr\Container\ContainerInterface;
 use Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException as SymfonyServiceNotFoundException;
-use WpPack\Component\DependencyInjection\Exception\ServiceNotFoundException;
+use WPPack\Component\DependencyInjection\Exception\ServiceNotFoundException;
 
 final class Container implements ContainerInterface
 {

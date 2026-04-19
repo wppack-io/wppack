@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Security\Bridge\SAML\Event;
+namespace WPPack\Component\Security\Bridge\SAML\Event;
 
-use WpPack\Component\EventDispatcher\Event;
+use WPPack\Component\EventDispatcher\Event;
 
 final class SamlUserAttributesMappedEvent extends Event
 {

@@ -49,9 +49,9 @@ declare(strict_types=1);
 
 namespace App\Admin\Subscriber;
 
-use WpPack\Component\Hook\Attribute\Admin\Action\AdminMenuAction;
-use WpPack\Component\Hook\Attribute\Admin\Action\AdminEnqueueScriptsAction;
-use WpPack\Component\Hook\Attribute\Admin\Action\AdminNoticesAction;
+use WPPack\Component\Hook\Attribute\Admin\Action\AdminMenuAction;
+use WPPack\Component\Hook\Attribute\Admin\Action\AdminEnqueueScriptsAction;
+use WPPack\Component\Hook\Attribute\Admin\Action\AdminNoticesAction;
 
 final class AdminPageSubscriber
 {
@@ -104,8 +104,8 @@ declare(strict_types=1);
 
 namespace App\Admin\Subscriber;
 
-use WpPack\Component\Hook\Attribute\Admin\Action\ManagePostsCustomColumnAction;
-use WpPack\Component\Hook\Attribute\Admin\Filter\ManagePostsColumnsFilter;
+use WPPack\Component\Hook\Attribute\Admin\Action\ManagePostsCustomColumnAction;
+use WPPack\Component\Hook\Attribute\Admin\Filter\ManagePostsColumnsFilter;
 
 final class PostColumnsSubscriber
 {
@@ -152,8 +152,8 @@ declare(strict_types=1);
 
 namespace App\Admin\Subscriber;
 
-use WpPack\Component\Hook\Attribute\Admin\Action\AdminBarMenuAction;
-use WpPack\Component\Hook\Attribute\Admin\Filter\AdminBodyClassFilter;
+use WPPack\Component\Hook\Attribute\Admin\Action\AdminBarMenuAction;
+use WPPack\Component\Hook\Attribute\Admin\Filter\AdminBodyClassFilter;
 
 final class AdminBarSubscriber
 {

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,18 +11,18 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Ajax;
+namespace WPPack\Component\Ajax;
 
-use WpPack\Component\Ajax\Attribute\Ajax;
-use WpPack\Component\HttpFoundation\Exception\ForbiddenException;
-use WpPack\Component\HttpFoundation\Exception\HttpException;
-use WpPack\Component\HttpFoundation\JsonResponse;
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\Role\Attribute\IsGranted;
-use WpPack\Component\Role\Authorization\IsGrantedChecker;
-use WpPack\Component\Role\Exception\AccessDeniedException;
-use WpPack\Component\Security\Attribute\CurrentUser;
-use WpPack\Component\Security\Security;
+use WPPack\Component\Ajax\Attribute\Ajax;
+use WPPack\Component\HttpFoundation\Exception\ForbiddenException;
+use WPPack\Component\HttpFoundation\Exception\HttpException;
+use WPPack\Component\HttpFoundation\JsonResponse;
+use WPPack\Component\HttpFoundation\Request;
+use WPPack\Component\Role\Attribute\IsGranted;
+use WPPack\Component\Role\Authorization\IsGrantedChecker;
+use WPPack\Component\Role\Exception\AccessDeniedException;
+use WPPack\Component\Security\Attribute\CurrentUser;
+use WPPack\Component\Security\Security;
 
 final class AjaxHandlerRegistry
 {

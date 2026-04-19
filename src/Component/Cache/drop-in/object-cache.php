@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -10,7 +10,7 @@
  */
 
 /**
- * WpPack Object Cache Drop-in
+ * WPPack Object Cache Drop-in
  *
  * Copy this file to wp-content/object-cache.php.
  *
@@ -29,14 +29,14 @@
 
 declare(strict_types=1);
 
-use WpPack\Component\Cache\Adapter\Adapter;
-use WpPack\Component\Cache\Adapter\AdapterInterface;
-use WpPack\Component\Cache\ObjectCache;
-use WpPack\Component\Cache\ObjectCacheConfig;
-use WpPack\Component\Cache\Strategy\AllOptionsHashStrategy;
-use WpPack\Component\Cache\Strategy\NotOptionsHashStrategy;
-use WpPack\Component\Cache\Strategy\SiteNotOptionsHashStrategy;
-use WpPack\Component\Cache\Strategy\SiteOptionsHashStrategy;
+use WPPack\Component\Cache\Adapter\Adapter;
+use WPPack\Component\Cache\Adapter\AdapterInterface;
+use WPPack\Component\Cache\ObjectCache;
+use WPPack\Component\Cache\ObjectCacheConfig;
+use WPPack\Component\Cache\Strategy\AllOptionsHashStrategy;
+use WPPack\Component\Cache\Strategy\NotOptionsHashStrategy;
+use WPPack\Component\Cache\Strategy\SiteNotOptionsHashStrategy;
+use WPPack\Component\Cache\Strategy\SiteOptionsHashStrategy;
 
 // Locate and load Composer autoloader.
 // Wrapped in an IIFE to avoid leaking variables into the global scope.

@@ -103,7 +103,7 @@ src/Plugin/SamlLoginPlugin/
 ## 名前空間
 
 ```
-WpPack\Plugin\SamlLoginPlugin\
+WPPack\Plugin\SamlLoginPlugin\
 ```
 
 ## 設定
@@ -259,8 +259,8 @@ define('SAML_DISPLAY_NAME_ATTRIBUTE', 'http://schemas.xmlsoap.org/ws/2005/05/ide
 `SamlAttributeMapping` で SAML 属性名と WordPress メタキーの対応を定義します:
 
 ```php
-use WpPack\Component\Security\Bridge\SAML\UserResolution\SamlAttributeMapping;
-use WpPack\Component\Security\Bridge\SAML\UserResolution\SamlUserResolver;
+use WPPack\Component\Security\Bridge\SAML\UserResolution\SamlAttributeMapping;
+use WPPack\Component\Security\Bridge\SAML\UserResolution\SamlUserResolver;
 
 // カスタム ServiceProvider でオーバーライド
 $builder->findDefinition(SamlUserResolver::class)
@@ -278,8 +278,8 @@ $builder->findDefinition(SamlUserResolver::class)
 条件分岐や値の結合など、宣言的マッピングで対応できない複雑なロジックにはイベントリスナーを使用します:
 
 ```php
-use WpPack\Component\EventDispatcher\Attribute\AsEventListener;
-use WpPack\Component\Security\Bridge\SAML\Event\SamlUserAttributesMappedEvent;
+use WPPack\Component\EventDispatcher\Attribute\AsEventListener;
+use WPPack\Component\Security\Bridge\SAML\Event\SamlUserAttributesMappedEvent;
 
 final class CustomSamlMapper
 {

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,18 +11,18 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\OAuthLoginPlugin\Admin;
+namespace WPPack\Plugin\OAuthLoginPlugin\Admin;
 
-use WpPack\Component\HttpFoundation\JsonResponse;
-use WpPack\Component\Rest\AbstractRestController;
-use WpPack\Component\Rest\Attribute\RestRoute;
-use WpPack\Component\Rest\HttpMethod;
-use WpPack\Component\Role\Attribute\IsGranted;
-use WpPack\Component\Sanitizer\Sanitizer;
-use WpPack\Component\Security\Bridge\OAuth\Assets\ProviderIcons;
-use WpPack\Component\Security\Bridge\OAuth\Provider\ProviderRegistry;
-use WpPack\Plugin\OAuthLoginPlugin\Configuration\OAuthLoginConfiguration;
-use WpPack\Plugin\OAuthLoginPlugin\Configuration\ProviderConfiguration;
+use WPPack\Component\HttpFoundation\JsonResponse;
+use WPPack\Component\Rest\AbstractRestController;
+use WPPack\Component\Rest\Attribute\RestRoute;
+use WPPack\Component\Rest\HttpMethod;
+use WPPack\Component\Role\Attribute\IsGranted;
+use WPPack\Component\Sanitizer\Sanitizer;
+use WPPack\Component\Security\Bridge\OAuth\Assets\ProviderIcons;
+use WPPack\Component\Security\Bridge\OAuth\Provider\ProviderRegistry;
+use WPPack\Plugin\OAuthLoginPlugin\Configuration\OAuthLoginConfiguration;
+use WPPack\Plugin\OAuthLoginPlugin\Configuration\ProviderConfiguration;
 
 #[RestRoute(namespace: 'wppack/v1/oauth-login')]
 #[IsGranted('manage_options')]

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,26 +11,26 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\AmazonMailerPlugin\Tests;
+namespace WPPack\Plugin\AmazonMailerPlugin\Tests;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Admin\AdminPageRegistry;
-use WpPack\Component\DependencyInjection\Container;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\Hook\DependencyInjection\RegisterHookSubscribersPass;
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\Kernel\AbstractPlugin;
-use WpPack\Component\Kernel\PluginInterface;
-use WpPack\Component\Mailer\DependencyInjection\RegisterTransportFactoriesPass;
-use WpPack\Component\Mailer\Mailer;
-use WpPack\Component\Messenger\DependencyInjection\RegisterMessageHandlersPass;
-use WpPack\Component\Rest\RestRegistry;
-use WpPack\Plugin\AmazonMailerPlugin\Admin\AmazonMailerSettingsController;
-use WpPack\Plugin\AmazonMailerPlugin\Admin\AmazonMailerSettingsPage;
-use WpPack\Plugin\AmazonMailerPlugin\AmazonMailerPlugin;
-use WpPack\Plugin\AmazonMailerPlugin\Configuration\AmazonMailerConfiguration;
+use WPPack\Component\Admin\AdminPageRegistry;
+use WPPack\Component\DependencyInjection\Container;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\Hook\DependencyInjection\RegisterHookSubscribersPass;
+use WPPack\Component\HttpFoundation\Request;
+use WPPack\Component\Kernel\AbstractPlugin;
+use WPPack\Component\Kernel\PluginInterface;
+use WPPack\Component\Mailer\DependencyInjection\RegisterTransportFactoriesPass;
+use WPPack\Component\Mailer\Mailer;
+use WPPack\Component\Messenger\DependencyInjection\RegisterMessageHandlersPass;
+use WPPack\Component\Rest\RestRegistry;
+use WPPack\Plugin\AmazonMailerPlugin\Admin\AmazonMailerSettingsController;
+use WPPack\Plugin\AmazonMailerPlugin\Admin\AmazonMailerSettingsPage;
+use WPPack\Plugin\AmazonMailerPlugin\AmazonMailerPlugin;
+use WPPack\Plugin\AmazonMailerPlugin\Configuration\AmazonMailerConfiguration;
 
 #[CoversClass(AmazonMailerPlugin::class)]
 final class AmazonMailerPluginTest extends TestCase
@@ -72,9 +72,9 @@ final class AmazonMailerPluginTest extends TestCase
         $this->plugin->register($builder);
 
         self::assertTrue($builder->hasDefinition(Mailer::class));
-        self::assertTrue($builder->hasDefinition(\WpPack\Plugin\AmazonMailerPlugin\Configuration\AmazonMailerConfiguration::class));
-        self::assertTrue($builder->hasDefinition(\WpPack\Plugin\AmazonMailerPlugin\Handler\BounceHandler::class));
-        self::assertTrue($builder->hasDefinition(\WpPack\Plugin\AmazonMailerPlugin\Handler\ComplaintHandler::class));
+        self::assertTrue($builder->hasDefinition(\WPPack\Plugin\AmazonMailerPlugin\Configuration\AmazonMailerConfiguration::class));
+        self::assertTrue($builder->hasDefinition(\WPPack\Plugin\AmazonMailerPlugin\Handler\BounceHandler::class));
+        self::assertTrue($builder->hasDefinition(\WPPack\Plugin\AmazonMailerPlugin\Handler\ComplaintHandler::class));
     }
 
     #[Test]
@@ -90,7 +90,7 @@ final class AmazonMailerPluginTest extends TestCase
         $symfonyContainer->set(AmazonMailerSettingsPage::class, new AmazonMailerSettingsPage());
         $symfonyContainer->set(RestRegistry::class, new RestRegistry(new Request()));
         $symfonyContainer->set(AmazonMailerSettingsController::class, new AmazonMailerSettingsController());
-        $container = new \WpPack\Component\DependencyInjection\Container($symfonyContainer);
+        $container = new \WPPack\Component\DependencyInjection\Container($symfonyContainer);
 
         $this->plugin->boot($container);
 

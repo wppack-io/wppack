@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Wpress\Tests;
+namespace WPPack\Component\Wpress\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Wpress\Exception\InvalidArgumentException;
-use WpPack\Component\Wpress\Header;
+use WPPack\Component\Wpress\Exception\InvalidArgumentException;
+use WPPack\Component\Wpress\Header;
 
 final class HeaderTest extends TestCase
 {

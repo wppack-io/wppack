@@ -22,7 +22,7 @@ composer require wppack/mime
 ### MIME 型の判定
 
 ```php
-use WpPack\Component\Mime\MimeTypes;
+use WPPack\Component\Mime\MimeTypes;
 
 $mimeTypes = MimeTypes::getDefault();
 
@@ -91,7 +91,7 @@ $clean = $mimeTypes->sanitize('image/jpeg; charset=utf-8');
 ### カスタム guesser の追加
 
 ```php
-use WpPack\Component\Mime\MimeTypeGuesserInterface;
+use WPPack\Component\Mime\MimeTypeGuesserInterface;
 
 class CustomGuesser implements MimeTypeGuesserInterface
 {

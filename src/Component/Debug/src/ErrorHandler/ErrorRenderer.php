@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,10 +11,10 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Debug\ErrorHandler;
+namespace WPPack\Component\Debug\ErrorHandler;
 
-use WpPack\Component\Debug\CssTheme;
-use WpPack\Component\Templating\PhpRenderer;
+use WPPack\Component\Debug\CssTheme;
+use WPPack\Component\Templating\PhpRenderer;
 
 final class ErrorRenderer
 {

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -12,19 +12,19 @@
 declare(strict_types=1);
 
 /**
- * Plugin Name: WpPack SAML Login
+ * Plugin Name: WPPack SAML Login
  * Description: SAML 2.0 SSO authentication for WordPress.
  * Version: 1.0.0
  * Requires PHP: 8.2
  * Requires at least: 6.9
- * Author: WpPack
+ * Author: WPPack
  * License: MIT
  * Text Domain: wppack-saml-login
  * Domain Path: /languages
  */
 
-use WpPack\Component\Kernel\Kernel;
-use WpPack\Plugin\SamlLoginPlugin\SamlLoginPlugin;
+use WPPack\Component\Kernel\Kernel;
+use WPPack\Plugin\SamlLoginPlugin\SamlLoginPlugin;
 
 if (!defined('ABSPATH')) {
     exit;

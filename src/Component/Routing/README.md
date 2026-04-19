@@ -1,4 +1,4 @@
-# WpPack Routing
+# WPPack Routing
 
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=routing)](https://codecov.io/github/wppack-io/wppack)
 

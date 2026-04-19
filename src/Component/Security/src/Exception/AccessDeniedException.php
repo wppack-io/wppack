@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,8 +11,8 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Security\Exception;
+namespace WPPack\Component\Security\Exception;
 
-use WpPack\Component\Role\Exception\AccessDeniedException as RoleAccessDeniedException;
+use WPPack\Component\Role\Exception\AccessDeniedException as RoleAccessDeniedException;
 
 class AccessDeniedException extends RoleAccessDeniedException implements ExceptionInterface {}

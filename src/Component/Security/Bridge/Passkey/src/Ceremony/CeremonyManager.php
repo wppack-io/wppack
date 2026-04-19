@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Security\Bridge\Passkey\Ceremony;
+namespace WPPack\Component\Security\Bridge\Passkey\Ceremony;
 
 use Webauthn\AttestationStatement\AttestationStatementSupportManager;
 use Webauthn\AuthenticatorSelectionCriteria;
@@ -22,11 +22,11 @@ use Webauthn\PublicKeyCredentialParameters;
 use Webauthn\PublicKeyCredentialRequestOptions;
 use Webauthn\PublicKeyCredentialRpEntity;
 use Webauthn\PublicKeyCredentialUserEntity;
-use WpPack\Component\Security\Bridge\Passkey\Configuration\PasskeyConfiguration;
-use WpPack\Component\Security\Bridge\Passkey\Storage\CredentialRepositoryInterface;
-use WpPack\Component\Security\Bridge\Passkey\Storage\PasskeyCredential;
-use WpPack\Component\Site\BlogContextInterface;
-use WpPack\Component\Transient\TransientManager;
+use WPPack\Component\Security\Bridge\Passkey\Configuration\PasskeyConfiguration;
+use WPPack\Component\Security\Bridge\Passkey\Storage\CredentialRepositoryInterface;
+use WPPack\Component\Security\Bridge\Passkey\Storage\PasskeyCredential;
+use WPPack\Component\Site\BlogContextInterface;
+use WPPack\Component\Transient\TransientManager;
 
 final class CeremonyManager
 {

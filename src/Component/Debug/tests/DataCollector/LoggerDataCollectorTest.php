@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Debug\Tests\DataCollector;
+namespace WPPack\Component\Debug\Tests\DataCollector;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Debug\DataCollector\LoggerDataCollector;
-use WpPack\Component\Logger\LoggerFactory;
-use WpPack\Component\Logger\Test\TestHandler;
+use WPPack\Component\Debug\DataCollector\LoggerDataCollector;
+use WPPack\Component\Logger\LoggerFactory;
+use WPPack\Component\Logger\Test\TestHandler;
 
 final class LoggerDataCollectorTest extends TestCase
 {

@@ -1,4 +1,4 @@
-# WpPack Debug
+# WPPack Debug
 
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=debug)](https://codecov.io/github/wppack-io/wppack)
 
@@ -16,20 +16,20 @@ composer require wppack/debug
 ## Quick Start
 
 ```php
-use WpPack\Component\Debug\DebugConfig;
-use WpPack\Component\Stopwatch\Stopwatch;
-use WpPack\Component\Debug\Profiler\Profile;
-use WpPack\Component\Debug\Profiler\Profiler;
-use WpPack\Component\Debug\DataCollector\RequestDataCollector;
-use WpPack\Component\Debug\DataCollector\DatabaseDataCollector;
-use WpPack\Component\Debug\DataCollector\MemoryDataCollector;
-use WpPack\Component\Debug\DataCollector\StopwatchDataCollector;
-use WpPack\Component\Debug\DataCollector\CacheDataCollector;
-use WpPack\Component\Debug\DataCollector\WordPressDataCollector;
-use WpPack\Component\Debug\Toolbar\ToolbarRenderer;
-use WpPack\Component\Debug\Toolbar\ToolbarSubscriber;
-use WpPack\Component\Debug\ErrorHandler\ErrorRenderer;
-use WpPack\Component\Debug\ErrorHandler\ExceptionHandler;
+use WPPack\Component\Debug\DebugConfig;
+use WPPack\Component\Stopwatch\Stopwatch;
+use WPPack\Component\Debug\Profiler\Profile;
+use WPPack\Component\Debug\Profiler\Profiler;
+use WPPack\Component\Debug\DataCollector\RequestDataCollector;
+use WPPack\Component\Debug\DataCollector\DatabaseDataCollector;
+use WPPack\Component\Debug\DataCollector\MemoryDataCollector;
+use WPPack\Component\Debug\DataCollector\StopwatchDataCollector;
+use WPPack\Component\Debug\DataCollector\CacheDataCollector;
+use WPPack\Component\Debug\DataCollector\WordPressDataCollector;
+use WPPack\Component\Debug\Toolbar\ToolbarRenderer;
+use WPPack\Component\Debug\Toolbar\ToolbarSubscriber;
+use WPPack\Component\Debug\ErrorHandler\ErrorRenderer;
+use WPPack\Component\Debug\ErrorHandler\ExceptionHandler;
 
 // 1. Configuration
 $config = new DebugConfig(
@@ -114,8 +114,8 @@ Built-in collectors gather profiling data and display it in the toolbar:
 Implement `DataCollectorInterface` (or extend `AbstractDataCollector`) and tag the class with `#[AsDataCollector]`:
 
 ```php
-use WpPack\Component\Debug\Attribute\AsDataCollector;
-use WpPack\Component\Debug\DataCollector\AbstractDataCollector;
+use WPPack\Component\Debug\Attribute\AsDataCollector;
+use WPPack\Component\Debug\DataCollector\AbstractDataCollector;
 
 #[AsDataCollector(name: 'my_collector', priority: 50)]
 class MyCustomCollector extends AbstractDataCollector
@@ -146,9 +146,9 @@ When using the DI container, the `RegisterDataCollectorsPass` compiler pass auto
 Each toolbar panel (indicator + sidebar content) is rendered by a `RendererInterface` implementation. Extend `AbstractPanelRenderer` for built-in UI helpers (tables, performance cards, timeline bars, formatters):
 
 ```php
-use WpPack\Component\Debug\Attribute\AsPanelRenderer;
-use WpPack\Component\Debug\Profiler\Profile;
-use WpPack\Component\Debug\Toolbar\Panel\AbstractPanelRenderer;
+use WPPack\Component\Debug\Attribute\AsPanelRenderer;
+use WPPack\Component\Debug\Profiler\Profile;
+use WPPack\Component\Debug\Toolbar\Panel\AbstractPanelRenderer;
 
 #[AsPanelRenderer(name: 'my_collector')]
 class MyPanelRenderer extends AbstractPanelRenderer
@@ -186,7 +186,7 @@ All handlers use a unified architecture with nullable DI dependencies, allowing 
 
 ## Adapters
 
-Bridge adapter integrates data from existing WordPress debug plugins into the WpPack toolbar:
+Bridge adapter integrates data from existing WordPress debug plugins into the WPPack toolbar:
 
 - **`DebugBarPanelAdapter`** -- Imports panels registered via the Debug Bar plugin (`debug_bar_panels` filter)
 
@@ -210,9 +210,9 @@ The toolbar is automatically suppressed during Ajax, cron, and REST API requests
 Register the `DebugServiceProvider` with the DI container to auto-wire all services, collectors, and panel renderers:
 
 ```php
-use WpPack\Component\Debug\DependencyInjection\DebugServiceProvider;
-use WpPack\Component\Debug\DependencyInjection\RegisterDataCollectorsPass;
-use WpPack\Component\Debug\DependencyInjection\RegisterPanelRenderersPass;
+use WPPack\Component\Debug\DependencyInjection\DebugServiceProvider;
+use WPPack\Component\Debug\DependencyInjection\RegisterDataCollectorsPass;
+use WPPack\Component\Debug\DependencyInjection\RegisterPanelRenderersPass;
 
 $builder->registerProvider(new DebugServiceProvider());
 $builder->addCompilerPass(new RegisterDataCollectorsPass());

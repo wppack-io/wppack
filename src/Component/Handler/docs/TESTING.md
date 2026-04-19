@@ -39,8 +39,8 @@ The test bootstrap (`tests/bootstrap.php`) loads only the Composer autoloader â€
 
 ```php
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Handler\Configuration;
-use WpPack\Component\HttpFoundation\Request;
+use WPPack\Component\Handler\Configuration;
+use WPPack\Component\HttpFoundation\Request;
 
 final class MyProcessorTest extends TestCase
 {

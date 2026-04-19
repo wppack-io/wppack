@@ -1,4 +1,4 @@
-# WpPack Role
+# WPPack Role
 
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=role)](https://codecov.io/github/wppack-io/wppack)
 
@@ -15,9 +15,9 @@ composer require wppack/role
 ## Quick Start
 
 ```php
-use WpPack\Component\Role\Attribute\AsRole;
-use WpPack\Component\Role\Attribute\IsGranted;
-use WpPack\Component\Role\RoleManager;
+use WPPack\Component\Role\Attribute\AsRole;
+use WPPack\Component\Role\Attribute\IsGranted;
+use WPPack\Component\Role\RoleManager;
 
 // Define a role
 #[AsRole(name: 'shop_manager', label: 'Shop Manager', capabilities: ['read', 'edit_posts', 'manage_products'])]

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Security\Tests\Attribute;
+namespace WPPack\Component\Security\Tests\Attribute;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Security\Attribute\AsAuthenticator;
-use WpPack\Component\Security\Attribute\AsVoter;
-use WpPack\Component\Security\Attribute\CurrentUser;
+use WPPack\Component\Security\Attribute\AsAuthenticator;
+use WPPack\Component\Security\Attribute\AsVoter;
+use WPPack\Component\Security\Attribute\CurrentUser;
 
 #[CoversClass(AsAuthenticator::class)]
 #[CoversClass(AsVoter::class)]

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,16 +11,16 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database\Tests;
+namespace WPPack\Component\Database\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
-use WpPack\Component\Database\Connection;
-use WpPack\Component\Database\Driver\DriverInterface;
-use WpPack\Component\Database\Platform\MysqlPlatform;
-use WpPack\Component\Database\Result;
-use WpPack\Component\Database\Statement;
+use WPPack\Component\Database\Connection;
+use WPPack\Component\Database\Driver\DriverInterface;
+use WPPack\Component\Database\Platform\MysqlPlatform;
+use WPPack\Component\Database\Result;
+use WPPack\Component\Database\Statement;
 
 final class ConnectionTest extends TestCase
 {

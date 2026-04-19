@@ -1,6 +1,6 @@
 {
     "name": "wppack/redis-cache",
-    "description": "Redis adapter for WpPack Cache Object Cache drop-in",
+    "description": "Redis adapter for WPPack Cache Object Cache drop-in",
     "type": "library",
     "license": "MIT",
     "require": {
@@ -14,12 +14,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\Cache\\Bridge\\Redis\\": "src/"
+            "WPPack\\Component\\Cache\\Bridge\\Redis\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Component\\Cache\\Bridge\\Redis\\Tests\\": "tests/"
+            "WPPack\\Component\\Cache\\Bridge\\Redis\\Tests\\": "tests/"
         }
     }
 }

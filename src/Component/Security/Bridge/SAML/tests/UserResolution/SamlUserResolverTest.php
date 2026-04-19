@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,20 +11,20 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Security\Bridge\SAML\Tests\UserResolution;
+namespace WPPack\Component\Security\Bridge\SAML\Tests\UserResolution;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\EventDispatcher\EventDispatcher;
-use WpPack\Component\Security\Bridge\SAML\Event\SamlUserAttributesMappedEvent;
-use WpPack\Component\Security\Bridge\SAML\Event\SamlUserProvisionedEvent;
-use WpPack\Component\Security\Bridge\SAML\Event\SamlUserUpdatedEvent;
-use WpPack\Component\Sanitizer\Sanitizer;
-use WpPack\Component\Security\Bridge\SAML\UserResolution\SamlAttributeMapping;
-use WpPack\Component\Security\Bridge\SAML\UserResolution\SamlUserResolver;
-use WpPack\Component\Security\Exception\AuthenticationException;
-use WpPack\Component\User\UserRepository;
+use WPPack\Component\EventDispatcher\EventDispatcher;
+use WPPack\Component\Security\Bridge\SAML\Event\SamlUserAttributesMappedEvent;
+use WPPack\Component\Security\Bridge\SAML\Event\SamlUserProvisionedEvent;
+use WPPack\Component\Security\Bridge\SAML\Event\SamlUserUpdatedEvent;
+use WPPack\Component\Sanitizer\Sanitizer;
+use WPPack\Component\Security\Bridge\SAML\UserResolution\SamlAttributeMapping;
+use WPPack\Component\Security\Bridge\SAML\UserResolution\SamlUserResolver;
+use WPPack\Component\Security\Exception\AuthenticationException;
+use WPPack\Component\User\UserRepository;
 
 #[CoversClass(SamlUserResolver::class)]
 final class SamlUserResolverTest extends TestCase

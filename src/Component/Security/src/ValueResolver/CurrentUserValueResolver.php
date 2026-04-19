@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Security\ValueResolver;
+namespace WPPack\Component\Security\ValueResolver;
 
-use WpPack\Component\HttpFoundation\ValueResolverInterface;
-use WpPack\Component\Security\Attribute\CurrentUser;
-use WpPack\Component\Security\Security;
+use WPPack\Component\HttpFoundation\ValueResolverInterface;
+use WPPack\Component\Security\Attribute\CurrentUser;
+use WPPack\Component\Security\Security;
 
 final class CurrentUserValueResolver implements ValueResolverInterface
 {

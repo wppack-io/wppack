@@ -1,6 +1,6 @@
 {
     "name": "wppack/aurora-dsql-database",
-    "description": "Aurora DSQL database driver for WpPack",
+    "description": "Aurora DSQL database driver for WPPack",
     "type": "library",
     "license": "MIT",
     "require": {
@@ -14,12 +14,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\Database\\Bridge\\AuroraDsql\\": "src/"
+            "WPPack\\Component\\Database\\Bridge\\AuroraDsql\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Component\\Database\\Bridge\\AuroraDsql\\Tests\\": "tests/"
+            "WPPack\\Component\\Database\\Bridge\\AuroraDsql\\Tests\\": "tests/"
         }
     }
 }

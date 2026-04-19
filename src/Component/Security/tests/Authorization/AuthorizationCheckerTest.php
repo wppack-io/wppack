@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,16 +11,16 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Security\Tests\Authorization;
+namespace WPPack\Component\Security\Tests\Authorization;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Security\Authentication\AuthenticationManagerInterface;
-use WpPack\Component\Security\Authentication\Token\NullToken;
-use WpPack\Component\Security\Authentication\Token\TokenInterface;
-use WpPack\Component\Security\Authorization\AuthorizationChecker;
-use WpPack\Component\Security\Authorization\Voter\AccessDecisionManager;
-use WpPack\Component\Security\Authorization\Voter\VoterInterface;
+use WPPack\Component\Security\Authentication\AuthenticationManagerInterface;
+use WPPack\Component\Security\Authentication\Token\NullToken;
+use WPPack\Component\Security\Authentication\Token\TokenInterface;
+use WPPack\Component\Security\Authorization\AuthorizationChecker;
+use WPPack\Component\Security\Authorization\Voter\AccessDecisionManager;
+use WPPack\Component\Security\Authorization\Voter\VoterInterface;
 
 final class AuthorizationCheckerTest extends TestCase
 {
@@ -66,7 +66,7 @@ final class AuthorizationCheckerTest extends TestCase
         $user->ID = 1;
         $user->user_login = 'admin';
 
-        $token = new \WpPack\Component\Security\Authentication\Token\PostAuthenticationToken($user, ['administrator']);
+        $token = new \WPPack\Component\Security\Authentication\Token\PostAuthenticationToken($user, ['administrator']);
 
         $voter = new class implements VoterInterface {
             public function vote(TokenInterface $token, string $attribute, mixed $subject = null): int

@@ -9,12 +9,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\DatabaseExport\\": "src/"
+            "WPPack\\Component\\DatabaseExport\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Component\\DatabaseExport\\Tests\\": "tests/"
+            "WPPack\\Component\\DatabaseExport\\Tests\\": "tests/"
         }
     }
 }

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,15 +11,15 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Admin\Tests;
+namespace WPPack\Component\Admin\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Admin\AbstractAdminPage;
-use WpPack\Component\Admin\AdminPageRegistry;
-use WpPack\Component\Admin\Attribute\AdminScope;
-use WpPack\Component\Admin\Attribute\AsAdminPage;
-use WpPack\Component\Templating\TemplateRendererInterface;
+use WPPack\Component\Admin\AbstractAdminPage;
+use WPPack\Component\Admin\AdminPageRegistry;
+use WPPack\Component\Admin\Attribute\AdminScope;
+use WPPack\Component\Admin\Attribute\AsAdminPage;
+use WPPack\Component\Templating\TemplateRendererInterface;
 
 final class AdminPageRegistryTest extends TestCase
 {

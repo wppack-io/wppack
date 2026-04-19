@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database\Tests\Platform;
+namespace WPPack\Component\Database\Tests\Platform;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Database\Platform\MariadbPlatform;
-use WpPack\Component\Database\Platform\MysqlPlatform;
+use WPPack\Component\Database\Platform\MariadbPlatform;
+use WPPack\Component\Database\Platform\MysqlPlatform;
 
 final class PlatformTest extends TestCase
 {

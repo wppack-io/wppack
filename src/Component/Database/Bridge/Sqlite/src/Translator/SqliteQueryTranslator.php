@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database\Bridge\Sqlite\Translator;
+namespace WPPack\Component\Database\Bridge\Sqlite\Translator;
 
 use PhpMyAdmin\SqlParser\Parser;
 use PhpMyAdmin\SqlParser\Statements\AlterStatement;
@@ -26,12 +26,12 @@ use PhpMyAdmin\SqlParser\Statements\UpdateStatement;
 use PhpMyAdmin\SqlParser\Token;
 use PhpMyAdmin\SqlParser\TokenType;
 use Psr\Log\LoggerInterface;
-use WpPack\Component\Database\Exception\ParserFailureException;
-use WpPack\Component\Database\Exception\TranslationException;
-use WpPack\Component\Database\Exception\UnsupportedFeatureException;
-use WpPack\Component\Database\Sql\QueryRewriter;
-use WpPack\Component\Database\Translator\QueryTranslatorHelpersTrait;
-use WpPack\Component\Database\Translator\QueryTranslatorInterface;
+use WPPack\Component\Database\Exception\ParserFailureException;
+use WPPack\Component\Database\Exception\TranslationException;
+use WPPack\Component\Database\Exception\UnsupportedFeatureException;
+use WPPack\Component\Database\Sql\QueryRewriter;
+use WPPack\Component\Database\Translator\QueryTranslatorHelpersTrait;
+use WPPack\Component\Database\Translator\QueryTranslatorInterface;
 
 /**
  * Translates MySQL SQL to SQLite SQL using AST-guided token rewriting.

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,18 +11,18 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\S3StoragePlugin\Attachment;
+namespace WPPack\Plugin\S3StoragePlugin\Attachment;
 
 use Psr\Log\LoggerInterface;
-use WpPack\Component\Media\AttachmentManagerInterface;
-use WpPack\Component\Media\Exception\AttachmentException;
-use WpPack\Component\Messenger\MessageBusInterface;
-use WpPack\Component\Mime\MimeTypes;
-use WpPack\Component\Mime\MimeTypesInterface;
-use WpPack\Component\Site\BlogContext;
-use WpPack\Component\Site\BlogContextInterface;
-use WpPack\Component\Site\BlogSwitcherInterface;
-use WpPack\Plugin\S3StoragePlugin\Message\GenerateThumbnailsMessage;
+use WPPack\Component\Media\AttachmentManagerInterface;
+use WPPack\Component\Media\Exception\AttachmentException;
+use WPPack\Component\Messenger\MessageBusInterface;
+use WPPack\Component\Mime\MimeTypes;
+use WPPack\Component\Mime\MimeTypesInterface;
+use WPPack\Component\Site\BlogContext;
+use WPPack\Component\Site\BlogContextInterface;
+use WPPack\Component\Site\BlogSwitcherInterface;
+use WPPack\Plugin\S3StoragePlugin\Message\GenerateThumbnailsMessage;
 
 final readonly class AttachmentRegistrar
 {

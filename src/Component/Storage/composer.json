@@ -9,12 +9,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\Storage\\": "src/"
+            "WPPack\\Component\\Storage\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Component\\Storage\\Tests\\": "tests/"
+            "WPPack\\Component\\Storage\\Tests\\": "tests/"
         }
     }
 }

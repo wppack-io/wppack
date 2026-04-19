@@ -7,8 +7,8 @@
 メニューロケーション登録には、Hook コンポーネントの `#[AfterSetupThemeAction]` アトリビュートを使用します。
 
 ```php
-use WpPack\Component\Hook\Attribute\AfterSetupThemeAction;
-use WpPack\Component\NavigationMenu\MenuRegistry;
+use WPPack\Component\Hook\Attribute\AfterSetupThemeAction;
+use WPPack\Component\NavigationMenu\MenuRegistry;
 
 class MenuManager
 {
@@ -34,7 +34,7 @@ class MenuManager
 **使用場面:** 表示前にナビゲーションメニュー引数を変更する場合。
 
 ```php
-use WpPack\Component\Hook\Attribute\NavigationMenu\WpNavMenuArgsFilter;
+use WPPack\Component\Hook\Attribute\NavigationMenu\WpNavMenuArgsFilter;
 
 class MenuArgumentsCustomizer
 {
@@ -62,7 +62,7 @@ class MenuArgumentsCustomizer
 **使用場面:** メニュー HTML 出力を変更する場合。
 
 ```php
-use WpPack\Component\Hook\Attribute\NavigationMenu\WpNavMenuItemsFilter;
+use WPPack\Component\Hook\Attribute\NavigationMenu\WpNavMenuItemsFilter;
 
 class MenuItemsEnhancer
 {
@@ -100,7 +100,7 @@ class MenuItemsEnhancer
 **使用場面:** レンダリング前にメニューアイテムオブジェクトを変更する場合。
 
 ```php
-use WpPack\Component\Hook\Attribute\NavigationMenu\WpNavMenuObjectsFilter;
+use WPPack\Component\Hook\Attribute\NavigationMenu\WpNavMenuObjectsFilter;
 
 class MenuObjectProcessor
 {
@@ -140,7 +140,7 @@ class MenuObjectProcessor
 **使用場面:** 管理画面でメニューアイテムにカスタムフィールドを追加する場合。
 
 ```php
-use WpPack\Component\Hook\Attribute\NavigationMenu\WpNavMenuItemCustomFieldsAction;
+use WPPack\Component\Hook\Attribute\NavigationMenu\WpNavMenuItemCustomFieldsAction;
 
 class MenuItemFields
 {
@@ -170,7 +170,7 @@ class MenuItemFields
 **使用場面:** カスタムメニューアイテムデータを保存する場合。
 
 ```php
-use WpPack\Component\Hook\Attribute\NavigationMenu\WpUpdateNavMenuItemAction;
+use WPPack\Component\Hook\Attribute\NavigationMenu\WpUpdateNavMenuItemAction;
 
 class MenuItemSaver
 {
@@ -193,7 +193,7 @@ class MenuItemSaver
 **使用場面:** メニューアイテムの CSS クラスを変更する場合。
 
 ```php
-use WpPack\Component\Hook\Attribute\NavigationMenu\NavMenuCssClassFilter;
+use WPPack\Component\Hook\Attribute\NavigationMenu\NavMenuCssClassFilter;
 
 class MenuClassCustomizer
 {

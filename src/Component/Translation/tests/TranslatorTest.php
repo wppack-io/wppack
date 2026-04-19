@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Translation\Tests;
+namespace WPPack\Component\Translation\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Kernel\Attribute\TextDomain;
-use WpPack\Component\Translation\Translator;
+use WPPack\Component\Kernel\Attribute\TextDomain;
+use WPPack\Component\Translation\Translator;
 
 final class TranslatorTest extends TestCase
 {

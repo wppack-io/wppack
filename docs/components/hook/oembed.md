@@ -9,7 +9,7 @@
 oEmbed プロバイダーの追加・変更を行います。
 
 ```php
-use WpPack\Component\Hook\Attribute\OEmbed\Filter\OembedProvidersFilter;
+use WPPack\Component\Hook\Attribute\OEmbed\Filter\OembedProvidersFilter;
 
 final class CustomProviderRegistrar
 {
@@ -37,7 +37,7 @@ final class CustomProviderRegistrar
 oEmbed リクエスト URL を変更します。
 
 ```php
-use WpPack\Component\Hook\Attribute\OEmbed\Filter\OembedFetchUrlFilter;
+use WPPack\Component\Hook\Attribute\OEmbed\Filter\OembedFetchUrlFilter;
 
 final class OEmbedRequestCustomizer
 {
@@ -60,7 +60,7 @@ final class OEmbedRequestCustomizer
 oEmbed レスポンス HTML を加工します。
 
 ```php
-use WpPack\Component\Hook\Attribute\OEmbed\Filter\OembedResultFilter;
+use WPPack\Component\Hook\Attribute\OEmbed\Filter\OembedResultFilter;
 
 final class OEmbedResponseProcessor
 {
@@ -84,7 +84,7 @@ final class OEmbedResponseProcessor
 キャッシュされた oEmbed HTML を出力前にフィルタリングします。
 
 ```php
-use WpPack\Component\Hook\Attribute\OEmbed\Filter\EmbedOembedHtmlFilter;
+use WPPack\Component\Hook\Attribute\OEmbed\Filter\EmbedOembedHtmlFilter;
 
 final class EmbedDisplayFilter
 {
@@ -109,7 +109,7 @@ final class EmbedDisplayFilter
 サイトの `<head>` に出力される oEmbed ディスカバリーリンクをカスタマイズします。
 
 ```php
-use WpPack\Component\Hook\Attribute\OEmbed\Filter\OembedDiscoveryLinksFilter;
+use WPPack\Component\Hook\Attribute\OEmbed\Filter\OembedDiscoveryLinksFilter;
 
 final class DiscoveryLinksCustomizer
 {

@@ -2,7 +2,7 @@
 
 ## Context
 
-WpPack にインフラモニタリング機能を追加する。CloudWatch 等からメトリクスを取得し、統一ダッシュボードに表示する。抽象化と接続は Component/Bridge で、何を表示するかは各 Plugin が指示する。
+WPPack にインフラモニタリング機能を追加する。CloudWatch 等からメトリクスを取得し、統一ダッシュボードに表示する。抽象化と接続は Component/Bridge で、何を表示するかは各 Plugin が指示する。
 
 ## アーキテクチャ概要
 

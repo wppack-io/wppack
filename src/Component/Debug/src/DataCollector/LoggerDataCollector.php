@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,10 +11,10 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Debug\DataCollector;
+namespace WPPack\Component\Debug\DataCollector;
 
-use WpPack\Component\Debug\Attribute\AsDataCollector;
-use WpPack\Component\Logger\ErrorLogInterceptor;
+use WPPack\Component\Debug\Attribute\AsDataCollector;
+use WPPack\Component\Logger\ErrorLogInterceptor;
 
 #[AsDataCollector(name: 'logger', priority: 100)]
 final class LoggerDataCollector extends AbstractDataCollector

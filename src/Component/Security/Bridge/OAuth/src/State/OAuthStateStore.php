@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Security\Bridge\OAuth\State;
+namespace WPPack\Component\Security\Bridge\OAuth\State;
 
-use WpPack\Component\Transient\TransientManager;
+use WPPack\Component\Transient\TransientManager;
 
 final class OAuthStateStore
 {

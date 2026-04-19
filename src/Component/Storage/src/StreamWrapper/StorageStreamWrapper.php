@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Storage\StreamWrapper;
+namespace WPPack\Component\Storage\StreamWrapper;
 
-use WpPack\Component\Storage\Adapter\StorageAdapterInterface;
-use WpPack\Component\Storage\Exception\ObjectNotFoundException;
-use WpPack\Component\Storage\ObjectMetadata;
+use WPPack\Component\Storage\Adapter\StorageAdapterInterface;
+use WPPack\Component\Storage\Exception\ObjectNotFoundException;
+use WPPack\Component\Storage\ObjectMetadata;
 
 final class StorageStreamWrapper
 {

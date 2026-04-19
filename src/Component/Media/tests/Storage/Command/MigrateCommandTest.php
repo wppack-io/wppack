@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,18 +11,18 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Media\Tests\Storage\Command;
+namespace WPPack\Component\Media\Tests\Storage\Command;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Console\Input\ArrayInput;
-use WpPack\Component\Console\Output\BufferedOutput;
-use WpPack\Component\Console\Output\OutputStyle;
-use WpPack\Component\Media\Storage\Command\MigrateCommand;
-use WpPack\Component\Media\Storage\StorageConfiguration;
-use WpPack\Component\Storage\Adapter\StorageAdapterInterface;
-use WpPack\Component\Storage\Test\InMemoryStorageAdapter;
+use WPPack\Component\Console\Input\ArrayInput;
+use WPPack\Component\Console\Output\BufferedOutput;
+use WPPack\Component\Console\Output\OutputStyle;
+use WPPack\Component\Media\Storage\Command\MigrateCommand;
+use WPPack\Component\Media\Storage\StorageConfiguration;
+use WPPack\Component\Storage\Adapter\StorageAdapterInterface;
+use WPPack\Component\Storage\Test\InMemoryStorageAdapter;
 
 #[CoversClass(MigrateCommand::class)]
 final class MigrateCommandTest extends TestCase
@@ -383,7 +383,7 @@ final class MigrateCommandTest extends TestCase
                 $this->inner->move($source, $destination);
             }
 
-            public function metadata(string $path): \WpPack\Component\Storage\ObjectMetadata
+            public function metadata(string $path): \WPPack\Component\Storage\ObjectMetadata
             {
                 return $this->inner->metadata($path);
             }
@@ -408,7 +408,7 @@ final class MigrateCommandTest extends TestCase
                 return $this->inner->listContents($path, $deep);
             }
 
-            public function setVisibility(string $path, \WpPack\Component\Storage\Visibility $visibility): void
+            public function setVisibility(string $path, \WPPack\Component\Storage\Visibility $visibility): void
             {
                 $this->inner->setVisibility($path, $visibility);
             }

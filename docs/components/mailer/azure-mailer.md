@@ -1,7 +1,7 @@
 # AzureMailer コンポーネント
 
 **パッケージ:** `wppack/azure-mailer`
-**名前空間:** `WpPack\Component\Mailer\Bridge\Azure\`
+**名前空間:** `WPPack\Component\Mailer\Bridge\Azure\`
 **レイヤー:** Abstraction
 
 Mailer コンポーネントの Azure Communication Services Email トランスポート実装。Azure の REST API を使ったメール送信を提供します。外部 SDK 不要で、`wppack/http-client` 経由で API を呼び出します。
@@ -115,8 +115,8 @@ Communication Services のアクセスキー（接続文字列から取得）に
 ## クイックスタート
 
 ```php
-use WpPack\Component\Mailer\Mailer;
-use WpPack\Component\Mailer\Transport\Transport;
+use WPPack\Component\Mailer\Mailer;
+use WPPack\Component\Mailer\Transport\Transport;
 
 // Azure トランスポートの初期化（wppack/azure-mailer インストール済みで自動検出）
 $transport = Transport::fromDsn(MAILER_DSN);

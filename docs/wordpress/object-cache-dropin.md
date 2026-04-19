@@ -115,7 +115,7 @@ wp_cache_set('key', 'value2', 'group_b');
 ### 配置方法
 
 ```bash
-# WpPack の場合
+# WPPack の場合
 cp vendor/wppack/cache/drop-in/object-cache.php wp-content/object-cache.php
 ```
 

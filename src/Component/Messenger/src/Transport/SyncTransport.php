@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,10 +11,10 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Messenger\Transport;
+namespace WPPack\Component\Messenger\Transport;
 
-use WpPack\Component\Messenger\Envelope;
-use WpPack\Component\Messenger\Stamp\SentStamp;
+use WPPack\Component\Messenger\Envelope;
+use WPPack\Component\Messenger\Stamp\SentStamp;
 
 final class SyncTransport implements TransportInterface
 {

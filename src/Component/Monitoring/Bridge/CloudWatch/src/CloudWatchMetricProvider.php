@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Monitoring\Bridge\CloudWatch;
+namespace WPPack\Component\Monitoring\Bridge\CloudWatch;
 
 use AsyncAws\CloudWatch\CloudWatchClient;
 use AsyncAws\CloudWatch\Input\GetMetricDataInput;
@@ -19,14 +19,14 @@ use AsyncAws\CloudWatch\ValueObject\Dimension;
 use AsyncAws\CloudWatch\ValueObject\Metric;
 use AsyncAws\CloudWatch\ValueObject\MetricDataQuery;
 use AsyncAws\CloudWatch\ValueObject\MetricStat;
-use WpPack\Component\Monitoring\MetricDefinition;
-use WpPack\Component\Monitoring\MetricPoint;
-use WpPack\Component\Monitoring\MetricProviderInterface;
-use WpPack\Component\Monitoring\MetricResult;
-use WpPack\Component\Monitoring\MetricTimeRange;
-use WpPack\Component\Monitoring\MonitoringProvider;
+use WPPack\Component\Monitoring\MetricDefinition;
+use WPPack\Component\Monitoring\MetricPoint;
+use WPPack\Component\Monitoring\MetricProviderInterface;
+use WPPack\Component\Monitoring\MetricResult;
+use WPPack\Component\Monitoring\MetricTimeRange;
+use WPPack\Component\Monitoring\MonitoringProvider;
 use Psr\Log\LoggerInterface;
-use WpPack\Component\Monitoring\Bridge\CloudWatch\AwsProviderSettings;
+use WPPack\Component\Monitoring\Bridge\CloudWatch\AwsProviderSettings;
 
 final class CloudWatchMetricProvider implements MetricProviderInterface
 {
@@ -77,7 +77,7 @@ final class CloudWatchMetricProvider implements MetricProviderInterface
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "WpPackMonitoring",
+      "Sid": "WPPackMonitoring",
       "Effect": "Allow",
       "Action": "cloudwatch:GetMetricData",
       "Resource": "*"

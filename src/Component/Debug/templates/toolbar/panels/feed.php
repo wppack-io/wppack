@@ -6,7 +6,7 @@
  * @var int                                                          $customCount   Custom feed count
  * @var bool                                                         $feedDiscovery Whether feed discovery is enabled
  * @var list<array>                                                  $feeds         Feed entries
- * @var \WpPack\Component\Debug\Toolbar\Panel\TemplateFormatters     $fmt           Template formatters
+ * @var \WPPack\Component\Debug\Toolbar\Panel\TemplateFormatters     $fmt           Template formatters
  */
 ?>
 <div class="wpd-section">

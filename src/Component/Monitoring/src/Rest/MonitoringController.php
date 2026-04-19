@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,20 +11,20 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Monitoring\Rest;
+namespace WPPack\Component\Monitoring\Rest;
 
-use WpPack\Component\HttpFoundation\JsonResponse;
-use WpPack\Component\Monitoring\MetricDefinition;
-use WpPack\Component\Monitoring\MetricPoint;
-use WpPack\Component\Monitoring\MetricResult;
-use WpPack\Component\Monitoring\MetricTimeRange;
-use WpPack\Component\Monitoring\MonitoringCollector;
-use WpPack\Component\Monitoring\MonitoringProvider;
-use WpPack\Component\Monitoring\MonitoringRegistry;
-use WpPack\Component\Rest\AbstractRestController;
-use WpPack\Component\Rest\Attribute\RestRoute;
-use WpPack\Component\Rest\HttpMethod;
-use WpPack\Component\Role\Attribute\IsGranted;
+use WPPack\Component\HttpFoundation\JsonResponse;
+use WPPack\Component\Monitoring\MetricDefinition;
+use WPPack\Component\Monitoring\MetricPoint;
+use WPPack\Component\Monitoring\MetricResult;
+use WPPack\Component\Monitoring\MetricTimeRange;
+use WPPack\Component\Monitoring\MonitoringCollector;
+use WPPack\Component\Monitoring\MonitoringProvider;
+use WPPack\Component\Monitoring\MonitoringRegistry;
+use WPPack\Component\Rest\AbstractRestController;
+use WPPack\Component\Rest\Attribute\RestRoute;
+use WPPack\Component\Rest\HttpMethod;
+use WPPack\Component\Role\Attribute\IsGranted;
 
 #[RestRoute(namespace: 'wppack/v1/monitoring')]
 #[IsGranted('manage_options')]

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,16 +11,16 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\S3StoragePlugin\Tests\PreSignedUrl;
+namespace WPPack\Plugin\S3StoragePlugin\Tests\PreSignedUrl;
 
 use AsyncAws\S3\S3Client;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\Storage\Bridge\S3\S3StorageAdapter;
-use WpPack\Plugin\S3StoragePlugin\PreSignedUrl\PreSignedUrlController;
-use WpPack\Plugin\S3StoragePlugin\PreSignedUrl\PreSignedUrlGenerator;
-use WpPack\Plugin\S3StoragePlugin\PreSignedUrl\UploadPolicy;
+use WPPack\Component\HttpFoundation\Request;
+use WPPack\Component\Storage\Bridge\S3\S3StorageAdapter;
+use WPPack\Plugin\S3StoragePlugin\PreSignedUrl\PreSignedUrlController;
+use WPPack\Plugin\S3StoragePlugin\PreSignedUrl\PreSignedUrlGenerator;
+use WPPack\Plugin\S3StoragePlugin\PreSignedUrl\UploadPolicy;
 
 final class PreSignedUrlControllerTest extends TestCase
 {

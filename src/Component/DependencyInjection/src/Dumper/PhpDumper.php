@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,10 +11,10 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\DependencyInjection\Dumper;
+namespace WPPack\Component\DependencyInjection\Dumper;
 
 use Symfony\Component\DependencyInjection\Dumper\PhpDumper as SymfonyPhpDumper;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
 
 class PhpDumper
 {

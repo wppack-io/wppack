@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database;
+namespace WPPack\Component\Database;
 
-use WpPack\Component\Database\Exception\QueryException;
+use WPPack\Component\Database\Exception\QueryException;
 
 /**
  * @property-read string $posts
@@ -322,7 +322,7 @@ final class DatabaseManager
     /**
      * Auto-detect the appropriate Connection from the global $wpdb.
      *
-     * - WpPackWpdb (db.php drop-in): reuse its Driver
+     * - WPPackWpdb (db.php drop-in): reuse its Driver
      * - Standard WordPress wpdb: wrap the existing mysqli connection
      * - Fallback: create fresh connection from WordPress DB_* constants
      *
@@ -333,10 +333,10 @@ final class DatabaseManager
     {
         $queryLogger = new WpSaveQueriesLogger($wpdb);
 
-        // WpPack db.php drop-in — Driver already configured. Reuse the
+        // WPPack db.php drop-in — Driver already configured. Reuse the
         // driver's own translator so DatabaseManager writes pass through
         // the same MySQL-dialect rewrites as $wpdb queries.
-        if ($wpdb instanceof WpPackWpdb) {
+        if ($wpdb instanceof WPPackWpdb) {
             $writer = $wpdb->getWriter();
 
             return new Connection($writer, null, $queryLogger, $writer->getQueryTranslator());

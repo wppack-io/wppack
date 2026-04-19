@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,10 +11,10 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Logger\Bridge\Monolog;
+namespace WPPack\Component\Logger\Bridge\Monolog;
 
-use WpPack\Component\Logger\Handler\HandlerInterface;
-use WpPack\Component\Logger\Logger;
+use WPPack\Component\Logger\Handler\HandlerInterface;
+use WPPack\Component\Logger\Logger;
 
 final class MonologHandler implements HandlerInterface
 {

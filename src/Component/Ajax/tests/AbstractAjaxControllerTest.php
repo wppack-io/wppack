@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Ajax\Tests;
+namespace WPPack\Component\Ajax\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Ajax\AbstractAjaxController;
-use WpPack\Component\HttpFoundation\JsonResponse;
-use WpPack\Component\Role\Exception\AccessDeniedException;
-use WpPack\Component\Security\Tests\SecurityTestTrait;
+use WPPack\Component\Ajax\AbstractAjaxController;
+use WPPack\Component\HttpFoundation\JsonResponse;
+use WPPack\Component\Role\Exception\AccessDeniedException;
+use WPPack\Component\Security\Tests\SecurityTestTrait;
 
 final class AbstractAjaxControllerTest extends TestCase
 {

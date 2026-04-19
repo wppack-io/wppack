@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,35 +11,35 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Hook\Tests\Attribute\Query;
+namespace WPPack\Component\Hook\Tests\Attribute\Query;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Hook\Attribute\Action;
-use WpPack\Component\Hook\Attribute\Filter;
-use WpPack\Component\Hook\Hook;
-use WpPack\Component\Hook\HookType;
-use WpPack\Component\Hook\Attribute\Query\Action\ParseQueryAction;
-use WpPack\Component\Hook\Attribute\Query\Action\PreGetPostsAction;
-use WpPack\Component\Hook\Attribute\Query\Filter\FoundPostsFilter;
-use WpPack\Component\Hook\Attribute\Query\Filter\FoundPostsQueryFilter;
-use WpPack\Component\Hook\Attribute\Query\Filter\PostsCacheResultsFilter;
-use WpPack\Component\Hook\Attribute\Query\Filter\PostsClausesFilter;
-use WpPack\Component\Hook\Attribute\Query\Filter\PostsDistinctFilter;
-use WpPack\Component\Hook\Attribute\Query\Filter\PostsFieldsFilter;
-use WpPack\Component\Hook\Attribute\Query\Filter\PostsGroupbyFilter;
-use WpPack\Component\Hook\Attribute\Query\Filter\PostsJoinFilter;
-use WpPack\Component\Hook\Attribute\Query\Filter\PostsOrderbyFilter;
-use WpPack\Component\Hook\Attribute\Query\Filter\PostsRequestFilter;
-use WpPack\Component\Hook\Attribute\Query\Filter\PostsResultsFilter;
-use WpPack\Component\Hook\Attribute\Query\Filter\PostsSearchColumnsFilter;
-use WpPack\Component\Hook\Attribute\Query\Filter\PostsSearchFilter;
-use WpPack\Component\Hook\Attribute\Query\Filter\PostsSearchOrderbyFilter;
-use WpPack\Component\Hook\Attribute\Query\Filter\PostsWhereFilter;
-use WpPack\Component\Hook\Attribute\Query\Filter\PostsWherePagedFilter;
-use WpPack\Component\Hook\Attribute\Query\Filter\ThePostsFilter;
-use WpPack\Component\Hook\Attribute\Query\Filter\UpdatePostMetaCacheFilter;
-use WpPack\Component\Hook\Attribute\Query\Filter\UpdatePostTermCacheFilter;
+use WPPack\Component\Hook\Attribute\Action;
+use WPPack\Component\Hook\Attribute\Filter;
+use WPPack\Component\Hook\Hook;
+use WPPack\Component\Hook\HookType;
+use WPPack\Component\Hook\Attribute\Query\Action\ParseQueryAction;
+use WPPack\Component\Hook\Attribute\Query\Action\PreGetPostsAction;
+use WPPack\Component\Hook\Attribute\Query\Filter\FoundPostsFilter;
+use WPPack\Component\Hook\Attribute\Query\Filter\FoundPostsQueryFilter;
+use WPPack\Component\Hook\Attribute\Query\Filter\PostsCacheResultsFilter;
+use WPPack\Component\Hook\Attribute\Query\Filter\PostsClausesFilter;
+use WPPack\Component\Hook\Attribute\Query\Filter\PostsDistinctFilter;
+use WPPack\Component\Hook\Attribute\Query\Filter\PostsFieldsFilter;
+use WPPack\Component\Hook\Attribute\Query\Filter\PostsGroupbyFilter;
+use WPPack\Component\Hook\Attribute\Query\Filter\PostsJoinFilter;
+use WPPack\Component\Hook\Attribute\Query\Filter\PostsOrderbyFilter;
+use WPPack\Component\Hook\Attribute\Query\Filter\PostsRequestFilter;
+use WPPack\Component\Hook\Attribute\Query\Filter\PostsResultsFilter;
+use WPPack\Component\Hook\Attribute\Query\Filter\PostsSearchColumnsFilter;
+use WPPack\Component\Hook\Attribute\Query\Filter\PostsSearchFilter;
+use WPPack\Component\Hook\Attribute\Query\Filter\PostsSearchOrderbyFilter;
+use WPPack\Component\Hook\Attribute\Query\Filter\PostsWhereFilter;
+use WPPack\Component\Hook\Attribute\Query\Filter\PostsWherePagedFilter;
+use WPPack\Component\Hook\Attribute\Query\Filter\ThePostsFilter;
+use WPPack\Component\Hook\Attribute\Query\Filter\UpdatePostMetaCacheFilter;
+use WPPack\Component\Hook\Attribute\Query\Filter\UpdatePostTermCacheFilter;
 
 final class NamedHookTest extends TestCase
 {

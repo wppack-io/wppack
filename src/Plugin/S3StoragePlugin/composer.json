@@ -23,12 +23,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Plugin\\S3StoragePlugin\\": "src/"
+            "WPPack\\Plugin\\S3StoragePlugin\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Plugin\\S3StoragePlugin\\Tests\\": "tests/"
+            "WPPack\\Plugin\\S3StoragePlugin\\Tests\\": "tests/"
         }
     },
     "extra": {

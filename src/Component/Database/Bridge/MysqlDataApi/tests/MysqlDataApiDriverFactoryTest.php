@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database\Bridge\MysqlDataApi\Tests;
+namespace WPPack\Component\Database\Bridge\MysqlDataApi\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Database\Bridge\MysqlDataApi\MysqlDataApiDriverFactory;
-use WpPack\Component\Dsn\Dsn;
+use WPPack\Component\Database\Bridge\MysqlDataApi\MysqlDataApiDriverFactory;
+use WPPack\Component\Dsn\Dsn;
 
 final class MysqlDataApiDriverFactoryTest extends TestCase
 {

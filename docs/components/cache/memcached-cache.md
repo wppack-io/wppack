@@ -1,7 +1,7 @@
 # Memcached Cache Bridge
 
 **パッケージ:** `wppack/memcached-cache`
-**名前空間:** `WpPack\Component\Cache\Bridge\Memcached\`
+**名前空間:** `WPPack\Component\Cache\Bridge\Memcached\`
 
 Memcached サーバーを Object Cache バックエンドとして利用するための Bridge パッケージです。
 
@@ -96,7 +96,7 @@ OPT_BINARY_PROTOCOL     => true   // バイナリプロトコル有効
 OPT_NO_BLOCK            => true   // 非同期 I/O
 OPT_TCP_NODELAY         => true   // Nagle 無効化
 OPT_LIBKETAMA_COMPATIBLE => true  // 一貫性ハッシュ
-OPT_SERIALIZER          => SERIALIZER_NONE  // WpPack は生文字列を扱う
+OPT_SERIALIZER          => SERIALIZER_NONE  // WPPack は生文字列を扱う
 ```
 
 ## マルチサーバー構成

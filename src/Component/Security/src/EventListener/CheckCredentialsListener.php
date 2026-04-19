@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Security\EventListener;
+namespace WPPack\Component\Security\EventListener;
 
-use WpPack\Component\Security\Authentication\Passport\Badge\CredentialsBadge;
-use WpPack\Component\Security\Event\CheckPassportEvent;
-use WpPack\Component\Security\Exception\InvalidCredentialsException;
+use WPPack\Component\Security\Authentication\Passport\Badge\CredentialsBadge;
+use WPPack\Component\Security\Event\CheckPassportEvent;
+use WPPack\Component\Security\Exception\InvalidCredentialsException;
 
 final class CheckCredentialsListener
 {

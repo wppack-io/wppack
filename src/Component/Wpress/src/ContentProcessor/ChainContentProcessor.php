@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,10 +11,10 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Wpress\ContentProcessor;
+namespace WPPack\Component\Wpress\ContentProcessor;
 
-use WpPack\Component\Wpress\Exception\ArchiveException;
-use WpPack\Component\Wpress\Exception\EncryptionException;
+use WPPack\Component\Wpress\Exception\ArchiveException;
+use WPPack\Component\Wpress\Exception\EncryptionException;
 
 /**
  * Handles combined compression + encryption.

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,18 +11,18 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Messenger\Bridge\Sqs\Transport;
+namespace WPPack\Component\Messenger\Bridge\Sqs\Transport;
 
 use AsyncAws\Sqs\Input\SendMessageRequest;
 use AsyncAws\Sqs\SqsClient;
 use Psr\Log\LoggerInterface;
-use WpPack\Component\Messenger\Envelope;
-use WpPack\Component\Messenger\Exception\TransportException;
-use WpPack\Component\Messenger\Serializer\SerializerInterface;
-use WpPack\Component\Messenger\Stamp\DelayStamp;
-use WpPack\Component\Messenger\Stamp\SentStamp;
-use WpPack\Component\Messenger\Transport\TransportInterface;
-use WpPack\Component\Serializer\Encoder\JsonEncoder;
+use WPPack\Component\Messenger\Envelope;
+use WPPack\Component\Messenger\Exception\TransportException;
+use WPPack\Component\Messenger\Serializer\SerializerInterface;
+use WPPack\Component\Messenger\Stamp\DelayStamp;
+use WPPack\Component\Messenger\Stamp\SentStamp;
+use WPPack\Component\Messenger\Transport\TransportInterface;
+use WPPack\Component\Serializer\Encoder\JsonEncoder;
 
 final class SqsTransport implements TransportInterface
 {

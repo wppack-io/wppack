@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,78 +11,78 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Debug\Tests\DependencyInjection;
+namespace WPPack\Component\Debug\Tests\DependencyInjection;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Debug\Adapter\DebugBarPanelAdapter;
-use WpPack\Component\Debug\DataCollector\AdminDataCollector;
-use WpPack\Component\Debug\DataCollector\AjaxDataCollector;
-use WpPack\Component\Debug\DataCollector\AssetDataCollector;
-use WpPack\Component\Debug\DataCollector\CacheDataCollector;
-use WpPack\Component\Debug\DataCollector\ContainerDataCollector;
-use WpPack\Component\Debug\DataCollector\DatabaseDataCollector;
-use WpPack\Component\Debug\DataCollector\DumpDataCollector;
-use WpPack\Component\Debug\DataCollector\EnvironmentDataCollector;
-use WpPack\Component\Debug\DataCollector\EventDataCollector;
-use WpPack\Component\Debug\DataCollector\FeedDataCollector;
-use WpPack\Component\Debug\DataCollector\HttpClientDataCollector;
-use WpPack\Component\Debug\DataCollector\LoggerDataCollector;
-use WpPack\Component\Debug\DataCollector\MailDataCollector;
-use WpPack\Component\Debug\DataCollector\MemoryDataCollector;
-use WpPack\Component\Debug\DataCollector\PluginDataCollector;
-use WpPack\Component\Debug\DataCollector\RequestDataCollector;
-use WpPack\Component\Debug\DataCollector\RestDataCollector;
-use WpPack\Component\Debug\DataCollector\RouterDataCollector;
-use WpPack\Component\Debug\DataCollector\SchedulerDataCollector;
-use WpPack\Component\Debug\DataCollector\SecurityDataCollector;
-use WpPack\Component\Debug\DataCollector\ShortcodeDataCollector;
-use WpPack\Component\Debug\DataCollector\StopwatchDataCollector;
-use WpPack\Component\Debug\DataCollector\ThemeDataCollector;
-use WpPack\Component\Debug\DataCollector\TranslationDataCollector;
-use WpPack\Component\Debug\DataCollector\WidgetDataCollector;
-use WpPack\Component\Debug\DataCollector\WordPressDataCollector;
-use WpPack\Component\Debug\DebugConfig;
-use WpPack\Component\Debug\DependencyInjection\DebugServiceProvider;
-use WpPack\Component\Debug\DependencyInjection\RegisterDataCollectorsPass;
-use WpPack\Component\Debug\DependencyInjection\RegisterPanelRenderersPass;
-use WpPack\Component\Debug\ErrorHandler\ErrorRenderer;
-use WpPack\Component\Debug\ErrorHandler\ExceptionHandler;
-use WpPack\Component\Debug\ErrorHandler\WpDieHandler;
-use WpPack\Component\Debug\Handler\DebugHandler;
-use WpPack\Component\Debug\Profiler\Profile;
-use WpPack\Component\Debug\Profiler\Profiler;
-use WpPack\Component\Debug\Toolbar\Panel\AdminPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\AjaxPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\AssetPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\CachePanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\ContainerPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\DatabasePanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\DumpPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\EnvironmentPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\EventPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\FeedPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\HttpClientPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\LoggerPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\MailPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\MemoryPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\PerformancePanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\PluginPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\RequestPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\RestPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\RouterPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\SchedulerPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\SecurityPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\ShortcodePanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\StopwatchPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\ThemePanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\TranslationPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\WidgetPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\WordPressPanelRenderer;
-use WpPack\Component\Debug\Toolbar\ToolbarRenderer;
-use WpPack\Component\Debug\Toolbar\ToolbarSubscriber;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\Stopwatch\Stopwatch;
+use WPPack\Component\Debug\Adapter\DebugBarPanelAdapter;
+use WPPack\Component\Debug\DataCollector\AdminDataCollector;
+use WPPack\Component\Debug\DataCollector\AjaxDataCollector;
+use WPPack\Component\Debug\DataCollector\AssetDataCollector;
+use WPPack\Component\Debug\DataCollector\CacheDataCollector;
+use WPPack\Component\Debug\DataCollector\ContainerDataCollector;
+use WPPack\Component\Debug\DataCollector\DatabaseDataCollector;
+use WPPack\Component\Debug\DataCollector\DumpDataCollector;
+use WPPack\Component\Debug\DataCollector\EnvironmentDataCollector;
+use WPPack\Component\Debug\DataCollector\EventDataCollector;
+use WPPack\Component\Debug\DataCollector\FeedDataCollector;
+use WPPack\Component\Debug\DataCollector\HttpClientDataCollector;
+use WPPack\Component\Debug\DataCollector\LoggerDataCollector;
+use WPPack\Component\Debug\DataCollector\MailDataCollector;
+use WPPack\Component\Debug\DataCollector\MemoryDataCollector;
+use WPPack\Component\Debug\DataCollector\PluginDataCollector;
+use WPPack\Component\Debug\DataCollector\RequestDataCollector;
+use WPPack\Component\Debug\DataCollector\RestDataCollector;
+use WPPack\Component\Debug\DataCollector\RouterDataCollector;
+use WPPack\Component\Debug\DataCollector\SchedulerDataCollector;
+use WPPack\Component\Debug\DataCollector\SecurityDataCollector;
+use WPPack\Component\Debug\DataCollector\ShortcodeDataCollector;
+use WPPack\Component\Debug\DataCollector\StopwatchDataCollector;
+use WPPack\Component\Debug\DataCollector\ThemeDataCollector;
+use WPPack\Component\Debug\DataCollector\TranslationDataCollector;
+use WPPack\Component\Debug\DataCollector\WidgetDataCollector;
+use WPPack\Component\Debug\DataCollector\WordPressDataCollector;
+use WPPack\Component\Debug\DebugConfig;
+use WPPack\Component\Debug\DependencyInjection\DebugServiceProvider;
+use WPPack\Component\Debug\DependencyInjection\RegisterDataCollectorsPass;
+use WPPack\Component\Debug\DependencyInjection\RegisterPanelRenderersPass;
+use WPPack\Component\Debug\ErrorHandler\ErrorRenderer;
+use WPPack\Component\Debug\ErrorHandler\ExceptionHandler;
+use WPPack\Component\Debug\ErrorHandler\WpDieHandler;
+use WPPack\Component\Debug\Handler\DebugHandler;
+use WPPack\Component\Debug\Profiler\Profile;
+use WPPack\Component\Debug\Profiler\Profiler;
+use WPPack\Component\Debug\Toolbar\Panel\AdminPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\AjaxPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\AssetPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\CachePanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\ContainerPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\DatabasePanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\DumpPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\EnvironmentPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\EventPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\FeedPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\HttpClientPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\LoggerPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\MailPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\MemoryPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\PerformancePanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\PluginPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\RequestPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\RestPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\RouterPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\SchedulerPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\SecurityPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\ShortcodePanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\StopwatchPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\ThemePanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\TranslationPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\WidgetPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\WordPressPanelRenderer;
+use WPPack\Component\Debug\Toolbar\ToolbarRenderer;
+use WPPack\Component\Debug\Toolbar\ToolbarSubscriber;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\Stopwatch\Stopwatch;
 
 final class DebugServiceProviderTest extends TestCase
 {
@@ -224,13 +224,13 @@ final class DebugServiceProviderTest extends TestCase
     #[Test]
     public function registerRegistersDebugHandlerWhenLoggerFactoryAvailable(): void
     {
-        if (!interface_exists(\WpPack\Component\Logger\Handler\HandlerInterface::class)) {
+        if (!interface_exists(\WPPack\Component\Logger\Handler\HandlerInterface::class)) {
             self::markTestSkipped('Logger component HandlerInterface is not available.');
         }
 
         // Re-register with LoggerFactory pre-registered
         $builder = new ContainerBuilder();
-        $builder->register(\WpPack\Component\Logger\LoggerFactory::class);
+        $builder->register(\WPPack\Component\Logger\LoggerFactory::class);
         $provider = new DebugServiceProvider();
         $provider->register($builder);
 

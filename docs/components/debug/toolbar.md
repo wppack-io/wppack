@@ -198,8 +198,8 @@ final class AsPanelRenderer
 ### ステップ 1: DataCollector を作成
 
 ```php
-use WpPack\Component\Debug\Attribute\AsDataCollector;
-use WpPack\Component\Debug\DataCollector\AbstractDataCollector;
+use WPPack\Component\Debug\Attribute\AsDataCollector;
+use WPPack\Component\Debug\DataCollector\AbstractDataCollector;
 
 #[AsDataCollector(name: 'api_calls', priority: 40)]
 final class ApiCallsDataCollector extends AbstractDataCollector
@@ -247,8 +247,8 @@ final class ApiCallsDataCollector extends AbstractDataCollector
 ### ステップ 2: PanelRenderer を作成
 
 ```php
-use WpPack\Component\Debug\Attribute\AsPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\AbstractPanelRenderer;
+use WPPack\Component\Debug\Attribute\AsPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\AbstractPanelRenderer;
 
 #[AsPanelRenderer(name: 'api_calls')]
 final class ApiCallsPanelRenderer extends AbstractPanelRenderer
@@ -297,7 +297,7 @@ final class ApiCallsPanelRenderer extends AbstractPanelRenderer
 ### ステップ 3: DI に登録
 
 ```php
-use WpPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
 
 $builder = new ContainerBuilder();
 
@@ -317,9 +317,9 @@ $builder->addCompilerPass(new RegisterPanelRenderersPass());
 `#[AsPanelRenderer]` アトリビュートまたは `debug.panel_renderer` タグを持つサービスを自動検出し、`ToolbarRenderer` に priority 順で注入するコンパイラーパス。
 
 ```php
-use WpPack\Component\Debug\DependencyInjection\DebugServiceProvider;
-use WpPack\Component\Debug\DependencyInjection\RegisterDataCollectorsPass;
-use WpPack\Component\Debug\DependencyInjection\RegisterPanelRenderersPass;
+use WPPack\Component\Debug\DependencyInjection\DebugServiceProvider;
+use WPPack\Component\Debug\DependencyInjection\RegisterDataCollectorsPass;
+use WPPack\Component\Debug\DependencyInjection\RegisterPanelRenderersPass;
 
 $builder->addServiceProvider(new DebugServiceProvider());
 $builder->addCompilerPass(new RegisterDataCollectorsPass());

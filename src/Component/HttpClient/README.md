@@ -1,4 +1,4 @@
-# WpPack HttpClient
+# WPPack HttpClient
 
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=http_client)](https://codecov.io/github/wppack-io/wppack)
 
@@ -15,7 +15,7 @@ composer require wppack/http-client
 ### Basic Request
 
 ```php
-use WpPack\Component\HttpClient\HttpClient;
+use WPPack\Component\HttpClient\HttpClient;
 
 $http = new HttpClient();
 
@@ -71,7 +71,7 @@ use Psr\Http\Client\ClientInterface;
 
 function fetchData(ClientInterface $client): array
 {
-    $factory = new \WpPack\Component\HttpClient\RequestFactory();
+    $factory = new \WPPack\Component\HttpClient\RequestFactory();
     $request = $factory->createRequest('GET', 'https://api.example.com/data');
 
     $response = $client->sendRequest($request);
@@ -83,8 +83,8 @@ function fetchData(ClientInterface $client): array
 ### Named Hook Attributes
 
 ```php
-use WpPack\Component\HttpClient\Attribute\HttpRequestArgsFilter;
-use WpPack\Component\HttpClient\Attribute\HttpResponseFilter;
+use WPPack\Component\HttpClient\Attribute\HttpRequestArgsFilter;
+use WPPack\Component\HttpClient\Attribute\HttpResponseFilter;
 
 final class HttpHooks
 {
@@ -133,7 +133,7 @@ $response = $http
 **`SafeHttpClient`** — tamper-proof subclass for DI injection. SSRF protection is always enabled and cannot be disabled via `withOptions()`. Use this for services that always handle user-provided URLs.
 
 ```php
-use WpPack\Component\HttpClient\SafeHttpClient;
+use WPPack\Component\HttpClient\SafeHttpClient;
 
 class WebhookHandler
 {
@@ -159,8 +159,8 @@ class WebhookHandler
 ## Error Handling
 
 ```php
-use WpPack\Component\HttpClient\Exception\ConnectionException;
-use WpPack\Component\HttpClient\Exception\RequestException;
+use WPPack\Component\HttpClient\Exception\ConnectionException;
+use WPPack\Component\HttpClient\Exception\RequestException;
 
 try {
     $response = $http->get('https://api.example.com/data');

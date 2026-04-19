@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Media\Tests\Storage\Subscriber;
+namespace WPPack\Component\Media\Tests\Storage\Subscriber;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\EventDispatcher\WordPressEvent;
-use WpPack\Component\Media\Storage\ImageEditor\StorageImageEditor;
-use WpPack\Component\Media\Storage\Subscriber\ImageEditorSubscriber;
+use WPPack\Component\EventDispatcher\WordPressEvent;
+use WPPack\Component\Media\Storage\ImageEditor\StorageImageEditor;
+use WPPack\Component\Media\Storage\Subscriber\ImageEditorSubscriber;
 
 #[CoversClass(ImageEditorSubscriber::class)]
 final class ImageEditorSubscriberTest extends TestCase

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Scheduler\Trigger;
+namespace WPPack\Component\Scheduler\Trigger;
 
-use WpPack\Component\Scheduler\Exception\InvalidArgumentException;
+use WPPack\Component\Scheduler\Exception\InvalidArgumentException;
 
 final class WpCronScheduleTrigger implements TriggerInterface
 {

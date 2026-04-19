@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,16 +11,16 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Rest\DependencyInjection;
+namespace WPPack\Component\Rest\DependencyInjection;
 
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\DependencyInjection\Reference;
-use WpPack\Component\DependencyInjection\ServiceProviderInterface;
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\Rest\RestRegistry;
-use WpPack\Component\Rest\RestUrlGenerator;
-use WpPack\Component\Role\Authorization\IsGrantedChecker;
-use WpPack\Component\Security\Security;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\DependencyInjection\Reference;
+use WPPack\Component\DependencyInjection\ServiceProviderInterface;
+use WPPack\Component\HttpFoundation\Request;
+use WPPack\Component\Rest\RestRegistry;
+use WPPack\Component\Rest\RestUrlGenerator;
+use WPPack\Component\Role\Authorization\IsGrantedChecker;
+use WPPack\Component\Security\Security;
 
 final class RestServiceProvider implements ServiceProviderInterface
 {

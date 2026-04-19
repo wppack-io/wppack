@@ -3,14 +3,14 @@
 declare(strict_types=1);
 
 /**
- * Plugin Name:  WpPack MU-Plugin Loader
+ * Plugin Name:  WPPack MU-Plugin Loader
  * Description:  Autoload Must-use plugins from subdirectories
  * Version:      1.0.0
- * Author:       WpPack
+ * Author:       WPPack
  * License:      MIT License
  */
 
-namespace WpPack\MuPlugin;
+namespace WPPack\MuPlugin;
 
 final class MuPluginLoader
 {

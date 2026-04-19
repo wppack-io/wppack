@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Cache\Bridge\Redis\Adapter;
+namespace WPPack\Component\Cache\Bridge\Redis\Adapter;
 
-use WpPack\Component\Cache\Adapter\AbstractHashableAdapter;
+use WPPack\Component\Cache\Adapter\AbstractHashableAdapter;
 
 /**
  * Base adapter for ext-redis and ext-relay cluster connections.

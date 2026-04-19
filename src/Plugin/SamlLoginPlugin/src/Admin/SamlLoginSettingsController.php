@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,17 +11,17 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\SamlLoginPlugin\Admin;
+namespace WPPack\Plugin\SamlLoginPlugin\Admin;
 
-use WpPack\Component\HttpFoundation\JsonResponse;
-use WpPack\Component\HttpFoundation\Response;
-use WpPack\Component\Rest\AbstractRestController;
-use WpPack\Component\Rest\Attribute\RestRoute;
-use WpPack\Component\Rest\HttpMethod;
-use WpPack\Component\Role\Attribute\IsGranted;
-use WpPack\Component\Sanitizer\Sanitizer;
-use WpPack\Component\Security\Bridge\SAML\Configuration\SpMetadataExporter;
-use WpPack\Plugin\SamlLoginPlugin\Configuration\SamlLoginConfiguration;
+use WPPack\Component\HttpFoundation\JsonResponse;
+use WPPack\Component\HttpFoundation\Response;
+use WPPack\Component\Rest\AbstractRestController;
+use WPPack\Component\Rest\Attribute\RestRoute;
+use WPPack\Component\Rest\HttpMethod;
+use WPPack\Component\Role\Attribute\IsGranted;
+use WPPack\Component\Sanitizer\Sanitizer;
+use WPPack\Component\Security\Bridge\SAML\Configuration\SpMetadataExporter;
+use WPPack\Plugin\SamlLoginPlugin\Configuration\SamlLoginConfiguration;
 
 #[RestRoute(namespace: 'wppack/v1/saml-login')]
 #[IsGranted('manage_options')]

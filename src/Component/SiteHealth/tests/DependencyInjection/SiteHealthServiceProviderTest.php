@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\SiteHealth\Tests\DependencyInjection;
+namespace WPPack\Component\SiteHealth\Tests\DependencyInjection;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\DependencyInjection\ServiceProviderInterface;
-use WpPack\Component\SiteHealth\DependencyInjection\SiteHealthServiceProvider;
-use WpPack\Component\SiteHealth\SiteHealthRegistry;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\DependencyInjection\ServiceProviderInterface;
+use WPPack\Component\SiteHealth\DependencyInjection\SiteHealthServiceProvider;
+use WPPack\Component\SiteHealth\SiteHealthRegistry;
 
 final class SiteHealthServiceProviderTest extends TestCase
 {

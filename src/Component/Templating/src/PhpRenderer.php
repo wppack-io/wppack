@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Templating;
+namespace WPPack\Component\Templating;
 
-use WpPack\Component\Escaper\Escaper;
-use WpPack\Component\Templating\Exception\RenderingException;
-use WpPack\Component\Templating\Exception\TemplateNotFoundException;
+use WPPack\Component\Escaper\Escaper;
+use WPPack\Component\Templating\Exception\RenderingException;
+use WPPack\Component\Templating\Exception\TemplateNotFoundException;
 
 /**
  * PHP template engine with layout inheritance, sections, and escaping.

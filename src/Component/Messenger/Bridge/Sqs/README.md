@@ -2,7 +2,7 @@
 
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=sqs_messenger)](https://codecov.io/github/wppack-io/wppack)
 
-Amazon SQS transport for WpPack Messenger.
+Amazon SQS transport for WPPack Messenger.
 
 ## Installation
 
@@ -16,7 +16,7 @@ composer require wppack/sqs-messenger
 
 ```php
 use AsyncAws\Sqs\SqsClient;
-use WpPack\Component\Messenger\Bridge\Sqs\Transport\SqsTransport;
+use WPPack\Component\Messenger\Bridge\Sqs\Transport\SqsTransport;
 
 $transport = new SqsTransport(
     sqsClient: new SqsClient(['region' => 'ap-northeast-1']),
@@ -31,7 +31,7 @@ $middleware = new SendMessageMiddleware(['sqs' => $transport]);
 ### Processing SQS events in Lambda
 
 ```php
-use WpPack\Component\Messenger\Bridge\Sqs\Handler\SqsEventHandler;
+use WPPack\Component\Messenger\Bridge\Sqs\Handler\SqsEventHandler;
 
 $handler = new SqsEventHandler(
     wordpressPath: '/var/task/wordpress',

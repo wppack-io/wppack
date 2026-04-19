@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Mailer\Test;
+namespace WPPack\Component\Mailer\Test;
 
-use WpPack\Component\Mailer\Email;
-use WpPack\Component\Mailer\Envelope;
-use WpPack\Component\Mailer\SentMessage;
+use WPPack\Component\Mailer\Email;
+use WPPack\Component\Mailer\Envelope;
+use WPPack\Component\Mailer\SentMessage;
 
 final class TestMailer
 {

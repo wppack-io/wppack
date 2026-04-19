@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,10 +11,10 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Shortcode;
+namespace WPPack\Component\Shortcode;
 
-use WpPack\Component\OptionsResolver\OptionsResolver;
-use WpPack\Component\Shortcode\Attribute\AsShortcode;
+use WPPack\Component\OptionsResolver\OptionsResolver;
+use WPPack\Component\Shortcode\Attribute\AsShortcode;
 
 abstract class AbstractShortcode
 {

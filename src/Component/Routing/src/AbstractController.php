@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,16 +11,16 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Routing;
+namespace WPPack\Component\Routing;
 
-use WpPack\Component\HttpFoundation\BinaryFileResponse;
-use WpPack\Component\HttpFoundation\JsonResponse;
-use WpPack\Component\HttpFoundation\RedirectResponse;
-use WpPack\Component\HttpFoundation\Response;
-use WpPack\Component\Routing\Response\BlockTemplateResponse;
-use WpPack\Component\Routing\Response\TemplateResponse;
-use WpPack\Component\Security\SecurityAwareTrait;
-use WpPack\Component\Templating\TemplateRendererInterface;
+use WPPack\Component\HttpFoundation\BinaryFileResponse;
+use WPPack\Component\HttpFoundation\JsonResponse;
+use WPPack\Component\HttpFoundation\RedirectResponse;
+use WPPack\Component\HttpFoundation\Response;
+use WPPack\Component\Routing\Response\BlockTemplateResponse;
+use WPPack\Component\Routing\Response\TemplateResponse;
+use WPPack\Component\Security\SecurityAwareTrait;
+use WPPack\Component\Templating\TemplateRendererInterface;
 
 abstract class AbstractController
 {

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,16 +11,16 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database\Tests;
+namespace WPPack\Component\Database\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
-use WpPack\Component\Database\WpPackWpdb;
+use WPPack\Component\Database\WPPackWpdb;
 
 /**
  * Shared integration tests for the wpdb contract across all database engines.
  *
  * Each concrete test class provides a wpdb-compatible instance, which may be:
- * - WpPackWpdb backed by a real driver + query translator (SQLite / PostgreSQL / MySQL / DSQL)
+ * - WPPackWpdb backed by a real driver + query translator (SQLite / PostgreSQL / MySQL / DSQL)
  * - The standard WordPress \wpdb (MySQL via mysqli)
  *
  * These tests verify wpdb contract behaviour end-to-end, regardless of backend.
@@ -550,7 +550,7 @@ trait WpdbIntegrationTestTrait
     public function likeWithPlaceholderInsideTemplateLiteral(): void
     {
         // "LIKE '%%%s%%'" writes the LIKE wildcards directly in the template
-        // and injects just the search term via %s. WpPackWpdb parameterizes
+        // and injects just the search term via %s. WPPackWpdb parameterizes
         // the whole literal as a single '?' bound to '%WordPress%' — the
         // engine runs the same match regardless of MySQL/SQLite/PostgreSQL.
         $wpdb = $this->getTestWpdb();
@@ -2466,7 +2466,7 @@ trait WpdbIntegrationTestTrait
         // the table via DESCRIBE / SHOW FULL COLUMNS — MySQL/MariaDB-only. On
         // SQLite/PostgreSQL varchar(N) doesn't enforce N at insert time, so
         // there is no pre-flight check to exercise here.
-        if ($wpdb instanceof WpPackWpdb) {
+        if ($wpdb instanceof WPPackWpdb) {
             $engine = $wpdb->getWriter()->getPlatform()->getEngine();
             if ($engine !== 'mysql' && $engine !== 'mariadb') {
                 self::markTestSkipped('varchar(N) length validation is MySQL-specific (engine: ' . $engine . ')');
@@ -2481,7 +2481,7 @@ trait WpdbIntegrationTestTrait
         self::assertFalse($result);
     }
 
-    // ── WpPackWpdb error semantics: return false + last_error (wpdb contract) ──
+    // ── WPPackWpdb error semantics: return false + last_error (wpdb contract) ──
 
     #[Test]
     public function wpdbInsertReturnsFalseOnSchemaError(): void

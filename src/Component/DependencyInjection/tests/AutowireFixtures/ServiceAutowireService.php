@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,10 +11,10 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\DependencyInjection\Tests\AutowireFixtures;
+namespace WPPack\Component\DependencyInjection\Tests\AutowireFixtures;
 
-use WpPack\Component\DependencyInjection\Attribute\Autowire;
-use WpPack\Component\DependencyInjection\Tests\Fixtures\SimpleService;
+use WPPack\Component\DependencyInjection\Attribute\Autowire;
+use WPPack\Component\DependencyInjection\Tests\Fixtures\SimpleService;
 
 final class ServiceAutowireService
 {

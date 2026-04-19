@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Routing\Attribute;
+namespace WPPack\Component\Routing\Attribute;
 
-use WpPack\Component\Routing\RoutePosition;
+use WPPack\Component\Routing\RoutePosition;
 
 #[\Attribute(\Attribute::TARGET_CLASS | \Attribute::TARGET_METHOD)]
 final class Route

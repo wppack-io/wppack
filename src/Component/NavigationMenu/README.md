@@ -1,4 +1,4 @@
-# WpPack NavigationMenu
+# WPPack NavigationMenu
 
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=navigation_menu)](https://codecov.io/github/wppack-io/wppack)
 
@@ -15,7 +15,7 @@ composer require wppack/navigation-menu
 ### MenuLocationProviderInterface (DI Auto-Collection)
 
 ```php
-use WpPack\Component\NavigationMenu\MenuLocationProviderInterface;
+use WPPack\Component\NavigationMenu\MenuLocationProviderInterface;
 
 class ThemeMenuProvider implements MenuLocationProviderInterface
 {
@@ -32,7 +32,7 @@ class ThemeMenuProvider implements MenuLocationProviderInterface
 ### MenuRegistry (Direct Usage)
 
 ```php
-use WpPack\Component\NavigationMenu\MenuRegistry;
+use WPPack\Component\NavigationMenu\MenuRegistry;
 
 $registry = new MenuRegistry();
 $registry->registerLocations([
@@ -45,9 +45,9 @@ $registry->unregisterLocation('footer');
 ### Named Hook Attributes
 
 ```php
-use WpPack\Component\Hook\Attribute\NavigationMenu\Filter\WpNavMenuItemsFilter;
-use WpPack\Component\Hook\Attribute\NavigationMenu\Filter\NavMenuCssClassFilter;
-use WpPack\Component\Hook\Attribute\NavigationMenu\Action\WpCreateNavMenuAction;
+use WPPack\Component\Hook\Attribute\NavigationMenu\Filter\WpNavMenuItemsFilter;
+use WPPack\Component\Hook\Attribute\NavigationMenu\Filter\NavMenuCssClassFilter;
+use WPPack\Component\Hook\Attribute\NavigationMenu\Action\WpCreateNavMenuAction;
 
 final class MenuCustomizer
 {

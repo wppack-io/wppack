@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,15 +11,15 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Mailer\Tests\Test;
+namespace WPPack\Component\Mailer\Tests\Test;
 
 use PHPUnit\Framework\AssertionFailedError;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Mailer\Email;
-use WpPack\Component\Mailer\SentMessage;
-use WpPack\Component\Mailer\Test\MailerAssertions;
-use WpPack\Component\Mailer\Test\TestMailer;
+use WPPack\Component\Mailer\Email;
+use WPPack\Component\Mailer\SentMessage;
+use WPPack\Component\Mailer\Test\MailerAssertions;
+use WPPack\Component\Mailer\Test\TestMailer;
 
 final class MailerAssertionsTest extends TestCase
 {

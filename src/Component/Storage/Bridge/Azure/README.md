@@ -2,7 +2,7 @@
 
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=azure_storage)](https://codecov.io/github/wppack-io/wppack)
 
-Azure Blob Storage adapter for [WpPack Storage](../../README.md).
+Azure Blob Storage adapter for [WPPack Storage](../../README.md).
 
 ## Installation
 
@@ -15,7 +15,7 @@ composer require wppack/azure-storage
 ### Via DSN
 
 ```php
-use WpPack\Component\Storage\Adapter\Storage;
+use WPPack\Component\Storage\Adapter\Storage;
 
 // Using account name from host
 $adapter = Storage::fromDsn('azure://myaccount.blob.core.windows.net/mycontainer/uploads');
@@ -34,8 +34,8 @@ $adapter = Storage::fromDsn('azure://myaccount.blob.core.windows.net/mycontainer
 
 ```php
 use AzureOss\Storage\Blob\BlobServiceClient;
-use WpPack\Component\Storage\Bridge\Azure\AzureBlobClient;
-use WpPack\Component\Storage\Bridge\Azure\AzureStorageAdapter;
+use WPPack\Component\Storage\Bridge\Azure\AzureBlobClient;
+use WPPack\Component\Storage\Bridge\Azure\AzureStorageAdapter;
 
 $serviceClient = BlobServiceClient::fromConnectionString('DefaultEndpointsProtocol=https;AccountName=myaccount;AccountKey=...');
 

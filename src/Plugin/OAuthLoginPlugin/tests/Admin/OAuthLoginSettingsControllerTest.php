@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,16 +11,16 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\OAuthLoginPlugin\Tests\Admin;
+namespace WPPack\Plugin\OAuthLoginPlugin\Tests\Admin;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Rest\AbstractRestController;
-use WpPack\Component\Sanitizer\Sanitizer;
-use WpPack\Plugin\OAuthLoginPlugin\Admin\OAuthLoginSettingsController;
-use WpPack\Plugin\OAuthLoginPlugin\Configuration\OAuthLoginConfiguration;
-use WpPack\Plugin\OAuthLoginPlugin\Configuration\ProviderConfiguration;
+use WPPack\Component\Rest\AbstractRestController;
+use WPPack\Component\Sanitizer\Sanitizer;
+use WPPack\Plugin\OAuthLoginPlugin\Admin\OAuthLoginSettingsController;
+use WPPack\Plugin\OAuthLoginPlugin\Configuration\OAuthLoginConfiguration;
+use WPPack\Plugin\OAuthLoginPlugin\Configuration\ProviderConfiguration;
 
 #[CoversClass(OAuthLoginSettingsController::class)]
 final class OAuthLoginSettingsControllerTest extends TestCase

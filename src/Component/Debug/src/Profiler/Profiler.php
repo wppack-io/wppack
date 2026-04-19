@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Debug\Profiler;
+namespace WPPack\Component\Debug\Profiler;
 
-use WpPack\Component\Stopwatch\Stopwatch;
+use WPPack\Component\Stopwatch\Stopwatch;
 
 final class Profiler
 {

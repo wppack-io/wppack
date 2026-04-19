@@ -29,7 +29,7 @@ declare(strict_types=1);
 
 namespace App\Ajax\Subscriber;
 
-use WpPack\Component\Hook\Attribute\Ajax\Action\WpAjaxAction;
+use WPPack\Component\Hook\Attribute\Ajax\Action\WpAjaxAction;
 
 final class UserPreferenceAjaxSubscriber
 {
@@ -61,8 +61,8 @@ declare(strict_types=1);
 
 namespace App\Ajax\Subscriber;
 
-use WpPack\Component\Hook\Attribute\Ajax\Action\WpAjaxAction;
-use WpPack\Component\Hook\Attribute\Ajax\Action\WpAjaxNoprivAction;
+use WPPack\Component\Hook\Attribute\Ajax\Action\WpAjaxAction;
+use WPPack\Component\Hook\Attribute\Ajax\Action\WpAjaxNoprivAction;
 
 final class SearchAjaxSubscriber
 {
@@ -109,7 +109,7 @@ declare(strict_types=1);
 namespace App\Ajax\Subscriber;
 
 use Psr\Log\LoggerInterface;
-use WpPack\Component\Hook\Attribute\Ajax\Action\CheckAjaxRefererAction;
+use WPPack\Component\Hook\Attribute\Ajax\Action\CheckAjaxRefererAction;
 
 final class AjaxSecuritySubscriber
 {

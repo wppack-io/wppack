@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,10 +11,10 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Logger\Tests\DependencyInjection\Fixtures;
+namespace WPPack\Component\Logger\Tests\DependencyInjection\Fixtures;
 
 use Psr\Log\LoggerInterface;
-use WpPack\Component\Logger\Attribute\LoggerChannel;
+use WPPack\Component\Logger\Attribute\LoggerChannel;
 
 final class SecurityService
 {

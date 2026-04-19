@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,26 +11,26 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\AmazonMailerPlugin\Tests\DependencyInjection;
+namespace WPPack\Plugin\AmazonMailerPlugin\Tests\DependencyInjection;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\DependencyInjection\Reference;
-use WpPack\Component\DependencyInjection\ServiceProviderInterface;
-use WpPack\Component\Mailer\Bridge\Amazon\Transport\SesTransportFactory;
-use WpPack\Component\Mailer\Mailer;
-use WpPack\Component\Mailer\Transport\NativeTransportFactory;
-use WpPack\Component\Mailer\Transport\Transport;
-use WpPack\Plugin\AmazonMailerPlugin\Admin\AmazonMailerSettingsController;
-use WpPack\Plugin\AmazonMailerPlugin\Admin\AmazonMailerSettingsPage;
-use WpPack\Plugin\AmazonMailerPlugin\Configuration\AmazonMailerConfiguration;
-use WpPack\Plugin\AmazonMailerPlugin\DependencyInjection\AmazonMailerPluginServiceProvider;
-use WpPack\Plugin\AmazonMailerPlugin\Handler\BounceHandler;
-use WpPack\Plugin\AmazonMailerPlugin\Handler\ComplaintHandler;
-use WpPack\Plugin\AmazonMailerPlugin\Message\SesNotificationNormalizer;
-use WpPack\Plugin\AmazonMailerPlugin\SuppressionList;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\DependencyInjection\Reference;
+use WPPack\Component\DependencyInjection\ServiceProviderInterface;
+use WPPack\Component\Mailer\Bridge\Amazon\Transport\SesTransportFactory;
+use WPPack\Component\Mailer\Mailer;
+use WPPack\Component\Mailer\Transport\NativeTransportFactory;
+use WPPack\Component\Mailer\Transport\Transport;
+use WPPack\Plugin\AmazonMailerPlugin\Admin\AmazonMailerSettingsController;
+use WPPack\Plugin\AmazonMailerPlugin\Admin\AmazonMailerSettingsPage;
+use WPPack\Plugin\AmazonMailerPlugin\Configuration\AmazonMailerConfiguration;
+use WPPack\Plugin\AmazonMailerPlugin\DependencyInjection\AmazonMailerPluginServiceProvider;
+use WPPack\Plugin\AmazonMailerPlugin\Handler\BounceHandler;
+use WPPack\Plugin\AmazonMailerPlugin\Handler\ComplaintHandler;
+use WPPack\Plugin\AmazonMailerPlugin\Message\SesNotificationNormalizer;
+use WPPack\Plugin\AmazonMailerPlugin\SuppressionList;
 
 #[CoversClass(AmazonMailerPluginServiceProvider::class)]
 final class AmazonMailerPluginServiceProviderTest extends TestCase
@@ -175,12 +175,12 @@ final class AmazonMailerPluginServiceProviderTest extends TestCase
     public function registerSkipsMessengerWhenAlreadyRegistered(): void
     {
         // Pre-register MessageBusInterface
-        $this->builder->register(\WpPack\Component\Messenger\MessageBusInterface::class);
+        $this->builder->register(\WPPack\Component\Messenger\MessageBusInterface::class);
 
         $this->provider->register($this->builder);
 
         // HandlerLocator should NOT be registered by this provider
-        self::assertFalse($this->builder->hasDefinition(\WpPack\Component\Messenger\Handler\HandlerLocator::class));
+        self::assertFalse($this->builder->hasDefinition(\WPPack\Component\Messenger\Handler\HandlerLocator::class));
     }
 
     #[Test]

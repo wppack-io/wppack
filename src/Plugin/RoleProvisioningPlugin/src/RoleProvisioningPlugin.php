@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,18 +11,18 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\RoleProvisioningPlugin;
+namespace WPPack\Plugin\RoleProvisioningPlugin;
 
-use WpPack\Component\Admin\AdminPageRegistry;
-use WpPack\Component\DependencyInjection\Container;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\Kernel\AbstractPlugin;
-use WpPack\Component\Kernel\Attribute\TextDomain;
-use WpPack\Component\Rest\RestRegistry;
-use WpPack\Plugin\RoleProvisioningPlugin\Admin\RoleProvisioningSettingsController;
-use WpPack\Plugin\RoleProvisioningPlugin\Admin\RoleProvisioningSettingsPage;
-use WpPack\Plugin\RoleProvisioningPlugin\DependencyInjection\RoleProvisioningPluginServiceProvider;
-use WpPack\Plugin\RoleProvisioningPlugin\Provisioning\RoleProvisioner;
+use WPPack\Component\Admin\AdminPageRegistry;
+use WPPack\Component\DependencyInjection\Container;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\Kernel\AbstractPlugin;
+use WPPack\Component\Kernel\Attribute\TextDomain;
+use WPPack\Component\Rest\RestRegistry;
+use WPPack\Plugin\RoleProvisioningPlugin\Admin\RoleProvisioningSettingsController;
+use WPPack\Plugin\RoleProvisioningPlugin\Admin\RoleProvisioningSettingsPage;
+use WPPack\Plugin\RoleProvisioningPlugin\DependencyInjection\RoleProvisioningPluginServiceProvider;
+use WPPack\Plugin\RoleProvisioningPlugin\Provisioning\RoleProvisioner;
 
 #[TextDomain(domain: 'wppack-role-provisioning')]
 final class RoleProvisioningPlugin extends AbstractPlugin

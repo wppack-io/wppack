@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,15 +11,15 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Setting\Tests;
+namespace WPPack\Component\Setting\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Setting\AbstractSettingsPage;
-use WpPack\Component\Setting\Attribute\AsSettingsPage;
-use WpPack\Component\Escaper\Escaper;
-use WpPack\Component\Setting\SettingsConfigurator;
-use WpPack\Component\Setting\SettingsRenderer;
+use WPPack\Component\Setting\AbstractSettingsPage;
+use WPPack\Component\Setting\Attribute\AsSettingsPage;
+use WPPack\Component\Escaper\Escaper;
+use WPPack\Component\Setting\SettingsConfigurator;
+use WPPack\Component\Setting\SettingsRenderer;
 
 final class SettingsRendererTest extends TestCase
 {

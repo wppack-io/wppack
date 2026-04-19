@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\OptionsResolver\Tests;
+namespace WPPack\Component\OptionsResolver\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\OptionsResolver\OptionsResolver as SymfonyOptionsResolver;
-use WpPack\Component\OptionsResolver\OptionsResolver;
+use WPPack\Component\OptionsResolver\OptionsResolver;
 
 final class OptionsResolverTest extends TestCase
 {

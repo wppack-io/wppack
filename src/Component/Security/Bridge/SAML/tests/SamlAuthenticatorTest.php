@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Security\Bridge\SAML\Tests;
+namespace WPPack\Component\Security\Bridge\SAML\Tests;
 
 use LightSaml\Binding\AbstractBinding;
 use LightSaml\Binding\BindingFactory;
@@ -33,22 +33,22 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
-use WpPack\Component\HttpFoundation\RedirectResponse;
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\Security\Authentication\Passport\Badge\UserBadge;
-use WpPack\Component\Security\Authentication\Passport\SelfValidatingPassport;
-use WpPack\Component\Security\Authentication\Token\PostAuthenticationToken;
-use WpPack\Component\Security\Bridge\SAML\Badge\SamlAttributesBadge;
-use WpPack\Component\Security\Bridge\SAML\Configuration\IdpSettings;
-use WpPack\Component\Security\Bridge\SAML\Configuration\SamlConfiguration;
-use WpPack\Component\Security\Bridge\SAML\Configuration\SpSettings;
-use WpPack\Component\Security\Bridge\SAML\Factory\SamlAuthFactory;
-use WpPack\Component\Security\Bridge\SAML\Multisite\CrossSiteRedirector;
-use WpPack\Component\Security\Bridge\SAML\SamlAuthenticator;
-use WpPack\Component\Security\Bridge\SAML\UserResolution\SamlUserResolverInterface;
-use WpPack\Component\Security\Exception\AuthenticationException;
-use WpPack\Component\Site\BlogContext;
-use WpPack\Component\Transient\TransientManager;
+use WPPack\Component\HttpFoundation\RedirectResponse;
+use WPPack\Component\HttpFoundation\Request;
+use WPPack\Component\Security\Authentication\Passport\Badge\UserBadge;
+use WPPack\Component\Security\Authentication\Passport\SelfValidatingPassport;
+use WPPack\Component\Security\Authentication\Token\PostAuthenticationToken;
+use WPPack\Component\Security\Bridge\SAML\Badge\SamlAttributesBadge;
+use WPPack\Component\Security\Bridge\SAML\Configuration\IdpSettings;
+use WPPack\Component\Security\Bridge\SAML\Configuration\SamlConfiguration;
+use WPPack\Component\Security\Bridge\SAML\Configuration\SpSettings;
+use WPPack\Component\Security\Bridge\SAML\Factory\SamlAuthFactory;
+use WPPack\Component\Security\Bridge\SAML\Multisite\CrossSiteRedirector;
+use WPPack\Component\Security\Bridge\SAML\SamlAuthenticator;
+use WPPack\Component\Security\Bridge\SAML\UserResolution\SamlUserResolverInterface;
+use WPPack\Component\Security\Exception\AuthenticationException;
+use WPPack\Component\Site\BlogContext;
+use WPPack\Component\Transient\TransientManager;
 
 #[CoversClass(SamlAuthenticator::class)]
 final class SamlAuthenticatorTest extends TestCase

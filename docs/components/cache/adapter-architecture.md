@@ -267,7 +267,7 @@ src/Component/Cache/Bridge/{Name}/
 ### 名前空間
 
 ```
-WpPack\Component\Cache\Bridge\{Name}\Adapter\
+WPPack\Component\Cache\Bridge\{Name}\Adapter\
 ```
 
 ### composer.json
@@ -289,11 +289,11 @@ WpPack\Component\Cache\Bridge\{Name}\Adapter\
 ### 1. ファクトリを実装
 
 ```php
-namespace WpPack\Component\Cache\Bridge\Memcached\Adapter;
+namespace WPPack\Component\Cache\Bridge\Memcached\Adapter;
 
-use WpPack\Component\Cache\Adapter\AdapterFactoryInterface;
-use WpPack\Component\Cache\Adapter\AdapterInterface;
-use WpPack\Component\Cache\Adapter\Dsn;
+use WPPack\Component\Cache\Adapter\AdapterFactoryInterface;
+use WPPack\Component\Cache\Adapter\AdapterInterface;
+use WPPack\Component\Cache\Adapter\Dsn;
 
 final class MemcachedAdapterFactory implements AdapterFactoryInterface
 {
@@ -318,9 +318,9 @@ final class MemcachedAdapterFactory implements AdapterFactoryInterface
 ### 2. アダプタを実装
 
 ```php
-namespace WpPack\Component\Cache\Bridge\Memcached\Adapter;
+namespace WPPack\Component\Cache\Bridge\Memcached\Adapter;
 
-use WpPack\Component\Cache\Adapter\AbstractAdapter;
+use WPPack\Component\Cache\Adapter\AbstractAdapter;
 
 final class MemcachedAdapter extends AbstractAdapter
 {
@@ -367,12 +367,12 @@ private const FACTORY_CLASSES = [
 {
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\Cache\\Bridge\\Memcached\\": "src/Component/Cache/Bridge/Memcached/src/"
+            "WPPack\\Component\\Cache\\Bridge\\Memcached\\": "src/Component/Cache/Bridge/Memcached/src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Component\\Cache\\Bridge\\Memcached\\Tests\\": "src/Component/Cache/Bridge/Memcached/tests/"
+            "WPPack\\Component\\Cache\\Bridge\\Memcached\\Tests\\": "src/Component/Cache/Bridge/Memcached/tests/"
         }
     },
     "replace": {
@@ -386,7 +386,7 @@ private const FACTORY_CLASSES = [
 ### 通常パス（blob 保存）
 
 ```
-WordPress                    WpPack
+WordPress                    WPPack
 ─────────                    ──────
 wp_cache_set('key', $data)
     │
@@ -412,7 +412,7 @@ ObjectCache::set()
 `WPPACK_CACHE_HASH_ALLOPTIONS` が有効で、アダプタが `HashableAdapterInterface` を実装している場合:
 
 ```
-WordPress                           WpPack
+WordPress                           WPPack
 ─────────                           ──────
 wp_cache_set('alloptions', $opts, 'options')
     │

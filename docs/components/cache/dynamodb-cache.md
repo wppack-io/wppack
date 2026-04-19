@@ -1,7 +1,7 @@
 # DynamoDB Cache Bridge
 
 **パッケージ:** `wppack/dynamodb-cache`
-**名前空間:** `WpPack\Component\Cache\Bridge\DynamoDb\`
+**名前空間:** `WPPack\Component\Cache\Bridge\DynamoDb\`
 **レイヤー:** Abstraction
 
 Cache コンポーネントの AWS DynamoDB アダプタ実装。サーバーレスでフルマネージドなキャッシュバックエンドを提供します。Redis / Valkey のようなインフラ管理が不要で、オンデマンドキャパシティによるスケーラブルなキャッシュストレージとして利用できます。
@@ -510,7 +510,7 @@ define('WPPACK_CACHE_PREFIX', 'wp:');
 
 // 3. WordPress の Object Cache が自動的に DynamoDB を使用
 // CacheManager は透過的に動作
-use WpPack\Component\Cache\CacheManager;
+use WPPack\Component\Cache\CacheManager;
 
 $cache = new CacheManager();
 $cache->set('key', 'value', 'my_app', 3600);
@@ -522,8 +522,8 @@ $data = $cache->get('key', 'my_app');
 ドロップインを使わず、直接 `ObjectCache` を使用することもできます。
 
 ```php
-use WpPack\Component\Cache\Adapter\Adapter;
-use WpPack\Component\Cache\ObjectCache;
+use WPPack\Component\Cache\Adapter\Adapter;
+use WPPack\Component\Cache\ObjectCache;
 
 $adapter = Adapter::fromDsn('dynamodb://ap-northeast-1/cache');
 $cache = new ObjectCache($adapter, 'wp:');

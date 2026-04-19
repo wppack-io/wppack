@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,24 +11,24 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\RoleProvisioningPlugin\DependencyInjection;
+namespace WPPack\Plugin\RoleProvisioningPlugin\DependencyInjection;
 
 use Psr\Log\LoggerInterface;
-use WpPack\Component\Admin\AdminPageRegistry;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\DependencyInjection\Reference;
-use WpPack\Component\DependencyInjection\ServiceProviderInterface;
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\Logger\DependencyInjection\LoggerServiceProvider;
-use WpPack\Component\Rest\RestRegistry;
-use WpPack\Component\Role\RoleProvider;
-use WpPack\Component\Site\BlogContext;
-use WpPack\Component\Site\BlogContextInterface;
-use WpPack\Plugin\RoleProvisioningPlugin\Admin\RoleProvisioningSettingsController;
-use WpPack\Plugin\RoleProvisioningPlugin\Admin\RoleProvisioningSettingsPage;
-use WpPack\Plugin\RoleProvisioningPlugin\Configuration\RoleProvisioningConfiguration;
-use WpPack\Component\User\UserRepositoryInterface;
-use WpPack\Plugin\RoleProvisioningPlugin\Provisioning\RoleProvisioner;
+use WPPack\Component\Admin\AdminPageRegistry;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\DependencyInjection\Reference;
+use WPPack\Component\DependencyInjection\ServiceProviderInterface;
+use WPPack\Component\HttpFoundation\Request;
+use WPPack\Component\Logger\DependencyInjection\LoggerServiceProvider;
+use WPPack\Component\Rest\RestRegistry;
+use WPPack\Component\Role\RoleProvider;
+use WPPack\Component\Site\BlogContext;
+use WPPack\Component\Site\BlogContextInterface;
+use WPPack\Plugin\RoleProvisioningPlugin\Admin\RoleProvisioningSettingsController;
+use WPPack\Plugin\RoleProvisioningPlugin\Admin\RoleProvisioningSettingsPage;
+use WPPack\Plugin\RoleProvisioningPlugin\Configuration\RoleProvisioningConfiguration;
+use WPPack\Component\User\UserRepositoryInterface;
+use WPPack\Plugin\RoleProvisioningPlugin\Provisioning\RoleProvisioner;
 
 final class RoleProvisioningPluginServiceProvider implements ServiceProviderInterface
 {
@@ -80,7 +80,7 @@ final class RoleProvisioningPluginServiceProvider implements ServiceProviderInte
         // Role Provisioner
         // User Repository
         if (!$builder->hasDefinition(UserRepositoryInterface::class)) {
-            $builder->register(UserRepositoryInterface::class, \WpPack\Component\User\UserRepository::class);
+            $builder->register(UserRepositoryInterface::class, \WPPack\Component\User\UserRepository::class);
         }
 
         $builder->register(RoleProvisioner::class)

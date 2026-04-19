@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,10 +11,10 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Debug\Toolbar\Panel;
+namespace WPPack\Component\Debug\Toolbar\Panel;
 
-use WpPack\Component\Debug\Attribute\AsPanelRenderer;
-use WpPack\Component\Debug\DataCollector\DatabaseDataCollector;
+use WPPack\Component\Debug\Attribute\AsPanelRenderer;
+use WPPack\Component\Debug\DataCollector\DatabaseDataCollector;
 
 #[AsPanelRenderer(name: 'database')]
 final class DatabasePanelRenderer extends AbstractPanelRenderer implements RendererInterface

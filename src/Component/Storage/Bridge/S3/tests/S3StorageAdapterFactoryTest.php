@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,16 +11,16 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Storage\Bridge\S3\Tests;
+namespace WPPack\Component\Storage\Bridge\S3\Tests;
 
 use AsyncAws\S3\S3Client;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Storage\Adapter\Dsn;
-use WpPack\Component\Storage\Bridge\S3\S3StorageAdapter;
-use WpPack\Component\Storage\Bridge\S3\S3StorageAdapterFactory;
-use WpPack\Component\Storage\Exception\InvalidArgumentException;
+use WPPack\Component\Storage\Adapter\Dsn;
+use WPPack\Component\Storage\Bridge\S3\S3StorageAdapter;
+use WPPack\Component\Storage\Bridge\S3\S3StorageAdapterFactory;
+use WPPack\Component\Storage\Exception\InvalidArgumentException;
 
 #[CoversClass(S3StorageAdapterFactory::class)]
 final class S3StorageAdapterFactoryTest extends TestCase

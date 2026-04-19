@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,23 +11,23 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Serializer\Tests\Normalizer;
+namespace WPPack\Component\Serializer\Tests\Normalizer;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Serializer\Exception\NotNormalizableValueException;
-use WpPack\Component\Serializer\Normalizer\DateTimeNormalizer;
-use WpPack\Component\Serializer\Normalizer\ObjectNormalizer;
-use WpPack\Component\Serializer\Serializer;
-use WpPack\Component\Serializer\Tests\Fixtures\DummyObject;
-use WpPack\Component\Serializer\Tests\Fixtures\NestedObject;
-use WpPack\Component\Serializer\Tests\Fixtures\NoConstructorObject;
-use WpPack\Component\Serializer\Tests\Fixtures\ObjectWithArrayParam;
-use WpPack\Component\Serializer\Tests\Fixtures\ObjectWithDatetime;
-use WpPack\Component\Serializer\Tests\Fixtures\ObjectWithNullable;
-use WpPack\Component\Serializer\Tests\Fixtures\ObjectWithOptional;
-use WpPack\Component\Serializer\Tests\Fixtures\ObjectWithUnionType;
+use WPPack\Component\Serializer\Exception\NotNormalizableValueException;
+use WPPack\Component\Serializer\Normalizer\DateTimeNormalizer;
+use WPPack\Component\Serializer\Normalizer\ObjectNormalizer;
+use WPPack\Component\Serializer\Serializer;
+use WPPack\Component\Serializer\Tests\Fixtures\DummyObject;
+use WPPack\Component\Serializer\Tests\Fixtures\NestedObject;
+use WPPack\Component\Serializer\Tests\Fixtures\NoConstructorObject;
+use WPPack\Component\Serializer\Tests\Fixtures\ObjectWithArrayParam;
+use WPPack\Component\Serializer\Tests\Fixtures\ObjectWithDatetime;
+use WPPack\Component\Serializer\Tests\Fixtures\ObjectWithNullable;
+use WPPack\Component\Serializer\Tests\Fixtures\ObjectWithOptional;
+use WPPack\Component\Serializer\Tests\Fixtures\ObjectWithUnionType;
 
 #[CoversClass(ObjectNormalizer::class)]
 final class ObjectNormalizerTest extends TestCase

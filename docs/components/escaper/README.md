@@ -1,7 +1,7 @@
 # Escaper コンポーネント
 
 **パッケージ:** `wppack/escaper`
-**名前空間:** `WpPack\Component\Escaper\`
+**名前空間:** `WPPack\Component\Escaper\`
 **レイヤー:** Abstraction
 
 WordPress の出力エスケープ関数を型安全にラップし、エスケープ関連の WordPress フックを Named Hook アトリビュートとして提供するコンポーネントです。
@@ -28,10 +28,10 @@ echo '<a href="' . esc_url($url) . '">Link</a>';
 echo '<script>var name = "' . esc_js($name) . '";</script>';
 ```
 
-### After（WpPack）
+### After（WPPack）
 
 ```php
-use WpPack\Component\Escaper\Escaper;
+use WPPack\Component\Escaper\Escaper;
 
 $escaper = $container->get(Escaper::class);
 
@@ -46,7 +46,7 @@ echo '<script>var name = "' . $escaper->js($name) . '";</script>';
 WordPress の出力エスケープ関数を型安全にラップするサービスクラスです。
 
 ```php
-use WpPack\Component\Escaper\Escaper;
+use WPPack\Component\Escaper\Escaper;
 
 $escaper = new Escaper();
 

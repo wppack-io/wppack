@@ -2,7 +2,7 @@
 
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=azure_mailer)](https://codecov.io/github/wppack-io/wppack)
 
-Azure Communication Services Email transport implementation for WpPack Mailer.
+Azure Communication Services Email transport implementation for WPPack Mailer.
 
 ## Installation
 

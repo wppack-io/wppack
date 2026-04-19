@@ -1,7 +1,7 @@
 # Console コンポーネント
 
 **パッケージ:** `wppack/console`
-**名前空間:** `WpPack\Component\Console\`
+**名前空間:** `WPPack\Component\Console\`
 **レイヤー:** Feature
 
 Console コンポーネントは、Symfony Console に倣った `configure()` + `execute()` パターンで WP-CLI コマンドを型安全に作成するためのフレームワークです。DI コンテナとの統合により、`#[AsCommand]` アトリビュートを付けたコマンドクラスが自動的に検出・登録されます。
@@ -38,16 +38,16 @@ if (defined('WP_CLI') && WP_CLI) {
 }
 ```
 
-### After（WpPack）
+### After（WPPack）
 
 ```php
-use WpPack\Component\Console\AbstractCommand;
-use WpPack\Component\Console\Attribute\AsCommand;
-use WpPack\Component\Console\Input\InputArgument;
-use WpPack\Component\Console\Input\InputDefinition;
-use WpPack\Component\Console\Input\InputInterface;
-use WpPack\Component\Console\Input\InputOption;
-use WpPack\Component\Console\Output\OutputStyle;
+use WPPack\Component\Console\AbstractCommand;
+use WPPack\Component\Console\Attribute\AsCommand;
+use WPPack\Component\Console\Input\InputArgument;
+use WPPack\Component\Console\Input\InputDefinition;
+use WPPack\Component\Console\Input\InputInterface;
+use WPPack\Component\Console\Input\InputOption;
+use WPPack\Component\Console\Output\OutputStyle;
 
 #[AsCommand(name: 'myplugin import-users', description: 'Import users from CSV')]
 final class ImportUsersCommand extends AbstractCommand
@@ -93,13 +93,13 @@ final class ImportUsersCommand extends AbstractCommand
 3. `execute()` にロジックを実装する
 
 ```php
-use WpPack\Component\Console\AbstractCommand;
-use WpPack\Component\Console\Attribute\AsCommand;
-use WpPack\Component\Console\Input\InputArgument;
-use WpPack\Component\Console\Input\InputDefinition;
-use WpPack\Component\Console\Input\InputInterface;
-use WpPack\Component\Console\Input\InputOption;
-use WpPack\Component\Console\Output\OutputStyle;
+use WPPack\Component\Console\AbstractCommand;
+use WPPack\Component\Console\Attribute\AsCommand;
+use WPPack\Component\Console\Input\InputArgument;
+use WPPack\Component\Console\Input\InputDefinition;
+use WPPack\Component\Console\Input\InputInterface;
+use WPPack\Component\Console\Input\InputOption;
+use WPPack\Component\Console\Output\OutputStyle;
 
 #[AsCommand(name: 'myapp generate-report', description: 'Generate a site report')]
 final class GenerateReportCommand extends AbstractCommand
@@ -263,13 +263,13 @@ $registry->register(); // WP_CLI::add_command() を一括呼び出し
 `ArrayInput` と `BufferedOutput` を使い、WP-CLI なしでコマンドをテストできます:
 
 ```php
-use WpPack\Component\Console\AbstractCommand;
-use WpPack\Component\Console\Input\ArrayInput;
-use WpPack\Component\Console\Input\InputArgument;
-use WpPack\Component\Console\Input\InputDefinition;
-use WpPack\Component\Console\Input\InputInterface;
-use WpPack\Component\Console\Output\BufferedOutput;
-use WpPack\Component\Console\Output\OutputStyle;
+use WPPack\Component\Console\AbstractCommand;
+use WPPack\Component\Console\Input\ArrayInput;
+use WPPack\Component\Console\Input\InputArgument;
+use WPPack\Component\Console\Input\InputDefinition;
+use WPPack\Component\Console\Input\InputInterface;
+use WPPack\Component\Console\Output\BufferedOutput;
+use WPPack\Component\Console\Output\OutputStyle;
 
 #[Test]
 public function greetingCommandOutputsMessage(): void

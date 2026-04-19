@@ -1,7 +1,7 @@
 # PostType Component
 
 **Package:** `wppack/post-type`
-**Namespace:** `WpPack\Component\PostType\`
+**Namespace:** `WPPack\Component\PostType\`
 **Layer:** Feature
 
 PostType コンポーネントは、WordPress カスタム投稿タイプをモダンなオブジェクト指向で開発するためのフレームワークです。PHP 8 アトリビュートによる型安全なメタフィールド定義、REST API の自動統合、流暢なクエリインターフェースを提供します。
@@ -54,13 +54,13 @@ function product_meta_box_callback($post) {
 }
 ```
 
-### After（WpPack）
+### After（WPPack）
 
 ```php
-use WpPack\Component\PostType\AbstractPostType;
-use WpPack\Component\PostType\Attribute\PostType;
-use WpPack\Component\PostType\Attribute\Meta;
-use WpPack\Component\PostType\Attribute\MetaValidate;
+use WPPack\Component\PostType\AbstractPostType;
+use WPPack\Component\PostType\Attribute\PostType;
+use WPPack\Component\PostType\Attribute\Meta;
+use WPPack\Component\PostType\Attribute\MetaValidate;
 
 #[PostType(
     name: 'product',
@@ -98,10 +98,10 @@ class Product extends AbstractPostType
 ### カスタム投稿タイプの定義
 
 ```php
-use WpPack\Component\PostType\AbstractPostType;
-use WpPack\Component\PostType\Attribute\PostType;
-use WpPack\Component\PostType\Attribute\Meta;
-use WpPack\Component\PostType\Attribute\MetaValidate;
+use WPPack\Component\PostType\AbstractPostType;
+use WPPack\Component\PostType\Attribute\PostType;
+use WPPack\Component\PostType\Attribute\Meta;
+use WPPack\Component\PostType\Attribute\MetaValidate;
 
 #[PostType(
     name: 'product',
@@ -179,7 +179,7 @@ class Product extends AbstractPostType
 
 ```php
 add_action('init', function () {
-    $container = new WpPack\Container();
+    $container = new WPPack\Container();
     $container->register(Product::class);
 });
 ```
@@ -332,8 +332,8 @@ class Product extends AbstractPostType
 `PostRepositoryInterface` / `PostRepository` は、WordPress 投稿の CRUD 操作とメタデータ操作を提供します。
 
 ```php
-use WpPack\Component\PostType\PostRepository;
-use WpPack\Component\PostType\PostRepositoryInterface;
+use WPPack\Component\PostType\PostRepository;
+use WPPack\Component\PostType\PostRepositoryInterface;
 
 $repository = new PostRepository();
 

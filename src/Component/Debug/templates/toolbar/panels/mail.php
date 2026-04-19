@@ -6,7 +6,7 @@
  * @var int                                                          $successCount Successfully sent count
  * @var int                                                          $failureCount Failed send count
  * @var list<array>                                                  $emails       Email records
- * @var \WpPack\Component\Debug\Toolbar\Panel\TemplateFormatters     $fmt          Template formatters
+ * @var \WPPack\Component\Debug\Toolbar\Panel\TemplateFormatters     $fmt          Template formatters
  */
 ?>
 <div class="wpd-section">

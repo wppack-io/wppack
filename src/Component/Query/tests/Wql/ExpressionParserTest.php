@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Query\Tests\Wql;
+namespace WPPack\Component\Query\Tests\Wql;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Query\Wql\ExpressionParser;
+use WPPack\Component\Query\Wql\ExpressionParser;
 
 final class ExpressionParserTest extends TestCase
 {

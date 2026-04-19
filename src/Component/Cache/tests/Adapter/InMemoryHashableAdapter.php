@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Cache\Tests\Adapter;
+namespace WPPack\Component\Cache\Tests\Adapter;
 
-use WpPack\Component\Cache\Adapter\HashableAdapterInterface;
+use WPPack\Component\Cache\Adapter\HashableAdapterInterface;
 
 final class InMemoryHashableAdapter implements HashableAdapterInterface
 {

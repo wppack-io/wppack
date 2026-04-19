@@ -5,7 +5,7 @@
  * @var array                                                        $wpData     WordPress environment data
  * @var array                                                        $themeData  Active theme data
  * @var array                                                        $pluginData Plugin data
- * @var \WpPack\Component\Debug\Toolbar\Panel\TemplateFormatters     $fmt        Template formatters
+ * @var \WPPack\Component\Debug\Toolbar\Panel\TemplateFormatters     $fmt        Template formatters
  */
 ?>
 <div class="wpd-section">

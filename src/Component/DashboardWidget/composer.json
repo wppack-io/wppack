@@ -14,12 +14,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\DashboardWidget\\": "src/"
+            "WPPack\\Component\\DashboardWidget\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Component\\DashboardWidget\\Tests\\": "tests/"
+            "WPPack\\Component\\DashboardWidget\\Tests\\": "tests/"
         }
     }
 }

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\MonitoringPlugin\Admin;
+namespace WPPack\Plugin\MonitoringPlugin\Admin;
 
-use WpPack\Component\Admin\AbstractAdminPage;
-use WpPack\Component\Admin\Attribute\AdminScope;
-use WpPack\Component\Admin\Attribute\AsAdminPage;
-use WpPack\Component\Monitoring\MonitoringCollector;
-use WpPack\Component\Role\Attribute\IsGranted;
+use WPPack\Component\Admin\AbstractAdminPage;
+use WPPack\Component\Admin\Attribute\AdminScope;
+use WPPack\Component\Admin\Attribute\AsAdminPage;
+use WPPack\Component\Monitoring\MonitoringCollector;
+use WPPack\Component\Role\Attribute\IsGranted;
 
 #[AsAdminPage(
     slug: 'wppack-monitoring',

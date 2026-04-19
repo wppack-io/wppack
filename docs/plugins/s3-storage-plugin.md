@@ -101,7 +101,7 @@ Browser (s3-upload.js)
 ```
 S3 Event Notification
   → Amazon SQS
-  → WpPack\Component\Messenger
+  → WPPack\Component\Messenger
   → S3ObjectCreatedHandler → AttachmentRegistrar.register()
     → リサイズ画像の判定（スキップ）
     → マルチサイト対応 (switch_to_blog)
@@ -155,7 +155,7 @@ WordPress コア / プラグイン
 ## 名前空間
 
 ```
-WpPack\Plugin\S3StoragePlugin\
+WPPack\Plugin\S3StoragePlugin\
 ```
 
 ## 主要クラス
@@ -165,7 +165,7 @@ WpPack\Plugin\S3StoragePlugin\
 `PluginInterface` 実装。プラグインのエントリポイントとして、サービス登録とコンパイラパス提供を行う。
 
 ```php
-namespace WpPack\Plugin\S3StoragePlugin;
+namespace WPPack\Plugin\S3StoragePlugin;
 
 final class S3StoragePlugin extends AbstractPlugin
 {
@@ -182,7 +182,7 @@ final class S3StoragePlugin extends AbstractPlugin
 S3 オブジェクトを WordPress の attachment として冪等に登録するコアロジック。同期（REST API 経由）・非同期（S3 イベント経由）の両方から使用される。
 
 ```php
-namespace WpPack\Plugin\S3StoragePlugin\Attachment;
+namespace WPPack\Plugin\S3StoragePlugin\Attachment;
 
 final readonly class AttachmentRegistrar
 {
@@ -225,7 +225,7 @@ final readonly class AttachmentRegistrar
 ブラウザ直接アップロード後の同期 attachment 登録 REST API。
 
 ```php
-namespace WpPack\Plugin\S3StoragePlugin\Attachment;
+namespace WPPack\Plugin\S3StoragePlugin\Attachment;
 
 #[RestRoute(route: '/s3/register-attachment', methods: HttpMethod::POST, namespace: 'wppack/v1')]
 #[IsGranted('upload_files')]
@@ -260,7 +260,7 @@ StorageAdapterInterface の `temporaryUploadUrl()` を使用して Pre-signed PU
 プロバイダ非依存のため、S3 / Azure / GCS いずれのアダプタでも動作する。
 
 ```php
-namespace WpPack\Plugin\S3StoragePlugin\PreSignedUrl;
+namespace WPPack\Plugin\S3StoragePlugin\PreSignedUrl;
 
 final class PreSignedUrlGenerator
 {
@@ -282,7 +282,7 @@ final class PreSignedUrlGenerator
 REST API エンドポイント。認証済みユーザーに Pre-signed URL を発行する。
 
 ```php
-namespace WpPack\Plugin\S3StoragePlugin\PreSignedUrl;
+namespace WPPack\Plugin\S3StoragePlugin\PreSignedUrl;
 
 final class PreSignedUrlController
 {
@@ -301,7 +301,7 @@ final class PreSignedUrlController
 ファイルタイプ・サイズの制限ポリシー。WordPress の許可ファイルタイプと連動する。
 
 ```php
-namespace WpPack\Plugin\S3StoragePlugin\PreSignedUrl;
+namespace WPPack\Plugin\S3StoragePlugin\PreSignedUrl;
 
 final class UploadPolicy
 {
@@ -320,7 +320,7 @@ final class UploadPolicy
 S3 オブジェクト作成イベントを処理し、`AttachmentRegistrar` に委譲する薄いアダプタ。
 
 ```php
-namespace WpPack\Plugin\S3StoragePlugin\Handler;
+namespace WPPack\Plugin\S3StoragePlugin\Handler;
 
 #[AsMessageHandler]
 final readonly class S3ObjectCreatedHandler
@@ -341,7 +341,7 @@ final readonly class S3ObjectCreatedHandler
 Lambda 上でサムネイル画像を生成する。`get_attached_file()` → stream wrapper 経由で S3 からダウンロード、`StorageImageEditor` でリサイズ、stream wrapper 経由で S3 に書き戻します。
 
 ```php
-namespace WpPack\Plugin\S3StoragePlugin\Handler;
+namespace WPPack\Plugin\S3StoragePlugin\Handler;
 
 #[AsMessageHandler]
 final readonly class GenerateThumbnailsHandler
@@ -361,7 +361,7 @@ final readonly class GenerateThumbnailsHandler
 S3 Event Notification JSON を `S3ObjectCreatedMessage` にパースする。
 
 ```php
-namespace WpPack\Plugin\S3StoragePlugin\Message;
+namespace WPPack\Plugin\S3StoragePlugin\Message;
 
 final class S3EventNormalizer
 {
@@ -377,7 +377,7 @@ final class S3EventNormalizer
 管理画面で `s3-upload.js` をエンキューし、フロントエンドに必要な設定を注入する。`media-upload` または `media-views` スクリプトが読み込まれている場合のみエンキューされる。
 
 ```php
-namespace WpPack\Plugin\S3StoragePlugin\Subscriber;
+namespace WPPack\Plugin\S3StoragePlugin\Subscriber;
 
 #[AsHookSubscriber]
 final readonly class AdminAssetSubscriber
@@ -442,7 +442,7 @@ uploads/sites/3/2024/01/photo.jpg → blog_id: 3
 ストレージ接続の設定。DSN 文字列または wp_options から設定を読み込み、`StorageConfiguration`（Media コンポーネント）に変換可能。
 
 ```php
-namespace WpPack\Plugin\S3StoragePlugin\Configuration;
+namespace WPPack\Plugin\S3StoragePlugin\Configuration;
 
 final readonly class S3StorageConfiguration
 {
@@ -572,7 +572,7 @@ const attachment = await regResponse.json();
 ### PHP からのアップロード
 
 ```php
-use WpPack\Component\Storage\Adapter\StorageAdapterInterface;
+use WPPack\Component\Storage\Adapter\StorageAdapterInterface;
 
 $adapter = $container->get(StorageAdapterInterface::class);
 $adapter->write(
@@ -585,7 +585,7 @@ $adapter->write(
 ### CDN URL の解決
 
 ```php
-use WpPack\Component\Media\Storage\UrlResolver;
+use WPPack\Component\Media\Storage\UrlResolver;
 
 $resolver = $container->get(UrlResolver::class);
 

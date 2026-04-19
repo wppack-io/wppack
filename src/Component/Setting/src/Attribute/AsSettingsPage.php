@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Setting\Attribute;
+namespace WPPack\Component\Setting\Attribute;
 
-use WpPack\Component\Admin\Attribute\AdminScope;
+use WPPack\Component\Admin\Attribute\AdminScope;
 
 #[\Attribute(\Attribute::TARGET_CLASS)]
 final class AsSettingsPage

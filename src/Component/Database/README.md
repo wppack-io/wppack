@@ -6,7 +6,7 @@ Type-safe WordPress `$wpdb` replacement with exception-based error handling, nat
 
 ## Highlights
 
-- **WpPackWpdb** — drop-in `$wpdb` replacement used through the `db.php` drop-in. Overrides `prepare()` to use per-request PreparedBank markers, so parameters are never spliced into SQL text.
+- **WPPackWpdb** — drop-in `$wpdb` replacement used through the `db.php` drop-in. Overrides `prepare()` to use per-request PreparedBank markers, so parameters are never spliced into SQL text.
 - **Native prepared statements everywhere** — `mysqli::prepare()` on MySQL/MariaDB, `PDO::prepare()` on SQLite, `pg_prepare()` / `pg_query_params()` on PostgreSQL, RDS Data API parameter binding on Aurora Data API + DSQL.
 - **Multi-engine query translation** — AST-guided MySQL → SQLite / PostgreSQL / Aurora DSQL rewrite covering 50+ functions (date, string, JSON, network, …), INSERT IGNORE, REPLACE INTO, ON DUPLICATE KEY UPDATE, DELETE JOIN, UPDATE/DELETE LIMIT, CREATE TABLE DDL. Unsupported features (FULLTEXT, spatial) surface as explicit `UnsupportedFeatureException` rather than silent pass-through.
 - **Reader/Writer affinity** — `DATABASE_READER_DSN` routes SELECT-like queries to the reader driver; any write pins subsequent reads to the writer for read-your-own-writes semantics across replication lag.
@@ -26,7 +26,7 @@ composer require wppack/database
 ## Basic Usage
 
 ```php
-use WpPack\Component\Database\DatabaseManager;
+use WPPack\Component\Database\DatabaseManager;
 
 $db = new DatabaseManager();
 
@@ -74,6 +74,6 @@ try {
 
 ## Documentation
 
-- [docs/components/database/README.md](../../docs/components/database/README.md) — full reference: DatabaseManager API, WpPackWpdb internals, production operations (observability / env vars / reconnect / transactions), exception hierarchy, bridge configuration.
+- [docs/components/database/README.md](../../docs/components/database/README.md) — full reference: DatabaseManager API, WPPackWpdb internals, production operations (observability / env vars / reconnect / transactions), exception hierarchy, bridge configuration.
 - [docs/components/database/query-translation.md](../../docs/components/database/query-translation.md) — MySQL→SQLite / PostgreSQL function + statement + DDL translation reference.
 - [docs/components/database/plugin-comparison.md](../../docs/components/database/plugin-comparison.md) — comparison with SQLite Database Integration, PG4WP.

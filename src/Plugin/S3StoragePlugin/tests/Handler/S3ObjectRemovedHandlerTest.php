@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,20 +11,20 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\S3StoragePlugin\Tests\Handler;
+namespace WPPack\Plugin\S3StoragePlugin\Tests\Handler;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Media\AttachmentManager;
-use WpPack\Component\PostType\PostRepository;
-use WpPack\Component\Messenger\Envelope;
-use WpPack\Component\Messenger\MessageBusInterface;
-use WpPack\Component\Site\BlogSwitcher;
-use WpPack\Plugin\S3StoragePlugin\Attachment\AttachmentRegistrar;
-use WpPack\Plugin\S3StoragePlugin\Configuration\S3StorageConfiguration;
-use WpPack\Plugin\S3StoragePlugin\Handler\S3ObjectRemovedHandler;
-use WpPack\Plugin\S3StoragePlugin\Message\S3ObjectRemovedMessage;
+use WPPack\Component\Media\AttachmentManager;
+use WPPack\Component\PostType\PostRepository;
+use WPPack\Component\Messenger\Envelope;
+use WPPack\Component\Messenger\MessageBusInterface;
+use WPPack\Component\Site\BlogSwitcher;
+use WPPack\Plugin\S3StoragePlugin\Attachment\AttachmentRegistrar;
+use WPPack\Plugin\S3StoragePlugin\Configuration\S3StorageConfiguration;
+use WPPack\Plugin\S3StoragePlugin\Handler\S3ObjectRemovedHandler;
+use WPPack\Plugin\S3StoragePlugin\Message\S3ObjectRemovedMessage;
 
 #[CoversClass(S3ObjectRemovedHandler::class)]
 final class S3ObjectRemovedHandlerTest extends TestCase

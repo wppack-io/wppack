@@ -1,4 +1,4 @@
-# WpPack User
+# WPPack User
 
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=user)](https://codecov.io/github/wppack-io/wppack)
 
@@ -13,7 +13,7 @@ composer require wppack/user
 ## Quick Start
 
 ```php
-use WpPack\Component\User\UserRepository;
+use WPPack\Component\User\UserRepository;
 
 $repository = new UserRepository();
 

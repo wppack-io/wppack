@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Debug\ErrorHandler;
+namespace WPPack\Component\Debug\ErrorHandler;
 
 use Psr\Log\LoggerInterface;
-use WpPack\Component\Debug\DebugConfig;
-use WpPack\Component\Debug\Profiler\Profile;
-use WpPack\Component\Debug\Toolbar\ToolbarRenderer;
+use WPPack\Component\Debug\DebugConfig;
+use WPPack\Component\Debug\Profiler\Profile;
+use WPPack\Component\Debug\Toolbar\ToolbarRenderer;
 
 final class ExceptionHandler
 {

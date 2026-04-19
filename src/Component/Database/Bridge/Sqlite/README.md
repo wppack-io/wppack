@@ -1,6 +1,6 @@
-# WpPack SQLite Database
+# WPPack SQLite Database
 
-SQLite database driver for WpPack Database component.
+SQLite database driver for WPPack Database component.
 
 ## Installation
 
@@ -11,8 +11,8 @@ composer require wppack/sqlite-database
 ## Usage
 
 ```php
-use WpPack\Component\Database\Bridge\Sqlite\SqliteDriver;
-use WpPack\Component\Database\Connection;
+use WPPack\Component\Database\Bridge\Sqlite\SqliteDriver;
+use WPPack\Component\Database\Connection;
 
 $driver = new SqliteDriver('/path/to/database.db');
 $connection = new Connection($driver);
@@ -23,8 +23,8 @@ $rows = $connection->fetchAllAssociative('SELECT * FROM posts');
 ### Via DSN
 
 ```php
-use WpPack\Component\Database\Driver\Driver;
-use WpPack\Component\Database\Connection;
+use WPPack\Component\Database\Driver\Driver;
+use WPPack\Component\Database\Connection;
 
 $driver = Driver::fromDsn('sqlite:///path/to/database.db');
 $connection = new Connection($driver);

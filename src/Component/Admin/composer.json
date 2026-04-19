@@ -14,12 +14,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\Admin\\": "src/"
+            "WPPack\\Component\\Admin\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Component\\Admin\\Tests\\": "tests/"
+            "WPPack\\Component\\Admin\\Tests\\": "tests/"
         }
     }
 }

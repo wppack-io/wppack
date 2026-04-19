@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,22 +11,22 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database\Tests;
+namespace WPPack\Component\Database\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
-use WpPack\Component\Database\Bridge\Sqlite\SqliteDriver;
-use WpPack\Component\Database\Driver\DriverInterface;
-use WpPack\Component\Database\Platform\MysqlPlatform;
-use WpPack\Component\Database\Result;
-use WpPack\Component\Database\Translator\NullQueryTranslator;
-use WpPack\Component\Database\Translator\QueryTranslatorInterface;
-use WpPack\Component\Database\WpPackWpdb;
+use WPPack\Component\Database\Bridge\Sqlite\SqliteDriver;
+use WPPack\Component\Database\Driver\DriverInterface;
+use WPPack\Component\Database\Platform\MysqlPlatform;
+use WPPack\Component\Database\Result;
+use WPPack\Component\Database\Translator\NullQueryTranslator;
+use WPPack\Component\Database\Translator\QueryTranslatorInterface;
+use WPPack\Component\Database\WPPackWpdb;
 
-final class WpPackWpdbTest extends TestCase
+final class WPPackWpdbTest extends TestCase
 {
-    private WpPackWpdb $wpdb;
+    private WPPackWpdb $wpdb;
     private SqliteDriver $driver;
     private ?\wpdb $originalWpdb = null;
 
@@ -42,7 +42,7 @@ final class WpPackWpdbTest extends TestCase
 
         $GLOBALS['table_prefix'] = 'wptests_';
 
-        $this->wpdb = new WpPackWpdb(
+        $this->wpdb = new WPPackWpdb(
             writer: $this->driver,
             translator: new NullQueryTranslator(),
             dbname: 'test',
@@ -508,7 +508,7 @@ final class WpPackWpdbTest extends TestCase
             ->willReturn(new Result([['id' => 1]]));
         $readerDriver->method('lastInsertId')->willReturn(0);
 
-        $wpdb = new WpPackWpdb(
+        $wpdb = new WPPackWpdb(
             writer: $writerDriver,
             translator: new NullQueryTranslator(),
             dbname: 'test',
@@ -534,7 +534,7 @@ final class WpPackWpdbTest extends TestCase
         $readerDriver->expects(self::never())->method('executeStatement');
         $readerDriver->expects(self::never())->method('executeQuery');
 
-        $wpdb = new WpPackWpdb(
+        $wpdb = new WPPackWpdb(
             writer: $writerDriver,
             translator: new NullQueryTranslator(),
             dbname: 'test',
@@ -554,7 +554,7 @@ final class WpPackWpdbTest extends TestCase
             ->willReturn(new Result([['id' => 1]]));
         $writerDriver->method('lastInsertId')->willReturn(0);
 
-        $wpdb = new WpPackWpdb(
+        $wpdb = new WPPackWpdb(
             writer: $writerDriver,
             translator: new NullQueryTranslator(),
             dbname: 'test',
@@ -570,14 +570,14 @@ final class WpPackWpdbTest extends TestCase
     {
         // NullQueryTranslator passes through, so SET won't be ignored.
         // Use a translator that ignores SET statements.
-        $translator = $this->createMock(\WpPack\Component\Database\Translator\QueryTranslatorInterface::class);
+        $translator = $this->createMock(\WPPack\Component\Database\Translator\QueryTranslatorInterface::class);
         $translator->method('translate')->willReturn([]);
 
         $driver = $this->createMock(DriverInterface::class);
         $driver->method('getPlatform')->willReturn(new MysqlPlatform());
         $driver->expects(self::never())->method('executeQuery');
 
-        $wpdb = new WpPackWpdb(
+        $wpdb = new WPPackWpdb(
             writer: $driver,
             translator: $translator,
             dbname: 'test',
@@ -593,11 +593,11 @@ final class WpPackWpdbTest extends TestCase
     #[Test]
     public function noMysqlConnectionCreated(): void
     {
-        // WpPackWpdb does not call parent::__construct()
+        // WPPackWpdb does not call parent::__construct()
         // so no mysqli connection is attempted
         $driver = new SqliteDriver(':memory:');
 
-        $wpdb = new WpPackWpdb(
+        $wpdb = new WPPackWpdb(
             writer: $driver,
             translator: new NullQueryTranslator(),
             dbname: 'test',
@@ -700,7 +700,7 @@ final class WpPackWpdbTest extends TestCase
     {
         $driver = new SqliteDriver(':memory:');
 
-        $wpdb = new WpPackWpdb(
+        $wpdb = new WPPackWpdb(
             writer: $driver,
             translator: new NullQueryTranslator(),
             dbname: 'test',
@@ -783,7 +783,7 @@ final class WpPackWpdbTest extends TestCase
         $reader->executeStatement('CREATE TABLE t (tag TEXT)');
         $reader->executeStatement("INSERT INTO t (tag) VALUES ('reader')");
 
-        $wpdb = new WpPackWpdb(
+        $wpdb = new WPPackWpdb(
             writer: $writer,
             translator: new NullQueryTranslator(),
             dbname: 'test',
@@ -808,7 +808,7 @@ final class WpPackWpdbTest extends TestCase
         $reader->executeStatement('CREATE TABLE t (tag TEXT)');
         $reader->executeStatement("INSERT INTO t (tag) VALUES ('reader')");
 
-        $wpdb = new WpPackWpdb(
+        $wpdb = new WPPackWpdb(
             writer: $writer,
             translator: new NullQueryTranslator(),
             dbname: 'test',
@@ -840,7 +840,7 @@ final class WpPackWpdbTest extends TestCase
         $reader->executeStatement('CREATE TABLE t (tag TEXT)');
         $reader->executeStatement("INSERT INTO t (tag) VALUES ('reader')");
 
-        $wpdb = new WpPackWpdb(
+        $wpdb = new WPPackWpdb(
             writer: $writer,
             translator: new NullQueryTranslator(),
             dbname: 'test',
@@ -869,7 +869,7 @@ final class WpPackWpdbTest extends TestCase
         $reader->executeStatement('CREATE TABLE t (tag TEXT)');
         $reader->executeStatement("INSERT INTO t (tag) VALUES ('reader')");
 
-        $wpdb = new WpPackWpdb(
+        $wpdb = new WPPackWpdb(
             writer: $writer,
             translator: new NullQueryTranslator(),
             dbname: 'test',
@@ -901,7 +901,7 @@ final class WpPackWpdbTest extends TestCase
         $driver->connect();
         $driver->executeStatement('CREATE TABLE t (id INTEGER)');
 
-        $wpdb = new WpPackWpdb(
+        $wpdb = new WPPackWpdb(
             writer: $driver,
             translator: new NullQueryTranslator(),
             dbname: 'test',
@@ -922,7 +922,7 @@ final class WpPackWpdbTest extends TestCase
 
         $driver = new SqliteDriver(':memory:');
 
-        $wpdb = new WpPackWpdb(
+        $wpdb = new WPPackWpdb(
             writer: $driver,
             translator: new NullQueryTranslator(),
             dbname: 'test',
@@ -942,7 +942,7 @@ final class WpPackWpdbTest extends TestCase
         $driver->connect();
         $driver->executeStatement('CREATE TABLE t (id INTEGER)');
 
-        $wpdb = new WpPackWpdb(
+        $wpdb = new WPPackWpdb(
             writer: $driver,
             translator: new NullQueryTranslator(),
             dbname: 'test',
@@ -965,7 +965,7 @@ final class WpPackWpdbTest extends TestCase
         $driver = new SqliteDriver(':memory:');
         $driver->connect();
 
-        $wpdb = new WpPackWpdb(
+        $wpdb = new WPPackWpdb(
             writer: $driver,
             translator: new NullQueryTranslator(),
             dbname: 'test',
@@ -977,7 +977,7 @@ final class WpPackWpdbTest extends TestCase
     #[Test]
     public function realEscapeReturnsEmptyForNonString(): void
     {
-        $wpdb = new WpPackWpdb(
+        $wpdb = new WPPackWpdb(
             writer: new SqliteDriver(':memory:'),
             translator: new NullQueryTranslator(),
             dbname: 'test',
@@ -998,7 +998,7 @@ final class WpPackWpdbTest extends TestCase
         $driver = new SqliteDriver(':memory:');
         $driver->connect();
 
-        $wpdb = new WpPackWpdb(
+        $wpdb = new WPPackWpdb(
             writer: $driver,
             translator: new NullQueryTranslator(),
             dbname: 'test',
@@ -1015,7 +1015,7 @@ final class WpPackWpdbTest extends TestCase
     public function getVarAndGetResultsWorkOnSqlite(): void
     {
         // Standard wpdb::get_var / get_row / get_results read $last_result.
-        // WpPackWpdb populates last_result as an array of stdClass from
+        // WPPackWpdb populates last_result as an array of stdClass from
         // the driver's associative rows, so the inherited helpers should
         // Just Work. Regression test in case we ever stop.
         $driver = new SqliteDriver(':memory:');
@@ -1024,7 +1024,7 @@ final class WpPackWpdbTest extends TestCase
         $driver->executeStatement("INSERT INTO t (id, name) VALUES (1, 'alice')");
         $driver->executeStatement("INSERT INTO t (id, name) VALUES (2, 'bob')");
 
-        $wpdb = new WpPackWpdb(
+        $wpdb = new WPPackWpdb(
             writer: $driver,
             translator: new NullQueryTranslator(),
             dbname: 'test',
@@ -1049,13 +1049,13 @@ final class WpPackWpdbTest extends TestCase
     {
         // Parent wpdb::set_blog_id mutates $this->blogid, refreshes
         // $this->prefix via get_blog_prefix(), and remaps table names.
-        // WpPackWpdb doesn't override any of those methods so the
+        // WPPackWpdb doesn't override any of those methods so the
         // inherited behaviour works for multisite callers. In a single-
         // site test env is_multisite() is false so the prefix doesn't
         // change, but we at least verify the call succeeds and blogid
         // is moved — regression guard for a future override that might
         // break it entirely.
-        $wpdb = new WpPackWpdb(
+        $wpdb = new WPPackWpdb(
             writer: $this->driver,
             translator: new NullQueryTranslator(),
             dbname: 'test',
@@ -1165,7 +1165,7 @@ final class WpPackWpdbTest extends TestCase
         $driver = new SqliteDriver(':memory:');
         $driver->connect();
 
-        $wpdb = new WpPackWpdb(
+        $wpdb = new WPPackWpdb(
             writer: $driver,
             translator: new NullQueryTranslator(),
             dbname: 'test',
@@ -1197,14 +1197,14 @@ final class WpPackWpdbTest extends TestCase
         $writer = $this->createMock(DriverInterface::class);
         $writer->method('getPlatform')->willReturn(new MysqlPlatform());
         $writer->method('executeQuery')->willThrowException(
-            new \WpPack\Component\Database\Exception\DriverException('server has gone away', 0, null, 2006),
+            new \WPPack\Component\Database\Exception\DriverException('server has gone away', 0, null, 2006),
         );
         $writer->method('executeStatement')->willThrowException(
-            new \WpPack\Component\Database\Exception\DriverException('server has gone away', 0, null, 2006),
+            new \WPPack\Component\Database\Exception\DriverException('server has gone away', 0, null, 2006),
         );
         $writer->method('lastInsertId')->willReturn(0);
 
-        $wpdb = new WpPackWpdb(
+        $wpdb = new WPPackWpdb(
             writer: $writer,
             translator: new NullQueryTranslator(),
             dbname: 'test',
@@ -1228,9 +1228,9 @@ final class WpPackWpdbTest extends TestCase
 
         $translator = $this->createMock(QueryTranslatorInterface::class);
         $translator->method('translate')
-            ->willThrowException(new \WpPack\Component\Database\Exception\TranslationException('bad', 'sqlite'));
+            ->willThrowException(new \WPPack\Component\Database\Exception\TranslationException('bad', 'sqlite'));
 
-        $wpdb = new WpPackWpdb(
+        $wpdb = new WPPackWpdb(
             writer: $driver,
             translator: $translator,
             dbname: 'test',
@@ -1264,7 +1264,7 @@ final class WpPackWpdbTest extends TestCase
         $driver->executeStatement('INSERT INTO t VALUES (1)');
         $driver->executeStatement('INSERT INTO t VALUES (2)');
 
-        $wpdb = new WpPackWpdb(
+        $wpdb = new WPPackWpdb(
             writer: $driver,
             translator: new NullQueryTranslator(),
             dbname: 'test',
@@ -1273,7 +1273,7 @@ final class WpPackWpdbTest extends TestCase
 
         $wpdb->query('SELECT * FROM t');
 
-        self::assertInstanceOf(\WpPack\Component\Database\Event\DatabaseQueryCompletedEvent::class, $captured);
+        self::assertInstanceOf(\WPPack\Component\Database\Event\DatabaseQueryCompletedEvent::class, $captured);
         self::assertSame('SELECT * FROM t', $captured->sql);
         self::assertSame(2, $captured->rowCount);
         self::assertSame('writer', $captured->driverName);
@@ -1305,9 +1305,9 @@ final class WpPackWpdbTest extends TestCase
 
         $translator = $this->createMock(QueryTranslatorInterface::class);
         $translator->method('translate')
-            ->willThrowException(new \WpPack\Component\Database\Exception\TranslationException('parse failed', 'sqlite'));
+            ->willThrowException(new \WPPack\Component\Database\Exception\TranslationException('parse failed', 'sqlite'));
 
-        $wpdb = new WpPackWpdb(
+        $wpdb = new WPPackWpdb(
             writer: $driver,
             translator: $translator,
             dbname: 'test',
@@ -1316,7 +1316,7 @@ final class WpPackWpdbTest extends TestCase
 
         $wpdb->query('BAD SQL');
 
-        self::assertInstanceOf(\WpPack\Component\Database\Event\DatabaseQueryFailedEvent::class, $captured);
+        self::assertInstanceOf(\WPPack\Component\Database\Event\DatabaseQueryFailedEvent::class, $captured);
         self::assertStringContainsString('[Translation]', $captured->errorMessage);
     }
 
@@ -1336,7 +1336,7 @@ final class WpPackWpdbTest extends TestCase
 
         $driver = new SqliteDriver(':memory:');
 
-        $wpdb = new WpPackWpdb(
+        $wpdb = new WPPackWpdb(
             writer: $driver,
             translator: new NullQueryTranslator(),
             dbname: 'test',
@@ -1345,7 +1345,7 @@ final class WpPackWpdbTest extends TestCase
 
         $wpdb->query('SELECT * FROM nonexistent_table');
 
-        self::assertInstanceOf(\WpPack\Component\Database\Event\DatabaseQueryFailedEvent::class, $captured);
+        self::assertInstanceOf(\WPPack\Component\Database\Event\DatabaseQueryFailedEvent::class, $captured);
         self::assertSame('SELECT * FROM nonexistent_table', $captured->sql);
         self::assertNotSame('', $captured->errorMessage);
         self::assertSame('writer', $captured->driverName);
@@ -1370,7 +1370,7 @@ final class WpPackWpdbTest extends TestCase
         $driver = new SqliteDriver(':memory:');
         $driver->connect();
 
-        $wpdb = new WpPackWpdb(
+        $wpdb = new WPPackWpdb(
             writer: $driver,
             translator: new NullQueryTranslator(),
             dbname: 'test',
@@ -1380,7 +1380,7 @@ final class WpPackWpdbTest extends TestCase
         $sql = $wpdb->prepare('INSERT INTO missing (pw) VALUES (%s)', 'super-secret-password');
         $wpdb->query($sql);
 
-        self::assertInstanceOf(\WpPack\Component\Database\Event\DatabaseQueryFailedEvent::class, $captured);
+        self::assertInstanceOf(\WPPack\Component\Database\Event\DatabaseQueryFailedEvent::class, $captured);
         self::assertSame(['#0' => 'string(21)'], $captured->paramsSummary);
         self::assertStringNotContainsString('super-secret-password', var_export($captured, true));
     }
@@ -1401,7 +1401,7 @@ final class WpPackWpdbTest extends TestCase
         $driver = new SqliteDriver(':memory:');
         $driver->connect();
 
-        $wpdb = new WpPackWpdb(
+        $wpdb = new WPPackWpdb(
             writer: $driver,
             translator: new NullQueryTranslator(),
             dbname: 'test',

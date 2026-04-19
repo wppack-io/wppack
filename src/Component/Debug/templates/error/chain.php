@@ -3,7 +3,7 @@
  * Exception chain template.
  *
  * @var list<array>                                                $chain    Exception chain
- * @var \WpPack\Component\Debug\ErrorHandler\ErrorRenderer         $renderer Error renderer for path formatting
+ * @var \WPPack\Component\Debug\ErrorHandler\ErrorRenderer         $renderer Error renderer for path formatting
  */
 if (count($chain) <= 1) {
     return;

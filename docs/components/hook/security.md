@@ -30,10 +30,10 @@
 ### 使用例：認証セキュリティシステム
 
 ```php
-use WpPack\Component\Hook\Attribute\Security\Action\WpLoginAction;
-use WpPack\Component\Hook\Attribute\Security\Action\WpLoginFailedAction;
-use WpPack\Component\Hook\Attribute\Security\Filter\AuthenticateFilter;
-use WpPack\Component\Hook\Attribute\Security\Filter\UserHasCapFilter;
+use WPPack\Component\Hook\Attribute\Security\Action\WpLoginAction;
+use WPPack\Component\Hook\Attribute\Security\Action\WpLoginFailedAction;
+use WPPack\Component\Hook\Attribute\Security\Filter\AuthenticateFilter;
+use WPPack\Component\Hook\Attribute\Security\Filter\UserHasCapFilter;
 
 class SecuritySystem
 {

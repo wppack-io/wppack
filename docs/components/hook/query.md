@@ -12,7 +12,7 @@ Query コンポーネントは、WordPress のクエリ機能に対する Named 
 クエリ実行前にクエリパラメータを変更します。
 
 ```php
-use WpPack\Component\Hook\Attribute\Query\Action\PreGetPostsAction;
+use WPPack\Component\Hook\Attribute\Query\Action\PreGetPostsAction;
 
 class QueryManager
 {
@@ -36,7 +36,7 @@ class QueryManager
 クエリの WHERE 句を変更します。
 
 ```php
-use WpPack\Component\Hook\Attribute\Query\Filter\PostsWhereFilter;
+use WPPack\Component\Hook\Attribute\Query\Filter\PostsWhereFilter;
 
 class QueryWhereModifier
 {

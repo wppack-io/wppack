@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Debug\Tests\Toolbar;
+namespace WPPack\Component\Debug\Tests\Toolbar;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Debug\DataCollector\DataCollectorInterface;
-use WpPack\Component\Debug\Profiler\Profile;
-use WpPack\Component\Debug\Toolbar\Panel\RestPanelRenderer;
+use WPPack\Component\Debug\DataCollector\DataCollectorInterface;
+use WPPack\Component\Debug\Profiler\Profile;
+use WPPack\Component\Debug\Toolbar\Panel\RestPanelRenderer;
 
 final class RestPanelRendererTest extends TestCase
 {

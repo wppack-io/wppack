@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,18 +11,18 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Debug\Tests\ErrorHandler;
+namespace WPPack\Component\Debug\Tests\ErrorHandler;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
-use WpPack\Component\Debug\DataCollector\DataCollectorInterface;
-use WpPack\Component\Debug\DataCollector\WordPressDataCollector;
-use WpPack\Component\Debug\DebugConfig;
-use WpPack\Component\Debug\ErrorHandler\ErrorRenderer;
-use WpPack\Component\Debug\ErrorHandler\WpDieHandler;
-use WpPack\Component\Debug\Profiler\Profile;
-use WpPack\Component\Debug\Toolbar\ToolbarRenderer;
+use WPPack\Component\Debug\DataCollector\DataCollectorInterface;
+use WPPack\Component\Debug\DataCollector\WordPressDataCollector;
+use WPPack\Component\Debug\DebugConfig;
+use WPPack\Component\Debug\ErrorHandler\ErrorRenderer;
+use WPPack\Component\Debug\ErrorHandler\WpDieHandler;
+use WPPack\Component\Debug\Profiler\Profile;
+use WPPack\Component\Debug\Toolbar\ToolbarRenderer;
 
 final class WpDieHandlerTest extends TestCase
 {

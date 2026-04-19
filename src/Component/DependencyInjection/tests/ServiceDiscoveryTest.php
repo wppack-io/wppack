@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,21 +11,21 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\DependencyInjection\Tests;
+namespace WPPack\Component\DependencyInjection\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\DependencyInjection\Reference;
-use WpPack\Component\DependencyInjection\ServiceDiscovery;
-use WpPack\Component\DependencyInjection\Tests\Fixtures\AbstractService;
-use WpPack\Component\DependencyInjection\Tests\Fixtures\DependentService;
-use WpPack\Component\DependencyInjection\Tests\Fixtures\LazyService;
-use WpPack\Component\DependencyInjection\Tests\Fixtures\PlainClass;
-use WpPack\Component\DependencyInjection\Tests\Fixtures\SampleImplementation;
-use WpPack\Component\DependencyInjection\Tests\Fixtures\SampleInterface;
-use WpPack\Component\DependencyInjection\Tests\Fixtures\SimpleService;
-use WpPack\Component\DependencyInjection\Tests\Fixtures\TaggedService;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\DependencyInjection\Reference;
+use WPPack\Component\DependencyInjection\ServiceDiscovery;
+use WPPack\Component\DependencyInjection\Tests\Fixtures\AbstractService;
+use WPPack\Component\DependencyInjection\Tests\Fixtures\DependentService;
+use WPPack\Component\DependencyInjection\Tests\Fixtures\LazyService;
+use WPPack\Component\DependencyInjection\Tests\Fixtures\PlainClass;
+use WPPack\Component\DependencyInjection\Tests\Fixtures\SampleImplementation;
+use WPPack\Component\DependencyInjection\Tests\Fixtures\SampleInterface;
+use WPPack\Component\DependencyInjection\Tests\Fixtures\SimpleService;
+use WPPack\Component\DependencyInjection\Tests\Fixtures\TaggedService;
 
 final class ServiceDiscoveryTest extends TestCase
 {
@@ -37,7 +37,7 @@ final class ServiceDiscoveryTest extends TestCase
 
         $discovery->discover(
             __DIR__ . '/Fixtures',
-            'WpPack\\Component\\DependencyInjection\\Tests\\Fixtures',
+            'WPPack\\Component\\DependencyInjection\\Tests\\Fixtures',
         );
 
         self::assertTrue($builder->hasDefinition(SimpleService::class));
@@ -54,7 +54,7 @@ final class ServiceDiscoveryTest extends TestCase
 
         $discovery->discover(
             __DIR__ . '/Fixtures',
-            'WpPack\\Component\\DependencyInjection\\Tests\\Fixtures',
+            'WPPack\\Component\\DependencyInjection\\Tests\\Fixtures',
         );
 
         self::assertFalse($builder->hasDefinition(PlainClass::class));
@@ -68,7 +68,7 @@ final class ServiceDiscoveryTest extends TestCase
 
         $discovery->discover(
             __DIR__ . '/Fixtures',
-            'WpPack\\Component\\DependencyInjection\\Tests\\Fixtures',
+            'WPPack\\Component\\DependencyInjection\\Tests\\Fixtures',
         );
 
         self::assertFalse($builder->hasDefinition(AbstractService::class));
@@ -82,7 +82,7 @@ final class ServiceDiscoveryTest extends TestCase
 
         $discovery->discover(
             __DIR__ . '/Fixtures',
-            'WpPack\\Component\\DependencyInjection\\Tests\\Fixtures',
+            'WPPack\\Component\\DependencyInjection\\Tests\\Fixtures',
         );
 
         self::assertFalse($builder->hasDefinition(SampleInterface::class));
@@ -96,7 +96,7 @@ final class ServiceDiscoveryTest extends TestCase
 
         $discovery->discover(
             __DIR__ . '/Fixtures',
-            'WpPack\\Component\\DependencyInjection\\Tests\\Fixtures',
+            'WPPack\\Component\\DependencyInjection\\Tests\\Fixtures',
             ['LazyService.php', 'Tagged*'],
         );
 
@@ -113,7 +113,7 @@ final class ServiceDiscoveryTest extends TestCase
 
         $discovery->discover(
             __DIR__ . '/Fixtures',
-            'WpPack\\Component\\DependencyInjection\\Tests\\Fixtures',
+            'WPPack\\Component\\DependencyInjection\\Tests\\Fixtures',
             [__DIR__ . '/Fixtures/LazyService.php'],
         );
 
@@ -129,7 +129,7 @@ final class ServiceDiscoveryTest extends TestCase
 
         $discovery->discover(
             __DIR__ . '/Fixtures',
-            'WpPack\\Component\\DependencyInjection\\Tests\\Fixtures',
+            'WPPack\\Component\\DependencyInjection\\Tests\\Fixtures',
         );
 
         self::assertTrue($builder->hasDefinition(SampleImplementation::class));
@@ -144,7 +144,7 @@ final class ServiceDiscoveryTest extends TestCase
 
         $discovery->discover(
             __DIR__ . '/Fixtures',
-            'WpPack\\Component\\DependencyInjection\\Tests\\Fixtures',
+            'WPPack\\Component\\DependencyInjection\\Tests\\Fixtures',
         );
 
         $definition = $builder->findDefinition(SimpleService::class);
@@ -159,7 +159,7 @@ final class ServiceDiscoveryTest extends TestCase
 
         $discovery->discover(
             __DIR__ . '/Fixtures',
-            'WpPack\\Component\\DependencyInjection\\Tests\\Fixtures',
+            'WPPack\\Component\\DependencyInjection\\Tests\\Fixtures',
         );
 
         $definition = $builder->findDefinition(SimpleService::class);
@@ -178,7 +178,7 @@ final class ServiceDiscoveryTest extends TestCase
 
             $discovery->discover(
                 __DIR__ . '/Fixtures/Config',
-                'WpPack\\Component\\DependencyInjection\\Tests\\Fixtures\\Config',
+                'WPPack\\Component\\DependencyInjection\\Tests\\Fixtures\\Config',
             );
 
             $definition = $builder->findDefinition(Fixtures\Config\EnvConfig::class);
@@ -197,7 +197,7 @@ final class ServiceDiscoveryTest extends TestCase
 
         $discovery->discover(
             __DIR__ . '/Fixtures/Config',
-            'WpPack\\Component\\DependencyInjection\\Tests\\Fixtures\\Config',
+            'WPPack\\Component\\DependencyInjection\\Tests\\Fixtures\\Config',
         );
 
         $definition = $builder->findDefinition(Fixtures\Config\EnvConfig::class);
@@ -218,7 +218,7 @@ final class ServiceDiscoveryTest extends TestCase
 
         $discovery->discover(
             __DIR__ . '/Fixtures/Config',
-            'WpPack\\Component\\DependencyInjection\\Tests\\Fixtures\\Config',
+            'WPPack\\Component\\DependencyInjection\\Tests\\Fixtures\\Config',
         );
 
         $definition = $builder->findDefinition(Fixtures\Config\ConstantConfig::class);
@@ -236,7 +236,7 @@ final class ServiceDiscoveryTest extends TestCase
 
         $discovery->discover(
             __DIR__ . '/Fixtures/Config',
-            'WpPack\\Component\\DependencyInjection\\Tests\\Fixtures\\Config',
+            'WPPack\\Component\\DependencyInjection\\Tests\\Fixtures\\Config',
         );
 
         $definition = $builder->findDefinition(Fixtures\Config\OptionConfig::class);
@@ -256,7 +256,7 @@ final class ServiceDiscoveryTest extends TestCase
 
         $discovery->discover(
             __DIR__ . '/Fixtures/Config',
-            'WpPack\\Component\\DependencyInjection\\Tests\\Fixtures\\Config',
+            'WPPack\\Component\\DependencyInjection\\Tests\\Fixtures\\Config',
         );
 
         $definition = $builder->findDefinition(Fixtures\Config\DotOptionConfig::class);
@@ -277,7 +277,7 @@ final class ServiceDiscoveryTest extends TestCase
 
             $discovery->discover(
                 __DIR__ . '/Fixtures/Config',
-                'WpPack\\Component\\DependencyInjection\\Tests\\Fixtures\\Config',
+                'WPPack\\Component\\DependencyInjection\\Tests\\Fixtures\\Config',
             );
 
             $definition = $builder->findDefinition(Fixtures\Config\TypeCastConfig::class);
@@ -300,7 +300,7 @@ final class ServiceDiscoveryTest extends TestCase
 
             $discovery->discover(
                 __DIR__ . '/Fixtures/Config',
-                'WpPack\\Component\\DependencyInjection\\Tests\\Fixtures\\Config',
+                'WPPack\\Component\\DependencyInjection\\Tests\\Fixtures\\Config',
             );
 
             $definition = $builder->findDefinition(Fixtures\Config\BoolConfig::class);
@@ -319,7 +319,7 @@ final class ServiceDiscoveryTest extends TestCase
 
         $discovery->discover(
             __DIR__ . '/AutowireFixtures',
-            'WpPack\\Component\\DependencyInjection\\Tests\\AutowireFixtures',
+            'WPPack\\Component\\DependencyInjection\\Tests\\AutowireFixtures',
         );
 
         $definition = $builder->findDefinition(AutowireFixtures\ServiceAutowireService::class);
@@ -336,7 +336,7 @@ final class ServiceDiscoveryTest extends TestCase
 
         $discovery->discover(
             __DIR__ . '/AutowireFixtures',
-            'WpPack\\Component\\DependencyInjection\\Tests\\AutowireFixtures',
+            'WPPack\\Component\\DependencyInjection\\Tests\\AutowireFixtures',
         );
 
         $definition = $builder->findDefinition(AutowireFixtures\ParamAutowireService::class);
@@ -356,7 +356,7 @@ final class ServiceDiscoveryTest extends TestCase
 
         $discovery->discover(
             __DIR__ . '/AutowireFixtures',
-            'WpPack\\Component\\DependencyInjection\\Tests\\AutowireFixtures',
+            'WPPack\\Component\\DependencyInjection\\Tests\\AutowireFixtures',
         );
 
         $definition = $builder->findDefinition(AutowireFixtures\EnvNoDefaultService::class);
@@ -394,7 +394,7 @@ final class ServiceDiscoveryTest extends TestCase
 
             $discovery->discover(
                 __DIR__ . '/AutowireFixtures',
-                'WpPack\\Component\\DependencyInjection\\Tests\\AutowireFixtures',
+                'WPPack\\Component\\DependencyInjection\\Tests\\AutowireFixtures',
             );
 
             $definition = $builder->findDefinition(AutowireFixtures\FloatEnvService::class);
@@ -416,7 +416,7 @@ final class ServiceDiscoveryTest extends TestCase
 
             $discovery->discover(
                 __DIR__ . '/AutowireFixtures',
-                'WpPack\\Component\\DependencyInjection\\Tests\\AutowireFixtures',
+                'WPPack\\Component\\DependencyInjection\\Tests\\AutowireFixtures',
             );
 
             $definition = $builder->findDefinition(AutowireFixtures\ArrayEnvService::class);
@@ -439,7 +439,7 @@ final class ServiceDiscoveryTest extends TestCase
 
             $discovery->discover(
                 __DIR__ . '/Fixtures/Config',
-                'WpPack\\Component\\DependencyInjection\\Tests\\Fixtures\\Config',
+                'WPPack\\Component\\DependencyInjection\\Tests\\Fixtures\\Config',
             );
 
             $definition = $builder->findDefinition(Fixtures\Config\BoolConfig::class);
@@ -477,14 +477,14 @@ final class ServiceDiscoveryTest extends TestCase
 
         $discovery->discover(
             __DIR__ . '/Fixtures/NonAutoloaded',
-            'WpPack\\Component\\DependencyInjection\\Tests\\Fixtures\\NonAutoloaded',
+            'WPPack\\Component\\DependencyInjection\\Tests\\Fixtures\\NonAutoloaded',
         );
 
         // The file exists but the class namespace doesn't match autoloading,
         // so class_exists() returns false and the class is skipped.
         self::assertFalse(
             $builder->hasDefinition(
-                'WpPack\\Component\\DependencyInjection\\Tests\\Fixtures\\NonAutoloaded\\MissingClass',
+                'WPPack\\Component\\DependencyInjection\\Tests\\Fixtures\\NonAutoloaded\\MissingClass',
             ),
         );
     }

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,19 +11,19 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\S3StoragePlugin\Tests\Attachment;
+namespace WPPack\Plugin\S3StoragePlugin\Tests\Attachment;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\Media\AttachmentManager;
-use WpPack\Component\PostType\PostRepository;
-use WpPack\Component\Messenger\MessageBusInterface;
-use WpPack\Component\Site\BlogSwitcher;
-use WpPack\Component\Storage\Adapter\StorageAdapterInterface;
-use WpPack\Plugin\S3StoragePlugin\Attachment\AttachmentRegistrar;
-use WpPack\Plugin\S3StoragePlugin\Attachment\RegisterAttachmentController;
+use WPPack\Component\HttpFoundation\Request;
+use WPPack\Component\Media\AttachmentManager;
+use WPPack\Component\PostType\PostRepository;
+use WPPack\Component\Messenger\MessageBusInterface;
+use WPPack\Component\Site\BlogSwitcher;
+use WPPack\Component\Storage\Adapter\StorageAdapterInterface;
+use WPPack\Plugin\S3StoragePlugin\Attachment\AttachmentRegistrar;
+use WPPack\Plugin\S3StoragePlugin\Attachment\RegisterAttachmentController;
 
 #[CoversClass(RegisterAttachmentController::class)]
 final class RegisterAttachmentControllerTest extends TestCase
@@ -97,7 +97,7 @@ final class RegisterAttachmentControllerTest extends TestCase
 
         $bus = $this->createMock(MessageBusInterface::class);
         $bus->method('dispatch')
-            ->willReturn(\WpPack\Component\Messenger\Envelope::wrap(new \stdClass()));
+            ->willReturn(\WPPack\Component\Messenger\Envelope::wrap(new \stdClass()));
 
         $registrar = new AttachmentRegistrar(
             bus: $bus,
@@ -153,7 +153,7 @@ final class RegisterAttachmentControllerTest extends TestCase
 
         $bus = $this->createMock(MessageBusInterface::class);
         $bus->method('dispatch')
-            ->willReturn(\WpPack\Component\Messenger\Envelope::wrap(new \stdClass()));
+            ->willReturn(\WPPack\Component\Messenger\Envelope::wrap(new \stdClass()));
 
         $registrar = new AttachmentRegistrar(
             bus: $bus,

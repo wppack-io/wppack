@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,10 +11,10 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Console\Input;
+namespace WPPack\Component\Console\Input;
 
-use WpPack\Component\Console\Exception\InvalidArgumentException;
-use WpPack\Component\Console\Exception\LogicException;
+use WPPack\Component\Console\Exception\InvalidArgumentException;
+use WPPack\Component\Console\Exception\LogicException;
 
 final class InputDefinition
 {

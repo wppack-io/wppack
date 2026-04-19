@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\DependencyInjection\Tests\Configurator;
+namespace WPPack\Component\DependencyInjection\Tests\Configurator;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\DependencyInjection\Configurator\DefaultsConfigurator;
-use WpPack\Component\DependencyInjection\Configurator\PrototypeConfigurator;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\DependencyInjection\Configurator\DefaultsConfigurator;
+use WPPack\Component\DependencyInjection\Configurator\PrototypeConfigurator;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
 
 final class PrototypeConfiguratorTest extends TestCase
 {
@@ -28,7 +28,7 @@ final class PrototypeConfiguratorTest extends TestCase
         $defaults = new DefaultsConfigurator();
         $defaults->autowire()->public();
         $configurator = new PrototypeConfigurator(
-            'WpPack\\Component\\DependencyInjection\\Tests\\Fixtures\\',
+            'WPPack\\Component\\DependencyInjection\\Tests\\Fixtures\\',
             __DIR__ . '/../Fixtures',
         );
         $configurator->exclude('Config/*');
@@ -36,7 +36,7 @@ final class PrototypeConfiguratorTest extends TestCase
         $configurator->process($builder, $defaults);
 
         self::assertTrue($builder->hasDefinition(
-            'WpPack\\Component\\DependencyInjection\\Tests\\Fixtures\\SimpleService',
+            'WPPack\\Component\\DependencyInjection\\Tests\\Fixtures\\SimpleService',
         ));
     }
 
@@ -60,7 +60,7 @@ final class PrototypeConfiguratorTest extends TestCase
         $defaults = new DefaultsConfigurator();
         $defaults->autowire(false)->public(false);
         $configurator = new PrototypeConfigurator(
-            'WpPack\\Component\\DependencyInjection\\Tests\\Fixtures\\',
+            'WPPack\\Component\\DependencyInjection\\Tests\\Fixtures\\',
             __DIR__ . '/../Fixtures',
         );
         $configurator->exclude('Config/*');
@@ -68,7 +68,7 @@ final class PrototypeConfiguratorTest extends TestCase
         $configurator->process($builder, $defaults);
 
         $definition = $builder->findDefinition(
-            'WpPack\\Component\\DependencyInjection\\Tests\\Fixtures\\SimpleService',
+            'WPPack\\Component\\DependencyInjection\\Tests\\Fixtures\\SimpleService',
         );
         self::assertFalse($definition->isAutowired());
         self::assertFalse($definition->isPublic());

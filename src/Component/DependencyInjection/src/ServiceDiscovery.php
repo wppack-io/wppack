@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\DependencyInjection;
+namespace WPPack\Component\DependencyInjection;
 
-use WpPack\Component\DependencyInjection\Attribute\AsAlias;
-use WpPack\Component\DependencyInjection\Attribute\Autowire;
-use WpPack\Component\DependencyInjection\Attribute\Exclude;
+use WPPack\Component\DependencyInjection\Attribute\AsAlias;
+use WPPack\Component\DependencyInjection\Attribute\Autowire;
+use WPPack\Component\DependencyInjection\Attribute\Exclude;
 
 final class ServiceDiscovery
 {

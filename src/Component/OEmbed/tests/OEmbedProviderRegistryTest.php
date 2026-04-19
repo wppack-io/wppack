@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\OEmbed\Tests;
+namespace WPPack\Component\OEmbed\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\OEmbed\OEmbedProviderDefinition;
-use WpPack\Component\OEmbed\OEmbedProviderInterface;
-use WpPack\Component\OEmbed\OEmbedProviderRegistry;
+use WPPack\Component\OEmbed\OEmbedProviderDefinition;
+use WPPack\Component\OEmbed\OEmbedProviderInterface;
+use WPPack\Component\OEmbed\OEmbedProviderRegistry;
 
 final class OEmbedProviderRegistryTest extends TestCase
 {

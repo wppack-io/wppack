@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database;
+namespace WPPack\Component\Database;
 
 use Psr\Log\LoggerInterface;
-use WpPack\Component\Database\Driver\DriverInterface;
-use WpPack\Component\Database\Exception\DriverException;
-use WpPack\Component\Database\Exception\QueryException;
-use WpPack\Component\Database\Platform\PlatformInterface;
-use WpPack\Component\Database\Translator\QueryTranslatorInterface;
+use WPPack\Component\Database\Driver\DriverInterface;
+use WPPack\Component\Database\Exception\DriverException;
+use WPPack\Component\Database\Exception\QueryException;
+use WPPack\Component\Database\Platform\PlatformInterface;
+use WPPack\Component\Database\Translator\QueryTranslatorInterface;
 
 /**
  * DBAL-style database connection.

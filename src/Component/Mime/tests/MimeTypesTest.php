@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Mime\Tests;
+namespace WPPack\Component\Mime\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Mime\MimeTypeGuesserInterface;
-use WpPack\Component\Mime\MimeTypes;
-use WpPack\Component\Mime\MimeTypesInterface;
+use WPPack\Component\Mime\MimeTypeGuesserInterface;
+use WPPack\Component\Mime\MimeTypes;
+use WPPack\Component\Mime\MimeTypesInterface;
 
 final class MimeTypesTest extends TestCase
 {
@@ -271,7 +271,7 @@ final class MimeTypesTest extends TestCase
             $info = $mimeTypes->validateFile($path, 'test.txt');
 
             // FileTypeInfo is returned (may have null extension/mimeType depending on WordPress config)
-            self::assertInstanceOf(\WpPack\Component\Mime\FileTypeInfo::class, $info);
+            self::assertInstanceOf(\WPPack\Component\Mime\FileTypeInfo::class, $info);
         } finally {
             @unlink($path);
         }

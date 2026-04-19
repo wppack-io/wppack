@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Console\DependencyInjection;
+namespace WPPack\Component\Console\DependencyInjection;
 
-use WpPack\Component\Console\AbstractCommand;
-use WpPack\Component\Console\Attribute\AsCommand;
-use WpPack\Component\Console\CommandRegistry;
-use WpPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\DependencyInjection\Reference;
+use WPPack\Component\Console\AbstractCommand;
+use WPPack\Component\Console\Attribute\AsCommand;
+use WPPack\Component\Console\CommandRegistry;
+use WPPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\DependencyInjection\Reference;
 
 final class RegisterCommandsPass implements CompilerPassInterface
 {

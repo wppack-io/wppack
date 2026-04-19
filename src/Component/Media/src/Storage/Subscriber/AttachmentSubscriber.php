@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Media\Storage\Subscriber;
+namespace WPPack\Component\Media\Storage\Subscriber;
 
-use WpPack\Component\EventDispatcher\Attribute\AsEventListener;
-use WpPack\Component\EventDispatcher\WordPressEvent;
-use WpPack\Component\Media\Storage\StorageConfiguration;
-use WpPack\Component\Media\Storage\UrlResolver;
-use WpPack\Component\Storage\Adapter\StorageAdapterInterface;
+use WPPack\Component\EventDispatcher\Attribute\AsEventListener;
+use WPPack\Component\EventDispatcher\WordPressEvent;
+use WPPack\Component\Media\Storage\StorageConfiguration;
+use WPPack\Component\Media\Storage\UrlResolver;
+use WPPack\Component\Storage\Adapter\StorageAdapterInterface;
 
 final readonly class AttachmentSubscriber
 {

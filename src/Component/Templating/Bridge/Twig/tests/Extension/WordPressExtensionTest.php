@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,16 +11,16 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Templating\Bridge\Twig\Tests\Extension;
+namespace WPPack\Component\Templating\Bridge\Twig\Tests\Extension;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Twig\Environment;
 use Twig\Loader\ArrayLoader;
 use Twig\Loader\FilesystemLoader;
-use WpPack\Component\Escaper\Escaper;
-use WpPack\Component\Sanitizer\Sanitizer;
-use WpPack\Component\Templating\Bridge\Twig\Extension\WordPressExtension;
+use WPPack\Component\Escaper\Escaper;
+use WPPack\Component\Sanitizer\Sanitizer;
+use WPPack\Component\Templating\Bridge\Twig\Extension\WordPressExtension;
 
 final class WordPressExtensionTest extends TestCase
 {

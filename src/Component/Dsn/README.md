@@ -1,6 +1,6 @@
-# WpPack DSN
+# WPPack DSN
 
-Shared Data Source Name (DSN) parser for WpPack components.
+Shared Data Source Name (DSN) parser for WPPack components.
 
 ## Features
 
@@ -20,7 +20,7 @@ composer require wppack/dsn
 ## Usage
 
 ```php
-use WpPack\Component\Dsn\Dsn;
+use WPPack\Component\Dsn\Dsn;
 
 $dsn = Dsn::fromString('mysql://user:pass@host:3306/dbname?charset=utf8mb4');
 

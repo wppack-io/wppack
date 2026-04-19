@@ -11,8 +11,8 @@ Widget コンポーネントは、WordPress ウィジェット機能のための
 **WordPress フック:** `widgets_init`
 
 ```php
-use WpPack\Component\Hook\Attribute\Widget\Action\WidgetsInitAction;
-use WpPack\Component\Widget\WidgetRegistry;
+use WPPack\Component\Hook\Attribute\Widget\Action\WidgetsInitAction;
+use WPPack\Component\Widget\WidgetRegistry;
 
 class WidgetManager
 {
@@ -58,7 +58,7 @@ class WidgetManager
 **WordPress フック:** `dynamic_sidebar_before`
 
 ```php
-use WpPack\Component\Hook\Attribute\Widget\Action\DynamicSidebarBeforeAction;
+use WPPack\Component\Hook\Attribute\Widget\Action\DynamicSidebarBeforeAction;
 
 class SidebarManager
 {
@@ -77,7 +77,7 @@ class SidebarManager
 **WordPress フック:** `dynamic_sidebar_after`
 
 ```php
-use WpPack\Component\Hook\Attribute\Widget\Action\DynamicSidebarAfterAction;
+use WPPack\Component\Hook\Attribute\Widget\Action\DynamicSidebarAfterAction;
 
 class SidebarEnhancer
 {
@@ -102,7 +102,7 @@ class SidebarEnhancer
 **WordPress フック:** `dynamic_sidebar_params`
 
 ```php
-use WpPack\Component\Hook\Attribute\Widget\Filter\DynamicSidebarParamsFilter;
+use WPPack\Component\Hook\Attribute\Widget\Filter\DynamicSidebarParamsFilter;
 
 class WidgetCustomizer
 {
@@ -134,7 +134,7 @@ class WidgetCustomizer
 **WordPress フック:** `widget_update_callback`
 
 ```php
-use WpPack\Component\Hook\Attribute\Widget\Filter\WidgetUpdateCallbackFilter;
+use WPPack\Component\Hook\Attribute\Widget\Filter\WidgetUpdateCallbackFilter;
 
 class WidgetValidator
 {
@@ -157,7 +157,7 @@ class WidgetValidator
 **WordPress フック:** `widget_form_callback`
 
 ```php
-use WpPack\Component\Hook\Attribute\Widget\Filter\WidgetFormCallbackFilter;
+use WPPack\Component\Hook\Attribute\Widget\Filter\WidgetFormCallbackFilter;
 
 class WidgetFormEnhancer
 {
@@ -181,7 +181,7 @@ class WidgetFormEnhancer
 **WordPress フック:** `widget_display_callback`
 
 ```php
-use WpPack\Component\Hook\Attribute\Widget\Filter\WidgetDisplayCallbackFilter;
+use WPPack\Component\Hook\Attribute\Widget\Filter\WidgetDisplayCallbackFilter;
 
 class WidgetVisibility
 {
@@ -208,7 +208,7 @@ class WidgetVisibility
 **WordPress フック:** `widget_title`
 
 ```php
-use WpPack\Component\Hook\Attribute\Widget\Filter\WidgetTitleFilter;
+use WPPack\Component\Hook\Attribute\Widget\Filter\WidgetTitleFilter;
 
 class WidgetTitleFormatter
 {
@@ -231,7 +231,7 @@ class WidgetTitleFormatter
 **WordPress フック:** `register_sidebar`
 
 ```php
-use WpPack\Component\Hook\Attribute\Widget\Filter\RegisterSidebarFilter;
+use WPPack\Component\Hook\Attribute\Widget\Filter\RegisterSidebarFilter;
 
 class SidebarRegistrar
 {

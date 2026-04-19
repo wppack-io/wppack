@@ -15,7 +15,7 @@ composer require wppack/site
 Read-only multisite state queries:
 
 ```php
-use WpPack\Component\Site\BlogContext;
+use WPPack\Component\Site\BlogContext;
 
 $context = new BlogContext();
 
@@ -29,7 +29,7 @@ $isSwitched = $context->isSwitched();
 Safe blog switching with automatic restore via callable:
 
 ```php
-use WpPack\Component\Site\BlogSwitcher;
+use WPPack\Component\Site\BlogSwitcher;
 
 $switcher = new BlogSwitcher();
 
@@ -61,7 +61,7 @@ try {
 Multisite site queries and resolution:
 
 ```php
-use WpPack\Component\Site\SiteRepository;
+use WPPack\Component\Site\SiteRepository;
 
 $repository = new SiteRepository();
 

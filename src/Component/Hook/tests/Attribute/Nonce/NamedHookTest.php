@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,15 +11,15 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Hook\Tests\Attribute\Nonce;
+namespace WPPack\Component\Hook\Tests\Attribute\Nonce;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Hook\Attribute\Filter;
-use WpPack\Component\Hook\Hook;
-use WpPack\Component\Hook\HookType;
-use WpPack\Component\Hook\Attribute\Nonce\Filter\NonceLifeFilter;
-use WpPack\Component\Hook\Attribute\Nonce\Filter\NonceUserLoggedOutFilter;
+use WPPack\Component\Hook\Attribute\Filter;
+use WPPack\Component\Hook\Hook;
+use WPPack\Component\Hook\HookType;
+use WPPack\Component\Hook\Attribute\Nonce\Filter\NonceLifeFilter;
+use WPPack\Component\Hook\Attribute\Nonce\Filter\NonceUserLoggedOutFilter;
 
 final class NamedHookTest extends TestCase
 {

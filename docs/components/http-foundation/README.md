@@ -1,7 +1,7 @@
 # HttpFoundation Component
 
 **パッケージ:** `wppack/http-foundation`
-**名前空間:** `WpPack\Component\HttpFoundation\`
+**名前空間:** `WPPack\Component\HttpFoundation\`
 **レイヤー:** Abstraction
 
 WordPress における HTTP リクエスト処理のためのオブジェクト指向レイヤーを提供します。`$_GET`、`$_POST`、`$_FILES` などのスーパーグローバルへの型安全なアクセスと、基本的なレスポンスクラスを提供します。
@@ -42,11 +42,11 @@ echo json_encode(['success' => true]);
 exit;
 ```
 
-### After（WpPack）
+### After（WPPack）
 
 ```php
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\HttpFoundation\JsonResponse;
+use WPPack\Component\HttpFoundation\Request;
+use WPPack\Component\HttpFoundation\JsonResponse;
 
 class FormController
 {
@@ -79,7 +79,7 @@ class FormController
 ### リクエストの取得
 
 ```php
-use WpPack\Component\HttpFoundation\Request;
+use WPPack\Component\HttpFoundation\Request;
 
 // 現在の HTTP リクエストからインスタンスを生成
 $request = Request::createFromGlobals();
@@ -134,7 +134,7 @@ if ($request->isJson()) {
 `File` は `\SplFileInfo` を拡張した汎用ファイルクラスです。MIME タイプ検出、拡張子推測、ファイル移動を提供します：
 
 ```php
-use WpPack\Component\HttpFoundation\File\File;
+use WPPack\Component\HttpFoundation\File\File;
 
 $file = new File('/path/to/document.pdf');
 
@@ -154,7 +154,7 @@ $moved = $file->move('/new/directory', 'renamed.pdf');
 存在しないファイルを指定すると `FileNotFoundException` がスローされます：
 
 ```php
-use WpPack\Component\HttpFoundation\File\Exception\FileNotFoundException;
+use WPPack\Component\HttpFoundation\File\Exception\FileNotFoundException;
 
 try {
     $file = new File('/nonexistent/file.txt');
@@ -168,7 +168,7 @@ try {
 `UploadedFile` は `File` を拡張し、アップロード固有の機能を追加します。`$_FILES` を `UploadedFile` オブジェクトとしてラップし、型安全に操作できます：
 
 ```php
-use WpPack\Component\HttpFoundation\File\UploadedFile;
+use WPPack\Component\HttpFoundation\File\UploadedFile;
 
 $file = $request->files->get('upload');
 
@@ -222,7 +222,7 @@ $movedFile = $file->move($uploadDir['path'], $filename);
 JSON レスポンスを簡単に生成できます：
 
 ```php
-use WpPack\Component\HttpFoundation\JsonResponse;
+use WPPack\Component\HttpFoundation\JsonResponse;
 
 // 基本的な JSON レスポンス
 $response = new JsonResponse(['message' => 'Success']);
@@ -247,8 +247,8 @@ $response->send();
 ## WordPress AJAX ハンドラーでの使用例
 
 ```php
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\HttpFoundation\JsonResponse;
+use WPPack\Component\HttpFoundation\Request;
+use WPPack\Component\HttpFoundation\JsonResponse;
 
 final class UserApiHandler
 {
@@ -394,7 +394,7 @@ $response->send()
 ### Response（基底）
 
 ```php
-use WpPack\Component\HttpFoundation\Response;
+use WPPack\Component\HttpFoundation\Response;
 
 $response = new Response('Hello', 200, ['X-Custom' => 'value']);
 $response->send(); // ヘッダー送信 + echo
@@ -403,7 +403,7 @@ $response->send(); // ヘッダー送信 + echo
 ### RedirectResponse
 
 ```php
-use WpPack\Component\HttpFoundation\RedirectResponse;
+use WPPack\Component\HttpFoundation\RedirectResponse;
 
 $response = new RedirectResponse('/new-url', 302, safe: true);
 // Location ヘッダーが自動設定される
@@ -412,7 +412,7 @@ $response = new RedirectResponse('/new-url', 302, safe: true);
 ### BinaryFileResponse
 
 ```php
-use WpPack\Component\HttpFoundation\BinaryFileResponse;
+use WPPack\Component\HttpFoundation\BinaryFileResponse;
 
 $response = new BinaryFileResponse('/path/to/file.pdf', 'report.pdf', 'attachment');
 ```
@@ -422,9 +422,9 @@ $response = new BinaryFileResponse('/path/to/file.pdf', 'report.pdf', 'attachmen
 HTTP エラーを例外として throw できます。Rest / Routing / Ajax の各コンポーネントで統一的に利用されます：
 
 ```php
-use WpPack\Component\HttpFoundation\Exception\NotFoundException;
-use WpPack\Component\HttpFoundation\Exception\ForbiddenException;
-use WpPack\Component\HttpFoundation\Exception\BadRequestException;
+use WPPack\Component\HttpFoundation\Exception\NotFoundException;
+use WPPack\Component\HttpFoundation\Exception\ForbiddenException;
+use WPPack\Component\HttpFoundation\Exception\BadRequestException;
 
 throw new NotFoundException('User not found.');       // 404
 throw new ForbiddenException('Access denied.');       // 403
@@ -489,7 +489,7 @@ final class MyService
 各パラメータの解決ロジックを定義するインターフェースです。
 
 ```php
-use WpPack\Component\HttpFoundation\ValueResolverInterface;
+use WPPack\Component\HttpFoundation\ValueResolverInterface;
 
 interface ValueResolverInterface
 {
@@ -503,9 +503,9 @@ interface ValueResolverInterface
 `ArgumentResolver` はリゾルバの配列を受け取り、`createResolver()` で対象メソッドのパラメータリゾルバを生成します。
 
 ```php
-use WpPack\Component\HttpFoundation\ArgumentResolver;
-use WpPack\Component\HttpFoundation\RequestValueResolver;
-use WpPack\Component\Security\ValueResolver\CurrentUserValueResolver;
+use WPPack\Component\HttpFoundation\ArgumentResolver;
+use WPPack\Component\HttpFoundation\RequestValueResolver;
+use WPPack\Component\Security\ValueResolver\CurrentUserValueResolver;
 
 $argumentResolver = new ArgumentResolver([
     new RequestValueResolver($request),
@@ -523,7 +523,7 @@ $resolver = $argumentResolver->createResolver($target, '__invoke');
 `Request` 型ヒントのパラメータに現在のリクエストオブジェクトを注入します。
 
 ```php
-use WpPack\Component\HttpFoundation\RequestValueResolver;
+use WPPack\Component\HttpFoundation\RequestValueResolver;
 
 $resolver = new RequestValueResolver($request);
 ```
@@ -533,7 +533,7 @@ $resolver = new RequestValueResolver($request);
 `ValueResolverInterface` を実装してカスタムリゾルバを追加できます。
 
 ```php
-use WpPack\Component\HttpFoundation\ValueResolverInterface;
+use WPPack\Component\HttpFoundation\ValueResolverInterface;
 
 final class MyServiceValueResolver implements ValueResolverInterface
 {

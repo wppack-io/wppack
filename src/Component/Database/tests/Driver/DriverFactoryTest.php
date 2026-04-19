@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,15 +11,15 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database\Tests\Driver;
+namespace WPPack\Component\Database\Tests\Driver;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Database\Driver\Driver;
-use WpPack\Component\Database\Driver\MysqlDriver;
-use WpPack\Component\Database\Driver\MysqlDriverFactory;
-use WpPack\Component\Database\Exception\UnsupportedSchemeException;
-use WpPack\Component\Dsn\Dsn;
+use WPPack\Component\Database\Driver\Driver;
+use WPPack\Component\Database\Driver\MysqlDriver;
+use WPPack\Component\Database\Driver\MysqlDriverFactory;
+use WPPack\Component\Database\Exception\UnsupportedSchemeException;
+use WPPack\Component\Dsn\Dsn;
 
 final class DriverFactoryTest extends TestCase
 {

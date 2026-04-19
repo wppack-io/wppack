@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,44 +11,44 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\S3StoragePlugin\Tests\DependencyInjection;
+namespace WPPack\Plugin\S3StoragePlugin\Tests\DependencyInjection;
 
 use AsyncAws\S3\S3Client;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Asset\AssetManager;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\DependencyInjection\Reference;
-use WpPack\Component\DependencyInjection\ServiceProviderInterface;
-use WpPack\Component\Media\AttachmentManager;
-use WpPack\Component\Media\AttachmentManagerInterface;
-use WpPack\Component\PostType\PostRepository;
-use WpPack\Component\PostType\PostRepositoryInterface;
-use WpPack\Component\Media\Storage\StorageConfiguration;
-use WpPack\Component\Media\Storage\Subscriber\AttachmentSubscriber;
-use WpPack\Component\Media\Storage\Subscriber\UploadDirSubscriber;
-use WpPack\Component\Media\Storage\UrlResolver;
-use WpPack\Component\Messenger\MessageBusInterface;
-use WpPack\Component\Nonce\NonceManager;
-use WpPack\Component\Rest\RestUrlGenerator;
-use WpPack\Component\Storage\Adapter\StorageAdapterInterface;
-use WpPack\Component\Storage\Bridge\S3\S3StorageAdapter;
-use WpPack\Component\Storage\StreamWrapper\StorageStreamWrapper;
-use WpPack\Plugin\S3StoragePlugin\Attachment\AttachmentRegistrar;
-use WpPack\Plugin\S3StoragePlugin\Attachment\RegisterAttachmentController;
-use WpPack\Plugin\S3StoragePlugin\Configuration\S3StorageConfiguration;
-use WpPack\Plugin\S3StoragePlugin\DependencyInjection\S3StoragePluginServiceProvider;
-use WpPack\Plugin\S3StoragePlugin\Handler\GenerateThumbnailsHandler;
-use WpPack\Plugin\S3StoragePlugin\Handler\S3ObjectCreatedHandler;
-use WpPack\Plugin\S3StoragePlugin\Handler\S3ObjectRemovedHandler;
-use WpPack\Plugin\S3StoragePlugin\Message\S3EventNormalizer;
-use WpPack\Plugin\S3StoragePlugin\PreSignedUrl\PreSignedUrlController;
-use WpPack\Plugin\S3StoragePlugin\PreSignedUrl\PreSignedUrlGenerator;
-use WpPack\Plugin\S3StoragePlugin\PreSignedUrl\UploadPolicy;
-use WpPack\Plugin\S3StoragePlugin\Admin\S3StorageSettingsController;
-use WpPack\Plugin\S3StoragePlugin\Admin\S3StorageSettingsPage;
-use WpPack\Plugin\S3StoragePlugin\Subscriber\AdminAssetSubscriber;
+use WPPack\Component\Asset\AssetManager;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\DependencyInjection\Reference;
+use WPPack\Component\DependencyInjection\ServiceProviderInterface;
+use WPPack\Component\Media\AttachmentManager;
+use WPPack\Component\Media\AttachmentManagerInterface;
+use WPPack\Component\PostType\PostRepository;
+use WPPack\Component\PostType\PostRepositoryInterface;
+use WPPack\Component\Media\Storage\StorageConfiguration;
+use WPPack\Component\Media\Storage\Subscriber\AttachmentSubscriber;
+use WPPack\Component\Media\Storage\Subscriber\UploadDirSubscriber;
+use WPPack\Component\Media\Storage\UrlResolver;
+use WPPack\Component\Messenger\MessageBusInterface;
+use WPPack\Component\Nonce\NonceManager;
+use WPPack\Component\Rest\RestUrlGenerator;
+use WPPack\Component\Storage\Adapter\StorageAdapterInterface;
+use WPPack\Component\Storage\Bridge\S3\S3StorageAdapter;
+use WPPack\Component\Storage\StreamWrapper\StorageStreamWrapper;
+use WPPack\Plugin\S3StoragePlugin\Attachment\AttachmentRegistrar;
+use WPPack\Plugin\S3StoragePlugin\Attachment\RegisterAttachmentController;
+use WPPack\Plugin\S3StoragePlugin\Configuration\S3StorageConfiguration;
+use WPPack\Plugin\S3StoragePlugin\DependencyInjection\S3StoragePluginServiceProvider;
+use WPPack\Plugin\S3StoragePlugin\Handler\GenerateThumbnailsHandler;
+use WPPack\Plugin\S3StoragePlugin\Handler\S3ObjectCreatedHandler;
+use WPPack\Plugin\S3StoragePlugin\Handler\S3ObjectRemovedHandler;
+use WPPack\Plugin\S3StoragePlugin\Message\S3EventNormalizer;
+use WPPack\Plugin\S3StoragePlugin\PreSignedUrl\PreSignedUrlController;
+use WPPack\Plugin\S3StoragePlugin\PreSignedUrl\PreSignedUrlGenerator;
+use WPPack\Plugin\S3StoragePlugin\PreSignedUrl\UploadPolicy;
+use WPPack\Plugin\S3StoragePlugin\Admin\S3StorageSettingsController;
+use WPPack\Plugin\S3StoragePlugin\Admin\S3StorageSettingsPage;
+use WPPack\Plugin\S3StoragePlugin\Subscriber\AdminAssetSubscriber;
 
 #[CoversClass(S3StoragePluginServiceProvider::class)]
 final class S3StoragePluginServiceProviderTest extends TestCase
@@ -442,7 +442,7 @@ final class S3StoragePluginServiceProviderTest extends TestCase
         $bus = $this->createMock(MessageBusInterface::class);
         $config = $this->createConfig(uploadsPath: 'wp-content/uploads');
 
-        $blogSwitcher = $this->createMock(\WpPack\Component\Site\BlogSwitcherInterface::class);
+        $blogSwitcher = $this->createMock(\WPPack\Component\Site\BlogSwitcherInterface::class);
         $attachment = new AttachmentManager(new PostRepository());
         $registrar = S3StoragePluginServiceProvider::createAttachmentRegistrar($bus, $config, $blogSwitcher, $attachment);
 
@@ -456,7 +456,7 @@ final class S3StoragePluginServiceProviderTest extends TestCase
         $logger = $this->createMock(\Psr\Log\LoggerInterface::class);
         $config = $this->createConfig(uploadsPath: 'wp-content/uploads');
 
-        $blogSwitcher = $this->createMock(\WpPack\Component\Site\BlogSwitcherInterface::class);
+        $blogSwitcher = $this->createMock(\WPPack\Component\Site\BlogSwitcherInterface::class);
         $attachment = new AttachmentManager(new PostRepository());
         $registrar = S3StoragePluginServiceProvider::createAttachmentRegistrar($bus, $config, $blogSwitcher, $attachment, $logger);
 
@@ -470,7 +470,7 @@ final class S3StoragePluginServiceProviderTest extends TestCase
         $policy = new UploadPolicy(allowedMimeTypes: []);
         $asset = new AssetManager();
         $nonce = new NonceManager();
-        $restUrl = new RestUrlGenerator(new \WpPack\Component\Rest\RestRegistry($this->createMock(\WpPack\Component\HttpFoundation\Request::class)));
+        $restUrl = new RestUrlGenerator(new \WPPack\Component\Rest\RestRegistry($this->createMock(\WPPack\Component\HttpFoundation\Request::class)));
 
         $subscriber = S3StoragePluginServiceProvider::createAdminAssetSubscriber($pluginUrl, $policy, $asset, $nonce, $restUrl);
 

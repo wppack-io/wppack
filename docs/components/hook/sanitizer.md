@@ -11,7 +11,7 @@
 投稿メタの保存時にサニタイズ処理を適用します。
 
 ```php
-use WpPack\Component\Hook\Attribute\Sanitizer\Filter\SanitizePostMetaFilter;
+use WPPack\Component\Hook\Attribute\Sanitizer\Filter\SanitizePostMetaFilter;
 
 final class PostMetaSanitizer
 {
@@ -38,7 +38,7 @@ final class PostMetaSanitizer
 コメントメタの保存時にサニタイズ処理を適用します。
 
 ```php
-use WpPack\Component\Hook\Attribute\Sanitizer\Filter\SanitizeCommentMetaFilter;
+use WPPack\Component\Hook\Attribute\Sanitizer\Filter\SanitizeCommentMetaFilter;
 
 final class CommentMetaSanitizer
 {
@@ -57,7 +57,7 @@ final class CommentMetaSanitizer
 タームメタの保存時にサニタイズ処理を適用します。
 
 ```php
-use WpPack\Component\Hook\Attribute\Sanitizer\Filter\SanitizeTermMetaFilter;
+use WPPack\Component\Hook\Attribute\Sanitizer\Filter\SanitizeTermMetaFilter;
 
 final class TermMetaSanitizer
 {
@@ -76,7 +76,7 @@ final class TermMetaSanitizer
 ユーザーメタの保存時にサニタイズ処理を適用します。
 
 ```php
-use WpPack\Component\Hook\Attribute\Sanitizer\Filter\SanitizeUserMetaFilter;
+use WPPack\Component\Hook\Attribute\Sanitizer\Filter\SanitizeUserMetaFilter;
 
 final class UserMetaSanitizer
 {
@@ -95,7 +95,7 @@ final class UserMetaSanitizer
 **WordPress Hook:** `sanitize_text_field`
 
 ```php
-use WpPack\Component\Hook\Attribute\Sanitizer\Filter\SanitizeTextFieldFilter;
+use WPPack\Component\Hook\Attribute\Sanitizer\Filter\SanitizeTextFieldFilter;
 
 final class TextFieldSanitizer
 {
@@ -113,7 +113,7 @@ final class TextFieldSanitizer
 **WordPress Hook:** `sanitize_title`
 
 ```php
-use WpPack\Component\Hook\Attribute\Sanitizer\Filter\SanitizeTitleFilter;
+use WPPack\Component\Hook\Attribute\Sanitizer\Filter\SanitizeTitleFilter;
 
 final class TitleSanitizer
 {
@@ -135,7 +135,7 @@ final class TitleSanitizer
 **WordPress Hook:** `sanitize_file_name`
 
 ```php
-use WpPack\Component\Hook\Attribute\Sanitizer\Filter\SanitizeFileNameFilter;
+use WPPack\Component\Hook\Attribute\Sanitizer\Filter\SanitizeFileNameFilter;
 
 final class FileNameSanitizer
 {
@@ -153,7 +153,7 @@ final class FileNameSanitizer
 **WordPress Hook:** `sanitize_email`
 
 ```php
-use WpPack\Component\Hook\Attribute\Sanitizer\Filter\SanitizeEmailFilter;
+use WPPack\Component\Hook\Attribute\Sanitizer\Filter\SanitizeEmailFilter;
 
 final class EmailSanitizer
 {
@@ -170,7 +170,7 @@ final class EmailSanitizer
 **WordPress Hook:** `sanitize_key`
 
 ```php
-use WpPack\Component\Hook\Attribute\Sanitizer\Filter\SanitizeKeyFilter;
+use WPPack\Component\Hook\Attribute\Sanitizer\Filter\SanitizeKeyFilter;
 
 final class KeySanitizer
 {
@@ -191,7 +191,7 @@ final class KeySanitizer
 ターム挿入前のフィルターです。
 
 ```php
-use WpPack\Component\Hook\Attribute\Sanitizer\Filter\PreInsertTermFilter;
+use WPPack\Component\Hook\Attribute\Sanitizer\Filter\PreInsertTermFilter;
 
 final class TermValidator
 {
@@ -210,7 +210,7 @@ final class TermValidator
 ユーザーログイン名の保存前フィルターです。
 
 ```php
-use WpPack\Component\Hook\Attribute\Sanitizer\Filter\PreUserLoginFilter;
+use WPPack\Component\Hook\Attribute\Sanitizer\Filter\PreUserLoginFilter;
 
 final class UserLoginSanitizer
 {

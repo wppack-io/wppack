@@ -1,6 +1,6 @@
 {
     "name": "wppack/cloudwatch-monitoring",
-    "description": "AWS CloudWatch bridge for WpPack Monitoring",
+    "description": "AWS CloudWatch bridge for WPPack Monitoring",
     "type": "library",
     "license": "MIT",
     "require": {
@@ -10,12 +10,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\Monitoring\\Bridge\\CloudWatch\\": "src/"
+            "WPPack\\Component\\Monitoring\\Bridge\\CloudWatch\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Component\\Monitoring\\Bridge\\CloudWatch\\Tests\\": "tests/"
+            "WPPack\\Component\\Monitoring\\Bridge\\CloudWatch\\Tests\\": "tests/"
         }
     }
 }

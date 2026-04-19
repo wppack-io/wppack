@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,25 +11,25 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Hook\Tests\Attribute\Filesystem;
+namespace WPPack\Component\Hook\Tests\Attribute\Filesystem;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Hook\Attribute\Action;
-use WpPack\Component\Hook\Attribute\Filter;
-use WpPack\Component\Hook\Hook;
-use WpPack\Component\Hook\HookType;
-use WpPack\Component\Hook\Attribute\Filesystem\Action\WpFilesystemInitAction;
-use WpPack\Component\Hook\Attribute\Filesystem\Filter\FileIsDisplayableImageFilter;
-use WpPack\Component\Hook\Attribute\Filesystem\Filter\FilesystemMethodFileFilter;
-use WpPack\Component\Hook\Attribute\Filesystem\Filter\FilesystemMethodFilter;
-use WpPack\Component\Hook\Attribute\Filesystem\Filter\LoadImageToEditPathFilter;
-use WpPack\Component\Hook\Attribute\Filesystem\Filter\UploadDirFilter;
-use WpPack\Component\Hook\Attribute\Filesystem\Filter\WpDeleteFileFilter;
-use WpPack\Component\Hook\Attribute\Filesystem\Filter\WpHandleSideloadPrefilterFilter;
-use WpPack\Component\Hook\Attribute\Filesystem\Filter\WpMkdirModeFilter;
-use WpPack\Component\Hook\Attribute\Filesystem\Filter\WpUniqueFilenameFilter;
-use WpPack\Component\Hook\Attribute\Filesystem\Filter\WpUploadBitsFilter;
+use WPPack\Component\Hook\Attribute\Action;
+use WPPack\Component\Hook\Attribute\Filter;
+use WPPack\Component\Hook\Hook;
+use WPPack\Component\Hook\HookType;
+use WPPack\Component\Hook\Attribute\Filesystem\Action\WpFilesystemInitAction;
+use WPPack\Component\Hook\Attribute\Filesystem\Filter\FileIsDisplayableImageFilter;
+use WPPack\Component\Hook\Attribute\Filesystem\Filter\FilesystemMethodFileFilter;
+use WPPack\Component\Hook\Attribute\Filesystem\Filter\FilesystemMethodFilter;
+use WPPack\Component\Hook\Attribute\Filesystem\Filter\LoadImageToEditPathFilter;
+use WPPack\Component\Hook\Attribute\Filesystem\Filter\UploadDirFilter;
+use WPPack\Component\Hook\Attribute\Filesystem\Filter\WpDeleteFileFilter;
+use WPPack\Component\Hook\Attribute\Filesystem\Filter\WpHandleSideloadPrefilterFilter;
+use WPPack\Component\Hook\Attribute\Filesystem\Filter\WpMkdirModeFilter;
+use WPPack\Component\Hook\Attribute\Filesystem\Filter\WpUniqueFilenameFilter;
+use WPPack\Component\Hook\Attribute\Filesystem\Filter\WpUploadBitsFilter;
 
 final class NamedHookTest extends TestCase
 {

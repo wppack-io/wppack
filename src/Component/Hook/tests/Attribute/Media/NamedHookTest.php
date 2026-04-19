@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,22 +11,22 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Hook\Tests\Attribute\Media;
+namespace WPPack\Component\Hook\Tests\Attribute\Media;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Hook\Attribute\Filter;
-use WpPack\Component\Hook\Hook;
-use WpPack\Component\Hook\HookType;
-use WpPack\Component\Hook\Attribute\Media\Filter\AjaxQueryAttachmentsArgsFilter;
-use WpPack\Component\Hook\Attribute\Media\Filter\IntermediateSizesAdvancedFilter;
-use WpPack\Component\Hook\Attribute\Media\Filter\MediaUploadTabsFilter;
-use WpPack\Component\Hook\Attribute\Media\Filter\UploadMimesFilter;
-use WpPack\Component\Hook\Attribute\Media\Filter\WpGenerateAttachmentMetadataFilter;
-use WpPack\Component\Hook\Attribute\Media\Filter\WpGetAttachmentImageAttributesFilter;
-use WpPack\Component\Hook\Attribute\Media\Filter\WpHandleUploadFilter;
-use WpPack\Component\Hook\Attribute\Media\Filter\WpHandleUploadPrefilterFilter;
-use WpPack\Component\Hook\Attribute\Media\Filter\WpImageEditorsFilter;
+use WPPack\Component\Hook\Attribute\Filter;
+use WPPack\Component\Hook\Hook;
+use WPPack\Component\Hook\HookType;
+use WPPack\Component\Hook\Attribute\Media\Filter\AjaxQueryAttachmentsArgsFilter;
+use WPPack\Component\Hook\Attribute\Media\Filter\IntermediateSizesAdvancedFilter;
+use WPPack\Component\Hook\Attribute\Media\Filter\MediaUploadTabsFilter;
+use WPPack\Component\Hook\Attribute\Media\Filter\UploadMimesFilter;
+use WPPack\Component\Hook\Attribute\Media\Filter\WpGenerateAttachmentMetadataFilter;
+use WPPack\Component\Hook\Attribute\Media\Filter\WpGetAttachmentImageAttributesFilter;
+use WPPack\Component\Hook\Attribute\Media\Filter\WpHandleUploadFilter;
+use WPPack\Component\Hook\Attribute\Media\Filter\WpHandleUploadPrefilterFilter;
+use WPPack\Component\Hook\Attribute\Media\Filter\WpImageEditorsFilter;
 
 final class NamedHookTest extends TestCase
 {

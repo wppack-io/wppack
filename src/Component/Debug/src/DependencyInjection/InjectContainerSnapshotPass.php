@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Debug\DependencyInjection;
+namespace WPPack\Component\Debug\DependencyInjection;
 
-use WpPack\Component\Debug\DataCollector\ContainerDataCollector;
-use WpPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\Debug\DataCollector\ContainerDataCollector;
+use WPPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
 
 final class InjectContainerSnapshotPass implements CompilerPassInterface
 {

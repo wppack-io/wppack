@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,15 +11,15 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Messenger\Tests;
+namespace WPPack\Component\Messenger\Tests;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Messenger\Envelope;
-use WpPack\Component\Messenger\Stamp\BusNameStamp;
-use WpPack\Component\Messenger\Stamp\DelayStamp;
-use WpPack\Component\Messenger\Stamp\HandledStamp;
+use WPPack\Component\Messenger\Envelope;
+use WPPack\Component\Messenger\Stamp\BusNameStamp;
+use WPPack\Component\Messenger\Stamp\DelayStamp;
+use WPPack\Component\Messenger\Stamp\HandledStamp;
 
 #[CoversClass(Envelope::class)]
 final class EnvelopeTest extends TestCase

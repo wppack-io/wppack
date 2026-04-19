@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Mailer\Transport;
+namespace WPPack\Component\Mailer\Transport;
 
-use WpPack\Component\Mailer\Exception\UnsupportedSchemeException;
+use WPPack\Component\Mailer\Exception\UnsupportedSchemeException;
 
 final class NativeTransportFactory implements TransportFactoryInterface
 {

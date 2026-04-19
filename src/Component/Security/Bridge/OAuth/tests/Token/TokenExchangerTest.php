@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Security\Bridge\OAuth\Tests\Token;
+namespace WPPack\Component\Security\Bridge\OAuth\Tests\Token;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\HttpClient\HttpClient;
-use WpPack\Component\Security\Bridge\OAuth\Token\OAuthTokenSet;
-use WpPack\Component\Security\Bridge\OAuth\Token\TokenExchanger;
+use WPPack\Component\HttpClient\HttpClient;
+use WPPack\Component\Security\Bridge\OAuth\Token\OAuthTokenSet;
+use WPPack\Component\Security\Bridge\OAuth\Token\TokenExchanger;
 
 #[CoversClass(TokenExchanger::class)]
 final class TokenExchangerTest extends TestCase

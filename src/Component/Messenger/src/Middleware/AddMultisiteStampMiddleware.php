@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Messenger\Middleware;
+namespace WPPack\Component\Messenger\Middleware;
 
-use WpPack\Component\Messenger\Envelope;
-use WpPack\Component\Messenger\Stamp\MultisiteStamp;
-use WpPack\Component\Site\BlogContext;
-use WpPack\Component\Site\BlogContextInterface;
+use WPPack\Component\Messenger\Envelope;
+use WPPack\Component\Messenger\Stamp\MultisiteStamp;
+use WPPack\Component\Site\BlogContext;
+use WPPack\Component\Site\BlogContextInterface;
 
 final class AddMultisiteStampMiddleware implements MiddlewareInterface
 {

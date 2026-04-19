@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,16 +11,16 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Logger\Tests\DependencyInjection;
+namespace WPPack\Component\Logger\Tests\DependencyInjection;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\DependencyInjection\Reference;
-use WpPack\Component\Logger\Attribute\LoggerChannel;
-use WpPack\Component\Logger\DependencyInjection\RegisterLoggerPass;
-use WpPack\Component\Logger\LoggerFactory;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\DependencyInjection\Reference;
+use WPPack\Component\Logger\Attribute\LoggerChannel;
+use WPPack\Component\Logger\DependencyInjection\RegisterLoggerPass;
+use WPPack\Component\Logger\LoggerFactory;
 
 final class RegisterLoggerPassTest extends TestCase
 {

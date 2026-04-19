@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Security\Bridge\Passkey\Controller;
+namespace WPPack\Component\Security\Bridge\Passkey\Controller;
 
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Uid\Uuid;
@@ -24,16 +24,16 @@ use Webauthn\PublicKeyCredential;
 use Webauthn\PublicKeyCredentialDescriptor;
 use Webauthn\PublicKeyCredentialSource;
 use Webauthn\TrustPath\EmptyTrustPath;
-use WpPack\Component\HttpFoundation\JsonResponse;
-use WpPack\Component\Rest\AbstractRestController;
-use WpPack\Component\Rest\Attribute\Permission;
-use WpPack\Component\Rest\Attribute\RestRoute;
-use WpPack\Component\Rest\HttpMethod;
-use WpPack\Component\Security\AuthenticationSession;
-use WpPack\Component\Security\Bridge\Passkey\Ceremony\CeremonyManager;
-use WpPack\Component\Security\Bridge\Passkey\Configuration\PasskeyConfiguration;
-use WpPack\Component\Security\Bridge\Passkey\Storage\CredentialRepositoryInterface;
-use WpPack\Component\Site\BlogContextInterface;
+use WPPack\Component\HttpFoundation\JsonResponse;
+use WPPack\Component\Rest\AbstractRestController;
+use WPPack\Component\Rest\Attribute\Permission;
+use WPPack\Component\Rest\Attribute\RestRoute;
+use WPPack\Component\Rest\HttpMethod;
+use WPPack\Component\Security\AuthenticationSession;
+use WPPack\Component\Security\Bridge\Passkey\Ceremony\CeremonyManager;
+use WPPack\Component\Security\Bridge\Passkey\Configuration\PasskeyConfiguration;
+use WPPack\Component\Security\Bridge\Passkey\Storage\CredentialRepositoryInterface;
+use WPPack\Component\Site\BlogContextInterface;
 
 /**
  * REST endpoints for passkey authentication (assertion ceremony).

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,16 +11,16 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\HttpClient\Tests\DependencyInjection;
+namespace WPPack\Component\HttpClient\Tests\DependencyInjection;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Client\ClientInterface;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\DependencyInjection\ServiceProviderInterface;
-use WpPack\Component\HttpClient\DependencyInjection\HttpClientServiceProvider;
-use WpPack\Component\HttpClient\HttpClient;
-use WpPack\Component\HttpClient\SafeHttpClient;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\DependencyInjection\ServiceProviderInterface;
+use WPPack\Component\HttpClient\DependencyInjection\HttpClientServiceProvider;
+use WPPack\Component\HttpClient\HttpClient;
+use WPPack\Component\HttpClient\SafeHttpClient;
 
 final class HttpClientServiceProviderTest extends TestCase
 {

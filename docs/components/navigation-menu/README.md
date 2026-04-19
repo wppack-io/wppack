@@ -1,7 +1,7 @@
 # NavigationMenu コンポーネント
 
 **パッケージ:** `wppack/navigation-menu`
-**名前空間:** `WpPack\Component\NavigationMenu\`
+**名前空間:** `WPPack\Component\NavigationMenu\`
 **レイヤー:** Application
 
 WordPress のメニュー関数 `register_nav_menus()` / `wp_nav_menu()` をモダンな PHP でラップし、メニューロケーション自動登録とメニュー関連の Named Hook アトリビュートを提供するコンポーネントです。
@@ -44,12 +44,12 @@ wp_nav_menu([
 ]);
 ```
 
-### After（WpPack）
+### After（WPPack）
 
 ```php
-use WpPack\Component\Hook\Attribute\AfterSetupThemeAction;
-use WpPack\Component\Hook\Attribute\NavigationMenu\Filter\WpNavMenuItemsFilter;
-use WpPack\Component\NavigationMenu\MenuRegistry;
+use WPPack\Component\Hook\Attribute\AfterSetupThemeAction;
+use WPPack\Component\Hook\Attribute\NavigationMenu\Filter\WpNavMenuItemsFilter;
+use WPPack\Component\NavigationMenu\MenuRegistry;
 
 class NavigationManager
 {
@@ -89,7 +89,7 @@ class NavigationManager
 DI コンテナで auto-tag し、`MenuRegistry` に自動収集されるパターンです。
 
 ```php
-use WpPack\Component\NavigationMenu\MenuLocationProviderInterface;
+use WPPack\Component\NavigationMenu\MenuLocationProviderInterface;
 
 class ThemeMenuProvider implements MenuLocationProviderInterface
 {
@@ -113,7 +113,7 @@ class ThemeMenuProvider implements MenuLocationProviderInterface
 `addProvider()` でプロバイダーを収集し、`register()` で `after_setup_theme` のタイミングに一括登録します。
 
 ```php
-use WpPack\Component\NavigationMenu\MenuRegistry;
+use WPPack\Component\NavigationMenu\MenuRegistry;
 
 $registry = new MenuRegistry();
 $registry->addProvider(new ThemeMenuProvider());
@@ -123,8 +123,8 @@ $registry->register(); // register_nav_menus() が呼ばれる
 ### 直接登録
 
 ```php
-use WpPack\Component\Hook\Attribute\AfterSetupThemeAction;
-use WpPack\Component\NavigationMenu\MenuRegistry;
+use WPPack\Component\Hook\Attribute\AfterSetupThemeAction;
+use WPPack\Component\NavigationMenu\MenuRegistry;
 
 class MenuManager
 {

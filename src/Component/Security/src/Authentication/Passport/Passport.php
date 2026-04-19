@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Security\Authentication\Passport;
+namespace WPPack\Component\Security\Authentication\Passport;
 
-use WpPack\Component\Security\Authentication\Passport\Badge\BadgeInterface;
-use WpPack\Component\Security\Authentication\Passport\Badge\CredentialsBadge;
-use WpPack\Component\Security\Authentication\Passport\Badge\UserBadge;
-use WpPack\Component\Security\Exception\AuthenticationException;
+use WPPack\Component\Security\Authentication\Passport\Badge\BadgeInterface;
+use WPPack\Component\Security\Authentication\Passport\Badge\CredentialsBadge;
+use WPPack\Component\Security\Authentication\Passport\Badge\UserBadge;
+use WPPack\Component\Security\Exception\AuthenticationException;
 
 class Passport
 {

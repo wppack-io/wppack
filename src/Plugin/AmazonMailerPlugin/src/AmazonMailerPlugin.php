@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,23 +11,23 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\AmazonMailerPlugin;
+namespace WPPack\Plugin\AmazonMailerPlugin;
 
-use WpPack\Component\Admin\AdminPageRegistry;
-use WpPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
-use WpPack\Component\DependencyInjection\Container;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\Hook\DependencyInjection\RegisterHookSubscribersPass;
-use WpPack\Component\Kernel\AbstractPlugin;
-use WpPack\Component\Kernel\Attribute\TextDomain;
-use WpPack\Component\Mailer\DependencyInjection\RegisterTransportFactoriesPass;
-use WpPack\Component\Mailer\Mailer;
-use WpPack\Component\Messenger\DependencyInjection\RegisterMessageHandlersPass;
-use WpPack\Component\Rest\RestRegistry;
-use WpPack\Plugin\AmazonMailerPlugin\Admin\AmazonMailerSettingsController;
-use WpPack\Plugin\AmazonMailerPlugin\Admin\AmazonMailerSettingsPage;
-use WpPack\Plugin\AmazonMailerPlugin\Configuration\AmazonMailerConfiguration;
-use WpPack\Plugin\AmazonMailerPlugin\DependencyInjection\AmazonMailerPluginServiceProvider;
+use WPPack\Component\Admin\AdminPageRegistry;
+use WPPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
+use WPPack\Component\DependencyInjection\Container;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\Hook\DependencyInjection\RegisterHookSubscribersPass;
+use WPPack\Component\Kernel\AbstractPlugin;
+use WPPack\Component\Kernel\Attribute\TextDomain;
+use WPPack\Component\Mailer\DependencyInjection\RegisterTransportFactoriesPass;
+use WPPack\Component\Mailer\Mailer;
+use WPPack\Component\Messenger\DependencyInjection\RegisterMessageHandlersPass;
+use WPPack\Component\Rest\RestRegistry;
+use WPPack\Plugin\AmazonMailerPlugin\Admin\AmazonMailerSettingsController;
+use WPPack\Plugin\AmazonMailerPlugin\Admin\AmazonMailerSettingsPage;
+use WPPack\Plugin\AmazonMailerPlugin\Configuration\AmazonMailerConfiguration;
+use WPPack\Plugin\AmazonMailerPlugin\DependencyInjection\AmazonMailerPluginServiceProvider;
 
 #[TextDomain(domain: 'wppack-mailer')]
 final class AmazonMailerPlugin extends AbstractPlugin

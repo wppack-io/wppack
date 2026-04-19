@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,15 +11,15 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Templating\Tests;
+namespace WPPack\Component\Templating\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Escaper\Escaper;
-use WpPack\Component\Templating\Exception\RenderingException;
-use WpPack\Component\Templating\Exception\TemplateNotFoundException;
-use WpPack\Component\Templating\PhpRenderer;
-use WpPack\Component\Templating\TemplateRendererInterface;
+use WPPack\Component\Escaper\Escaper;
+use WPPack\Component\Templating\Exception\RenderingException;
+use WPPack\Component\Templating\Exception\TemplateNotFoundException;
+use WPPack\Component\Templating\PhpRenderer;
+use WPPack\Component\Templating\TemplateRendererInterface;
 
 final class PhpRendererTest extends TestCase
 {
@@ -198,7 +198,7 @@ final class PhpRendererTest extends TestCase
     #[Test]
     public function rendersTemplateWithExplicitLocatorAndEscaper(): void
     {
-        $locator = new \WpPack\Component\Templating\TemplateLocator([$this->fixturesPath]);
+        $locator = new \WPPack\Component\Templating\TemplateLocator([$this->fixturesPath]);
         $escaper = new Escaper();
         $renderer = new PhpRenderer(locator: $locator, escaper: $escaper);
 
@@ -251,7 +251,7 @@ final class PhpRendererTest extends TestCase
         file_put_contents($templateFile, '<?php $view->layout("nonexistent-layout-xyz"); ?>Content');
 
         try {
-            $this->expectException(\WpPack\Component\Templating\Exception\TemplateNotFoundException::class);
+            $this->expectException(\WPPack\Component\Templating\Exception\TemplateNotFoundException::class);
             $this->renderer->render('missing-layout-ref');
         } finally {
             @unlink($templateFile);

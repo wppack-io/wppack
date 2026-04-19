@@ -1,7 +1,7 @@
 # Sanitizer コンポーネント
 
 **パッケージ:** `wppack/sanitizer`
-**名前空間:** `WpPack\Component\Sanitizer\`
+**名前空間:** `WPPack\Component\Sanitizer\`
 **レイヤー:** Abstraction
 
 WordPress のサニタイズ関数を型安全にラップし、サニタイズ関連の WordPress フックを Named Hook アトリビュートとして提供するコンポーネントです。
@@ -27,10 +27,10 @@ $url = esc_url_raw($_POST['url'] ?? '');
 $filename = sanitize_file_name($_POST['filename'] ?? '');
 ```
 
-### After（WpPack）
+### After（WPPack）
 
 ```php
-use WpPack\Component\Sanitizer\Sanitizer;
+use WPPack\Component\Sanitizer\Sanitizer;
 
 $sanitizer = $container->get(Sanitizer::class);
 
@@ -46,7 +46,7 @@ $filename = $sanitizer->filename($_POST['filename'] ?? '');
 WordPress のサニタイズ関数を型安全にラップするサービスクラスです。
 
 ```php
-use WpPack\Component\Sanitizer\Sanitizer;
+use WPPack\Component\Sanitizer\Sanitizer;
 
 $sanitizer = new Sanitizer();
 

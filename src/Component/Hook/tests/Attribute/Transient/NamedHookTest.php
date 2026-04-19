@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,23 +11,23 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Hook\Tests\Attribute\Transient;
+namespace WPPack\Component\Hook\Tests\Attribute\Transient;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Hook\Attribute\Action;
-use WpPack\Component\Hook\Attribute\Filter;
-use WpPack\Component\Hook\Hook;
-use WpPack\Component\Hook\HookType;
-use WpPack\Component\Hook\Attribute\Transient\Action\DeletedTransientAction;
-use WpPack\Component\Hook\Attribute\Transient\Action\SetSiteTransientAction;
-use WpPack\Component\Hook\Attribute\Transient\Action\SetTransientAction;
-use WpPack\Component\Hook\Attribute\Transient\Filter\PreSetTransientFilter;
-use WpPack\Component\Hook\Attribute\Transient\Filter\PreSiteTransientFilter;
-use WpPack\Component\Hook\Attribute\Transient\Filter\PreTransientFilter;
-use WpPack\Component\Hook\Attribute\Transient\Filter\SiteTransientFilter;
-use WpPack\Component\Hook\Attribute\Transient\Filter\TransientFilter;
-use WpPack\Component\Hook\Attribute\Transient\Filter\TransientTimeoutFilter;
+use WPPack\Component\Hook\Attribute\Action;
+use WPPack\Component\Hook\Attribute\Filter;
+use WPPack\Component\Hook\Hook;
+use WPPack\Component\Hook\HookType;
+use WPPack\Component\Hook\Attribute\Transient\Action\DeletedTransientAction;
+use WPPack\Component\Hook\Attribute\Transient\Action\SetSiteTransientAction;
+use WPPack\Component\Hook\Attribute\Transient\Action\SetTransientAction;
+use WPPack\Component\Hook\Attribute\Transient\Filter\PreSetTransientFilter;
+use WPPack\Component\Hook\Attribute\Transient\Filter\PreSiteTransientFilter;
+use WPPack\Component\Hook\Attribute\Transient\Filter\PreTransientFilter;
+use WPPack\Component\Hook\Attribute\Transient\Filter\SiteTransientFilter;
+use WPPack\Component\Hook\Attribute\Transient\Filter\TransientFilter;
+use WPPack\Component\Hook\Attribute\Transient\Filter\TransientTimeoutFilter;
 
 final class NamedHookTest extends TestCase
 {

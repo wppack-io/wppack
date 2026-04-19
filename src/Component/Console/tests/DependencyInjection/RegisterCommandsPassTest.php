@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,17 +11,17 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Console\Tests\DependencyInjection;
+namespace WPPack\Component\Console\Tests\DependencyInjection;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Console\AbstractCommand;
-use WpPack\Component\Console\Attribute\AsCommand;
-use WpPack\Component\Console\CommandRegistry;
-use WpPack\Component\Console\DependencyInjection\RegisterCommandsPass;
-use WpPack\Component\Console\Input\InputInterface;
-use WpPack\Component\Console\Output\OutputStyle;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\Console\AbstractCommand;
+use WPPack\Component\Console\Attribute\AsCommand;
+use WPPack\Component\Console\CommandRegistry;
+use WPPack\Component\Console\DependencyInjection\RegisterCommandsPass;
+use WPPack\Component\Console\Input\InputInterface;
+use WPPack\Component\Console\Output\OutputStyle;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
 
 final class RegisterCommandsPassTest extends TestCase
 {

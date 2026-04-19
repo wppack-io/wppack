@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\AmazonMailerPlugin\Handler;
+namespace WPPack\Plugin\AmazonMailerPlugin\Handler;
 
 use Psr\Log\LoggerInterface;
-use WpPack\Component\Messenger\Attribute\AsMessageHandler;
-use WpPack\Plugin\AmazonMailerPlugin\Message\SesComplaintMessage;
-use WpPack\Plugin\AmazonMailerPlugin\SuppressionList;
+use WPPack\Component\Messenger\Attribute\AsMessageHandler;
+use WPPack\Plugin\AmazonMailerPlugin\Message\SesComplaintMessage;
+use WPPack\Plugin\AmazonMailerPlugin\SuppressionList;
 
 #[AsMessageHandler]
 final readonly class ComplaintHandler

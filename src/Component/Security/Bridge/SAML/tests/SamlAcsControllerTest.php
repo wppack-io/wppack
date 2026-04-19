@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,15 +11,15 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Security\Bridge\SAML\Tests;
+namespace WPPack\Component\Security\Bridge\SAML\Tests;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\HttpFoundation\RedirectResponse;
-use WpPack\Component\HttpFoundation\Response;
-use WpPack\Component\Security\Authentication\AuthenticationManagerInterface;
-use WpPack\Component\Security\Bridge\SAML\SamlAcsController;
+use WPPack\Component\HttpFoundation\RedirectResponse;
+use WPPack\Component\HttpFoundation\Response;
+use WPPack\Component\Security\Authentication\AuthenticationManagerInterface;
+use WPPack\Component\Security\Bridge\SAML\SamlAcsController;
 
 #[CoversClass(SamlAcsController::class)]
 final class SamlAcsControllerTest extends TestCase

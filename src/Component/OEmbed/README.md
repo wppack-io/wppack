@@ -1,4 +1,4 @@
-# WpPack OEmbed
+# WPPack OEmbed
 
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=oembed)](https://codecov.io/github/wppack-io/wppack)
 
@@ -15,8 +15,8 @@ composer require wppack/oembed
 ### OEmbedProviderInterface (DI Auto-Collection)
 
 ```php
-use WpPack\Component\OEmbed\OEmbedProviderDefinition;
-use WpPack\Component\OEmbed\OEmbedProviderInterface;
+use WPPack\Component\OEmbed\OEmbedProviderDefinition;
+use WPPack\Component\OEmbed\OEmbedProviderInterface;
 
 class MyOEmbedProviders implements OEmbedProviderInterface
 {
@@ -33,7 +33,7 @@ class MyOEmbedProviders implements OEmbedProviderInterface
 ### OEmbedProviderRegistry (Direct Usage)
 
 ```php
-use WpPack\Component\OEmbed\OEmbedProviderRegistry;
+use WPPack\Component\OEmbed\OEmbedProviderRegistry;
 
 $registry = new OEmbedProviderRegistry();
 $registry->addDefinition('https://example.com/*', 'https://example.com/oembed');
@@ -44,8 +44,8 @@ $registry->unregister('https://example.com/*');
 ### Named Hook Attributes
 
 ```php
-use WpPack\Component\Hook\Attribute\OEmbed\Filter\OembedProvidersFilter;
-use WpPack\Component\Hook\Attribute\OEmbed\Filter\OembedResultFilter;
+use WPPack\Component\Hook\Attribute\OEmbed\Filter\OembedProvidersFilter;
+use WPPack\Component\Hook\Attribute\OEmbed\Filter\OembedResultFilter;
 
 final class VideoEmbedCustomizer
 {

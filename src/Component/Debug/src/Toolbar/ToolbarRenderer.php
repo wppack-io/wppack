@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,16 +11,16 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Debug\Toolbar;
+namespace WPPack\Component\Debug\Toolbar;
 
-use WpPack\Component\Debug\DataCollector\DataCollectorInterface;
-use WpPack\Component\Debug\Profiler\Profile;
-use WpPack\Component\Debug\Toolbar\Panel\AbstractPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\GenericPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\RendererInterface;
-use WpPack\Component\Debug\Toolbar\Panel\ToolbarAssets;
-use WpPack\Component\Debug\Toolbar\Panel\ToolbarIcons;
-use WpPack\Component\Templating\PhpRenderer;
+use WPPack\Component\Debug\DataCollector\DataCollectorInterface;
+use WPPack\Component\Debug\Profiler\Profile;
+use WPPack\Component\Debug\Toolbar\Panel\AbstractPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\GenericPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\RendererInterface;
+use WPPack\Component\Debug\Toolbar\Panel\ToolbarAssets;
+use WPPack\Component\Debug\Toolbar\Panel\ToolbarIcons;
+use WPPack\Component\Templating\PhpRenderer;
 
 final class ToolbarRenderer
 {

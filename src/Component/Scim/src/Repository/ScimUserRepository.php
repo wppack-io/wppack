@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Scim\Repository;
+namespace WPPack\Component\Scim\Repository;
 
-use WpPack\Component\Scim\Filter\FilterNode;
-use WpPack\Component\Scim\Filter\WpUserQueryAdapter;
-use WpPack\Component\Scim\Schema\ScimConstants;
-use WpPack\Component\Site\BlogSwitcherInterface;
-use WpPack\Component\Site\SiteRepositoryInterface;
-use WpPack\Component\User\UserRepositoryInterface;
+use WPPack\Component\Scim\Filter\FilterNode;
+use WPPack\Component\Scim\Filter\WpUserQueryAdapter;
+use WPPack\Component\Scim\Schema\ScimConstants;
+use WPPack\Component\Site\BlogSwitcherInterface;
+use WPPack\Component\Site\SiteRepositoryInterface;
+use WPPack\Component\User\UserRepositoryInterface;
 
 final readonly class ScimUserRepository
 {

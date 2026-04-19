@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -15,7 +15,7 @@ require_once dirname(__DIR__) . '/vendor/autoload.php';
 
 define('ABSPATH', dirname(__DIR__) . '/web/wp/');
 // Test-only wp-content directory that exposes only the Database db.php drop-in,
-// so DATABASE_DSN can route $wpdb through WpPackWpdb without pulling in the dev
+// so DATABASE_DSN can route $wpdb through WPPackWpdb without pulling in the dev
 // object-cache drop-in or plugins.
 define('WP_CONTENT_DIR', __DIR__ . '/wp-content');
 
@@ -39,7 +39,7 @@ $table_prefix = 'wptests_';
 
 define('WP_TESTS_DOMAIN', 'example.org');
 define('WP_TESTS_EMAIL', 'admin@example.org');
-define('WP_TESTS_TITLE', 'WpPack Tests');
+define('WP_TESTS_TITLE', 'WPPack Tests');
 define('WP_PHP_BINARY', 'php');
 define('WPLANG', '');
 

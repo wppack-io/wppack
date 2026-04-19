@@ -1,4 +1,4 @@
-# WpPack Cache
+# WPPack Cache
 
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=cache)](https://codecov.io/github/wppack-io/wppack)
 
@@ -13,7 +13,7 @@ composer require wppack/cache
 ## Usage
 
 ```php
-use WpPack\Component\Cache\CacheManager;
+use WPPack\Component\Cache\CacheManager;
 
 $cache = new CacheManager();
 
@@ -81,7 +81,7 @@ define('WPPACK_CACHE_HASH_ALLOPTIONS', true);
 
 ## Object Cache Drop-in
 
-WpPack provides an `object-cache.php` drop-in that replaces WordPress's default in-memory object cache with a persistent backend (Redis, Valkey, etc.).
+WPPack provides an `object-cache.php` drop-in that replaces WordPress's default in-memory object cache with a persistent backend (Redis, Valkey, etc.).
 
 ```bash
 # Install Redis bridge

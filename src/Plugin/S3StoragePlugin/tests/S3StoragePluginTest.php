@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,25 +11,25 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\S3StoragePlugin\Tests;
+namespace WPPack\Plugin\S3StoragePlugin\Tests;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Admin\AdminPageRegistry;
-use WpPack\Component\DependencyInjection\Container;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\Hook\DependencyInjection\RegisterHookSubscribersPass;
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\Kernel\AbstractPlugin;
-use WpPack\Component\Kernel\PluginInterface;
-use WpPack\Component\Messenger\DependencyInjection\RegisterMessageHandlersPass;
-use WpPack\Component\Rest\DependencyInjection\RegisterRestControllersPass;
-use WpPack\Component\Rest\RestRegistry;
-use WpPack\Plugin\S3StoragePlugin\Admin\S3StorageSettingsController;
-use WpPack\Plugin\S3StoragePlugin\Admin\S3StorageSettingsPage;
-use WpPack\Plugin\S3StoragePlugin\Configuration\S3StorageConfiguration;
-use WpPack\Plugin\S3StoragePlugin\S3StoragePlugin;
+use WPPack\Component\Admin\AdminPageRegistry;
+use WPPack\Component\DependencyInjection\Container;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\Hook\DependencyInjection\RegisterHookSubscribersPass;
+use WPPack\Component\HttpFoundation\Request;
+use WPPack\Component\Kernel\AbstractPlugin;
+use WPPack\Component\Kernel\PluginInterface;
+use WPPack\Component\Messenger\DependencyInjection\RegisterMessageHandlersPass;
+use WPPack\Component\Rest\DependencyInjection\RegisterRestControllersPass;
+use WPPack\Component\Rest\RestRegistry;
+use WPPack\Plugin\S3StoragePlugin\Admin\S3StorageSettingsController;
+use WPPack\Plugin\S3StoragePlugin\Admin\S3StorageSettingsPage;
+use WPPack\Plugin\S3StoragePlugin\Configuration\S3StorageConfiguration;
+use WPPack\Plugin\S3StoragePlugin\S3StoragePlugin;
 
 #[CoversClass(S3StoragePlugin::class)]
 final class S3StoragePluginTest extends TestCase
@@ -100,9 +100,9 @@ final class S3StoragePluginTest extends TestCase
 
         // Verify key services are registered (proves delegation to ServiceProvider)
         self::assertTrue($builder->hasDefinition(\AsyncAws\S3\S3Client::class));
-        self::assertTrue($builder->hasDefinition(\WpPack\Plugin\S3StoragePlugin\Attachment\AttachmentRegistrar::class));
-        self::assertTrue($builder->hasDefinition(\WpPack\Plugin\S3StoragePlugin\Attachment\RegisterAttachmentController::class));
-        self::assertTrue($builder->hasDefinition(\WpPack\Plugin\S3StoragePlugin\Subscriber\AdminAssetSubscriber::class));
+        self::assertTrue($builder->hasDefinition(\WPPack\Plugin\S3StoragePlugin\Attachment\AttachmentRegistrar::class));
+        self::assertTrue($builder->hasDefinition(\WPPack\Plugin\S3StoragePlugin\Attachment\RegisterAttachmentController::class));
+        self::assertTrue($builder->hasDefinition(\WPPack\Plugin\S3StoragePlugin\Subscriber\AdminAssetSubscriber::class));
     }
 
     #[Test]

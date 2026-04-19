@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Scheduler\Bridge\EventBridge\Interceptor;
+namespace WPPack\Component\Scheduler\Bridge\EventBridge\Interceptor;
 
 use Psr\Log\LoggerInterface;
-use WpPack\Component\Scheduler\Bridge\EventBridge\Collector\ActionSchedulerCollector;
-use WpPack\Component\Scheduler\Bridge\EventBridge\EventBridgeScheduleFactory;
-use WpPack\Component\Scheduler\Bridge\EventBridge\ScheduleIdGenerator;
-use WpPack\Component\Scheduler\Bridge\EventBridge\SqsPayloadFactory;
-use WpPack\Component\Scheduler\Scheduler\SchedulerInterface;
+use WPPack\Component\Scheduler\Bridge\EventBridge\Collector\ActionSchedulerCollector;
+use WPPack\Component\Scheduler\Bridge\EventBridge\EventBridgeScheduleFactory;
+use WPPack\Component\Scheduler\Bridge\EventBridge\ScheduleIdGenerator;
+use WPPack\Component\Scheduler\Bridge\EventBridge\SqsPayloadFactory;
+use WPPack\Component\Scheduler\Scheduler\SchedulerInterface;
 
 /**
  * Intercepts Action Scheduler via post-store hooks and delegates to EventBridge Scheduler.

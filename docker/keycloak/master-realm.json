@@ -52,7 +52,7 @@
   "clients": [
     {
       "clientId": "http://localhost:8080",
-      "name": "WpPack SAML SP",
+      "name": "WPPack SAML SP",
       "enabled": true,
       "protocol": "saml",
       "frontchannelLogout": true,

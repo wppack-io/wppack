@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Storage\Adapter;
+namespace WPPack\Component\Storage\Adapter;
 
-use WpPack\Component\Storage\Exception\InvalidArgumentException;
+use WPPack\Component\Storage\Exception\InvalidArgumentException;
 
 final class Dsn
 {

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\User;
+namespace WPPack\Component\User;
 
-use WpPack\Component\User\Exception\UserException;
+use WPPack\Component\User\Exception\UserException;
 
 final readonly class UserRepository implements UserRepositoryInterface
 {

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,8 +11,8 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Scheduler\Bridge\EventBridge\Exception;
+namespace WPPack\Component\Scheduler\Bridge\EventBridge\Exception;
 
-use WpPack\Component\Scheduler\Exception\ExceptionInterface;
+use WPPack\Component\Scheduler\Exception\ExceptionInterface;
 
 class EventBridgeException extends \RuntimeException implements ExceptionInterface {}

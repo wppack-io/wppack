@@ -13,12 +13,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Plugin\\OAuthLoginPlugin\\": "src/"
+            "WPPack\\Plugin\\OAuthLoginPlugin\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Plugin\\OAuthLoginPlugin\\Tests\\": "tests/"
+            "WPPack\\Plugin\\OAuthLoginPlugin\\Tests\\": "tests/"
         }
     },
     "extra": {

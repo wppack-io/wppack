@@ -1,4 +1,4 @@
-# WpPack DashboardWidget
+# WPPack DashboardWidget
 
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=dashboard_widget)](https://codecov.io/github/wppack-io/wppack)
 
@@ -15,8 +15,8 @@ composer require wppack/dashboard-widget
 ### Dashboard Widget Definition
 
 ```php
-use WpPack\Component\DashboardWidget\AbstractDashboardWidget;
-use WpPack\Component\DashboardWidget\Attribute\AsDashboardWidget;
+use WPPack\Component\DashboardWidget\AbstractDashboardWidget;
+use WPPack\Component\DashboardWidget\Attribute\AsDashboardWidget;
 
 #[AsDashboardWidget(
     id: 'site_stats_widget',
@@ -42,9 +42,9 @@ class SiteStatsWidget extends AbstractDashboardWidget
 ### DashboardWidgetRegistry
 
 ```php
-use WpPack\Component\DashboardWidget\DashboardWidgetRegistry;
-use WpPack\Component\HttpFoundation\ArgumentResolver;
-use WpPack\Component\HttpFoundation\RequestValueResolver;
+use WPPack\Component\DashboardWidget\DashboardWidgetRegistry;
+use WPPack\Component\HttpFoundation\ArgumentResolver;
+use WPPack\Component\HttpFoundation\RequestValueResolver;
 
 $registry = new DashboardWidgetRegistry(
     argumentResolver: new ArgumentResolver([
@@ -58,9 +58,9 @@ $registry->unregister('site_stats_widget');
 ### Named Hook Attributes
 
 ```php
-use WpPack\Component\Hook\Attribute\DashboardWidget\Action\WpDashboardSetupAction;
-use WpPack\Component\Hook\Attribute\DashboardWidget\Action\ActivityBoxEndAction;
-use WpPack\Component\Hook\Attribute\DashboardWidget\Filter\DashboardGlanceItemsFilter;
+use WPPack\Component\Hook\Attribute\DashboardWidget\Action\WpDashboardSetupAction;
+use WPPack\Component\Hook\Attribute\DashboardWidget\Action\ActivityBoxEndAction;
+use WPPack\Component\Hook\Attribute\DashboardWidget\Filter\DashboardGlanceItemsFilter;
 
 final class DashboardHooks
 {

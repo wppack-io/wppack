@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Mailer;
+namespace WPPack\Component\Mailer;
 
-use WpPack\Component\Mailer\Exception\TransportException;
-use WpPack\Component\Mailer\Transport\Transport;
-use WpPack\Component\Mailer\Transport\TransportInterface;
-use WpPack\Component\Mime\MimeTypes;
-use WpPack\Component\Mime\MimeTypesInterface;
+use WPPack\Component\Mailer\Exception\TransportException;
+use WPPack\Component\Mailer\Transport\Transport;
+use WPPack\Component\Mailer\Transport\TransportInterface;
+use WPPack\Component\Mime\MimeTypes;
+use WPPack\Component\Mime\MimeTypesInterface;
 
 final class Mailer
 {

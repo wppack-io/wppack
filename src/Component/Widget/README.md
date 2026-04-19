@@ -1,4 +1,4 @@
-# WpPack Widget
+# WPPack Widget
 
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=widget)](https://codecov.io/github/wppack-io/wppack)
 
@@ -15,8 +15,8 @@ composer require wppack/widget
 ### Widget Definition
 
 ```php
-use WpPack\Component\Widget\AbstractWidget;
-use WpPack\Component\Widget\Attribute\AsWidget;
+use WPPack\Component\Widget\AbstractWidget;
+use WPPack\Component\Widget\Attribute\AsWidget;
 
 #[AsWidget(id: 'recent_posts', label: 'Recent Posts', description: 'Display recent posts')]
 class RecentPostsWidget extends AbstractWidget
@@ -60,8 +60,8 @@ class RecentPostsWidget extends AbstractWidget
 ### DI Parameter Injection
 
 ```php
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\Security\Attribute\CurrentUser;
+use WPPack\Component\HttpFoundation\Request;
+use WPPack\Component\Security\Attribute\CurrentUser;
 
 #[AsWidget(id: 'user_greeting', label: 'User Greeting')]
 class UserGreetingWidget extends AbstractWidget
@@ -76,9 +76,9 @@ class UserGreetingWidget extends AbstractWidget
 ### WidgetRegistry
 
 ```php
-use WpPack\Component\HttpFoundation\ArgumentResolver;
-use WpPack\Component\HttpFoundation\RequestValueResolver;
-use WpPack\Component\Widget\WidgetRegistry;
+use WPPack\Component\HttpFoundation\ArgumentResolver;
+use WPPack\Component\HttpFoundation\RequestValueResolver;
+use WPPack\Component\Widget\WidgetRegistry;
 
 $registry = new WidgetRegistry(
     renderer: $templateRenderer,      // optional
@@ -102,8 +102,8 @@ $registry->registerSidebar([
 ### Named Hook Attributes
 
 ```php
-use WpPack\Component\Hook\Attribute\Widget\Action\WidgetsInitAction;
-use WpPack\Component\Hook\Attribute\Widget\Filter\WidgetTitleFilter;
+use WPPack\Component\Hook\Attribute\Widget\Action\WidgetsInitAction;
+use WPPack\Component\Hook\Attribute\Widget\Filter\WidgetTitleFilter;
 
 final class WidgetHooks
 {

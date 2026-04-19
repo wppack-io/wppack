@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Security\Bridge\OAuth\Tests\Provider;
+namespace WPPack\Component\Security\Bridge\OAuth\Tests\Provider;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Security\Bridge\OAuth\Configuration\OAuthConfiguration;
-use WpPack\Component\Security\Bridge\OAuth\Provider\AzureProvider;
-use WpPack\Component\Security\Bridge\OAuth\Token\DiscoveryDocument;
+use WPPack\Component\Security\Bridge\OAuth\Configuration\OAuthConfiguration;
+use WPPack\Component\Security\Bridge\OAuth\Provider\AzureProvider;
+use WPPack\Component\Security\Bridge\OAuth\Token\DiscoveryDocument;
 
 #[CoversClass(AzureProvider::class)]
 final class AzureProviderTest extends TestCase

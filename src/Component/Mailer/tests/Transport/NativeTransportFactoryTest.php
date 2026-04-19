@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,16 +11,16 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Mailer\Tests\Transport;
+namespace WPPack\Component\Mailer\Tests\Transport;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Mailer\Exception\UnsupportedSchemeException;
-use WpPack\Component\Mailer\Transport\Dsn;
-use WpPack\Component\Mailer\Transport\NativeTransport;
-use WpPack\Component\Mailer\Transport\NativeTransportFactory;
-use WpPack\Component\Mailer\Transport\NullTransport;
-use WpPack\Component\Mailer\Transport\SmtpTransport;
+use WPPack\Component\Mailer\Exception\UnsupportedSchemeException;
+use WPPack\Component\Mailer\Transport\Dsn;
+use WPPack\Component\Mailer\Transport\NativeTransport;
+use WPPack\Component\Mailer\Transport\NativeTransportFactory;
+use WPPack\Component\Mailer\Transport\NullTransport;
+use WPPack\Component\Mailer\Transport\SmtpTransport;
 
 final class NativeTransportFactoryTest extends TestCase
 {

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\DependencyInjection\Tests\Configurator;
+namespace WPPack\Component\DependencyInjection\Tests\Configurator;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\DependencyInjection\Configurator\DefaultsConfigurator;
-use WpPack\Component\DependencyInjection\Configurator\ServiceConfigurator;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\DependencyInjection\Reference;
+use WPPack\Component\DependencyInjection\Configurator\DefaultsConfigurator;
+use WPPack\Component\DependencyInjection\Configurator\ServiceConfigurator;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\DependencyInjection\Reference;
 
 final class ServiceConfiguratorTest extends TestCase
 {

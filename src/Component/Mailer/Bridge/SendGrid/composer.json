@@ -1,6 +1,6 @@
 {
     "name": "wppack/sendgrid-mailer",
-    "description": "SendGrid transport for WpPack Mailer",
+    "description": "SendGrid transport for WPPack Mailer",
     "type": "library",
     "license": "MIT",
     "require": {
@@ -11,12 +11,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\Mailer\\Bridge\\SendGrid\\": "src/"
+            "WPPack\\Component\\Mailer\\Bridge\\SendGrid\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Component\\Mailer\\Bridge\\SendGrid\\Tests\\": "tests/"
+            "WPPack\\Component\\Mailer\\Bridge\\SendGrid\\Tests\\": "tests/"
         }
     }
 }

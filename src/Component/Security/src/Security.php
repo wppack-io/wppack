@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Security;
+namespace WPPack\Component\Security;
 
-use WpPack\Component\Role\Authorization\AuthorizationCheckerInterface as RoleAuthorizationCheckerInterface;
-use WpPack\Component\Security\Authentication\AuthenticationManagerInterface;
-use WpPack\Component\Security\Authorization\AuthorizationCheckerInterface;
-use WpPack\Component\Security\Exception\AccessDeniedException;
+use WPPack\Component\Role\Authorization\AuthorizationCheckerInterface as RoleAuthorizationCheckerInterface;
+use WPPack\Component\Security\Authentication\AuthenticationManagerInterface;
+use WPPack\Component\Security\Authorization\AuthorizationCheckerInterface;
+use WPPack\Component\Security\Exception\AccessDeniedException;
 
 final class Security implements RoleAuthorizationCheckerInterface
 {

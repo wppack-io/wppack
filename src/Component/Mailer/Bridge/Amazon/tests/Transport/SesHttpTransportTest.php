@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,15 +11,15 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Mailer\Bridge\Amazon\Tests\Transport;
+namespace WPPack\Component\Mailer\Bridge\Amazon\Tests\Transport;
 
 use AsyncAws\Ses\Input\SendEmailRequest;
 use AsyncAws\Ses\Result\SendEmailResponse;
 use AsyncAws\Ses\SesClient;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Mailer\Bridge\Amazon\Transport\SesHttpTransport;
-use WpPack\Component\Mailer\PhpMailer;
+use WPPack\Component\Mailer\Bridge\Amazon\Transport\SesHttpTransport;
+use WPPack\Component\Mailer\PhpMailer;
 
 final class SesHttpTransportTest extends TestCase
 {
@@ -138,7 +138,7 @@ final class SesHttpTransportTest extends TestCase
         $phpMailer->Body = 'Hello';
         $phpMailer->preSend();
 
-        $this->expectException(\WpPack\Component\Mailer\Exception\TransportException::class);
+        $this->expectException(\WPPack\Component\Mailer\Exception\TransportException::class);
         $this->expectExceptionMessage('no message ID');
         $transport->send($phpMailer);
     }

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,15 +11,15 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Cache\Bridge\DynamoDb;
+namespace WPPack\Component\Cache\Bridge\DynamoDb;
 
 use AsyncAws\DynamoDb\DynamoDbClient;
-use WpPack\Component\Cache\Adapter\AdapterDefinition;
-use WpPack\Component\Cache\Adapter\AdapterFactoryInterface;
-use WpPack\Component\Cache\Adapter\AdapterField;
-use WpPack\Component\Cache\Adapter\AdapterInterface;
-use WpPack\Component\Cache\Adapter\Dsn;
-use WpPack\Component\Cache\Exception\AdapterException;
+use WPPack\Component\Cache\Adapter\AdapterDefinition;
+use WPPack\Component\Cache\Adapter\AdapterFactoryInterface;
+use WPPack\Component\Cache\Adapter\AdapterField;
+use WPPack\Component\Cache\Adapter\AdapterInterface;
+use WPPack\Component\Cache\Adapter\Dsn;
+use WPPack\Component\Cache\Exception\AdapterException;
 
 final class DynamoDbAdapterFactory implements AdapterFactoryInterface
 {

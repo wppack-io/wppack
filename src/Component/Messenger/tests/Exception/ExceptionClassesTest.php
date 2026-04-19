@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,17 +11,17 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Messenger\Tests\Exception;
+namespace WPPack\Component\Messenger\Tests\Exception;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Messenger\Exception\ExceptionInterface;
-use WpPack\Component\Messenger\Exception\InvalidArgumentException;
-use WpPack\Component\Messenger\Exception\MessageDecodingFailedException;
-use WpPack\Component\Messenger\Exception\MessageEncodingFailedException;
-use WpPack\Component\Messenger\Exception\NoHandlerForMessageException;
-use WpPack\Component\Messenger\Exception\TransportException;
+use WPPack\Component\Messenger\Exception\ExceptionInterface;
+use WPPack\Component\Messenger\Exception\InvalidArgumentException;
+use WPPack\Component\Messenger\Exception\MessageDecodingFailedException;
+use WPPack\Component\Messenger\Exception\MessageEncodingFailedException;
+use WPPack\Component\Messenger\Exception\NoHandlerForMessageException;
+use WPPack\Component\Messenger\Exception\TransportException;
 
 #[CoversClass(InvalidArgumentException::class)]
 #[CoversClass(NoHandlerForMessageException::class)]

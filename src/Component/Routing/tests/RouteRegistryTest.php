@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,27 +11,27 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Routing\Tests;
+namespace WPPack\Component\Routing\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\HttpFoundation\ArgumentResolver;
-use WpPack\Component\HttpFoundation\Exception\ForbiddenException;
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\HttpFoundation\RequestValueResolver;
-use WpPack\Component\Routing\AbstractController;
-use WpPack\Component\Security\ValueResolver\CurrentUserValueResolver;
-use WpPack\Component\Routing\Attribute\RewriteTag;
-use WpPack\Component\Routing\Attribute\Route;
-use WpPack\Component\Routing\Exception\RouteNotFoundException;
-use WpPack\Component\Routing\Response\TemplateResponse;
-use WpPack\Component\Routing\RouteEntry;
-use WpPack\Component\Routing\RoutePosition;
-use WpPack\Component\Routing\RouteRegistry;
-use WpPack\Component\Security\Attribute\CurrentUser;
-use WpPack\Component\Role\Attribute\IsGranted;
-use WpPack\Component\Security\Tests\SecurityTestTrait;
-use WpPack\Component\Templating\TemplateRendererInterface;
+use WPPack\Component\HttpFoundation\ArgumentResolver;
+use WPPack\Component\HttpFoundation\Exception\ForbiddenException;
+use WPPack\Component\HttpFoundation\Request;
+use WPPack\Component\HttpFoundation\RequestValueResolver;
+use WPPack\Component\Routing\AbstractController;
+use WPPack\Component\Security\ValueResolver\CurrentUserValueResolver;
+use WPPack\Component\Routing\Attribute\RewriteTag;
+use WPPack\Component\Routing\Attribute\Route;
+use WPPack\Component\Routing\Exception\RouteNotFoundException;
+use WPPack\Component\Routing\Response\TemplateResponse;
+use WPPack\Component\Routing\RouteEntry;
+use WPPack\Component\Routing\RoutePosition;
+use WPPack\Component\Routing\RouteRegistry;
+use WPPack\Component\Security\Attribute\CurrentUser;
+use WPPack\Component\Role\Attribute\IsGranted;
+use WPPack\Component\Security\Tests\SecurityTestTrait;
+use WPPack\Component\Templating\TemplateRendererInterface;
 
 final class RouteRegistryTest extends TestCase
 {
@@ -305,7 +305,7 @@ final class RouteRegistryTest extends TestCase
         update_option('rewrite_rules', ['dummy' => 'rule']);
         self::assertNotFalse(get_option('rewrite_rules'));
 
-        $registry = new RouteRegistry(optionManager: new \WpPack\Component\Option\OptionManager());
+        $registry = new RouteRegistry(optionManager: new \WPPack\Component\Option\OptionManager());
         $registry->invalidate();
 
         self::assertFalse(get_option('rewrite_rules'));

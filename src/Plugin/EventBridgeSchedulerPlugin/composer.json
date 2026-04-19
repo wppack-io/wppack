@@ -11,7 +11,7 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Plugin\\EventBridgeSchedulerPlugin\\": "src/"
+            "WPPack\\Plugin\\EventBridgeSchedulerPlugin\\": "src/"
         }
     },
     "extra": {

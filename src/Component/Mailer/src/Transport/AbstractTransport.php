@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,10 +11,10 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Mailer\Transport;
+namespace WPPack\Component\Mailer\Transport;
 
-use WpPack\Component\Mailer\Exception\TransportException;
-use WpPack\Component\Mailer\PhpMailer;
+use WPPack\Component\Mailer\Exception\TransportException;
+use WPPack\Component\Mailer\PhpMailer;
 
 abstract class AbstractTransport implements TransportInterface
 {

@@ -12,7 +12,7 @@
  * @var array<string, string>                                               $categoryColors
  * @var array<string, string>                                               $categoryLabels
  * @var list<string>                                                        $usedCategories
- * @var \WpPack\Component\Debug\Toolbar\Panel\TemplateFormatters            $fmt
+ * @var \WPPack\Component\Debug\Toolbar\Panel\TemplateFormatters            $fmt
  * @var float                                                               $unmeasuredMs
  * @var float                                                               $unmeasuredPct
  */

@@ -11,7 +11,7 @@
  * @var array<string,array{count:int,total_time:float}>              $callerStats      Caller statistics (sorted)
  * @var array<string,string>                                         $shortCallers     Short caller names
  * @var array<string,int>                                            $sqlCounts        SQL duplicate counts
- * @var \WpPack\Component\Debug\Toolbar\Panel\TemplateFormatters     $fmt              Template formatters
+ * @var \WPPack\Component\Debug\Toolbar\Panel\TemplateFormatters     $fmt              Template formatters
  * @var float                                                        $requestTimeFloat Request start timestamp
  */
 ?>
@@ -74,7 +74,7 @@
     $sql = $query['sql'];
     $timeMs = (float) $query['time'];
     $isSlow = $timeMs > 100.0;
-    $dupKey = \WpPack\Component\Debug\DataCollector\DatabaseDataCollector::dupKey($sql, $query['params'] ?? []);
+    $dupKey = \WPPack\Component\Debug\DataCollector\DatabaseDataCollector::dupKey($sql, $query['params'] ?? []);
     $isDuplicate = ($sqlCounts[$dupKey] ?? 0) > 1;
     $rowClass = $isSlow ? 'wpd-row-slow' : ($isDuplicate ? 'wpd-row-duplicate' : '');
     $startTime = (float) ($query['start'] ?? 0);
@@ -87,7 +87,8 @@
 <code><?= $view->e($sql) ?></code>
 <?php if ($isSlow): ?><?= $view->include('toolbar/partials/badge', ['label' => 'SLOW', 'color' => 'red']) ?><?php endif; ?>
 <?php if ($isDuplicate): ?><?= $view->include('toolbar/partials/badge', ['label' => 'DUP', 'color' => 'yellow']) ?><?php endif; ?>
-<?php $params = $query['params'] ?? []; if (!empty($params)): ?>
+<?php $params = $query['params'] ?? [];
+    if (!empty($params)): ?>
 <div class="wpd-params">
 <span class="wpd-params-label">params</span>
 <?php foreach ($params as $pi => $pv): ?>

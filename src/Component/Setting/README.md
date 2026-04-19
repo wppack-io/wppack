@@ -3,7 +3,7 @@
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=setting)](https://codecov.io/github/wppack-io/wppack)
 
 **Package:** `wppack/setting`
-**Namespace:** `WpPack\Component\Setting\`
+**Namespace:** `WPPack\Component\Setting\`
 **Layer:** Application
 
 A component for working with the WordPress Settings API using modern PHP. Provides attribute-based settings page definition and Named Hook attributes.

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Console;
+namespace WPPack\Component\Console;
 
-use WpPack\Component\Console\Input\WpCliInput;
-use WpPack\Component\Console\Output\OutputStyle;
-use WpPack\Component\Console\Output\WpCliOutput;
+use WPPack\Component\Console\Input\WpCliInput;
+use WPPack\Component\Console\Output\OutputStyle;
+use WPPack\Component\Console\Output\WpCliOutput;
 
 final class CommandRunner
 {

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Cache\Bridge\Memcached\Tests;
+namespace WPPack\Component\Cache\Bridge\Memcached\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Cache\Adapter\Dsn;
-use WpPack\Component\Cache\Bridge\Memcached\MemcachedAdapter;
-use WpPack\Component\Cache\Bridge\Memcached\MemcachedAdapterFactory;
+use WPPack\Component\Cache\Adapter\Dsn;
+use WPPack\Component\Cache\Bridge\Memcached\MemcachedAdapter;
+use WPPack\Component\Cache\Bridge\Memcached\MemcachedAdapterFactory;
 
 final class MemcachedAdapterFactoryTest extends TestCase
 {

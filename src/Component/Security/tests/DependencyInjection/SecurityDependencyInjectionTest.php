@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,21 +11,21 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Security\Tests\DependencyInjection;
+namespace WPPack\Component\Security\Tests\DependencyInjection;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\Reference;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\Security\Authentication\AuthenticationManager;
-use WpPack\Component\Security\AuthenticationSession;
-use WpPack\Component\Security\Authorization\Voter\AccessDecisionManager;
-use WpPack\Component\Security\DependencyInjection\RegisterAuthenticatorsPass;
-use WpPack\Component\Security\DependencyInjection\RegisterVotersPass;
-use WpPack\Component\Security\DependencyInjection\SecurityServiceProvider;
-use WpPack\Component\Security\Security;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\HttpFoundation\Request;
+use WPPack\Component\Security\Authentication\AuthenticationManager;
+use WPPack\Component\Security\AuthenticationSession;
+use WPPack\Component\Security\Authorization\Voter\AccessDecisionManager;
+use WPPack\Component\Security\DependencyInjection\RegisterAuthenticatorsPass;
+use WPPack\Component\Security\DependencyInjection\RegisterVotersPass;
+use WPPack\Component\Security\DependencyInjection\SecurityServiceProvider;
+use WPPack\Component\Security\Security;
 
 #[CoversClass(SecurityServiceProvider::class)]
 #[CoversClass(RegisterAuthenticatorsPass::class)]

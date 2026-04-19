@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Query\Condition;
+namespace WPPack\Component\Query\Condition;
 
-use WpPack\Component\Query\Wql\CompoundExpression;
-use WpPack\Component\Query\Wql\ExpressionNode;
-use WpPack\Component\Query\Wql\ExpressionParser;
-use WpPack\Component\Query\Wql\ParsedExpression;
-use WpPack\Component\Query\Wql\WqlParser;
+use WPPack\Component\Query\Wql\CompoundExpression;
+use WPPack\Component\Query\Wql\ExpressionNode;
+use WPPack\Component\Query\Wql\ExpressionParser;
+use WPPack\Component\Query\Wql\ParsedExpression;
+use WPPack\Component\Query\Wql\WqlParser;
 
 final class ConditionGroup
 {

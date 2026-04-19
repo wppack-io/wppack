@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,19 +11,19 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Scim\Tests\Mapping;
+namespace WPPack\Component\Scim\Tests\Mapping;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\EventDispatcher\EventDispatcher;
-use WpPack\Component\Sanitizer\Sanitizer;
-use WpPack\Component\Scim\Event\ScimUserAttributesMappedEvent;
-use WpPack\Component\Scim\Event\ScimUserSerializedEvent;
-use WpPack\Component\Scim\Mapping\ScimAttributeMapping;
-use WpPack\Component\Scim\Mapping\UserAttributeMapper;
-use WpPack\Component\Scim\Schema\ScimConstants;
-use WpPack\Component\User\UserRepository;
+use WPPack\Component\EventDispatcher\EventDispatcher;
+use WPPack\Component\Sanitizer\Sanitizer;
+use WPPack\Component\Scim\Event\ScimUserAttributesMappedEvent;
+use WPPack\Component\Scim\Event\ScimUserSerializedEvent;
+use WPPack\Component\Scim\Mapping\ScimAttributeMapping;
+use WPPack\Component\Scim\Mapping\UserAttributeMapper;
+use WPPack\Component\Scim\Schema\ScimConstants;
+use WPPack\Component\User\UserRepository;
 
 #[CoversClass(UserAttributeMapper::class)]
 final class UserAttributeMapperTest extends TestCase

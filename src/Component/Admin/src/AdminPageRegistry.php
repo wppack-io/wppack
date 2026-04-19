@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Admin;
+namespace WPPack\Component\Admin;
 
-use WpPack\Component\Templating\TemplateRendererInterface;
+use WPPack\Component\Templating\TemplateRendererInterface;
 
 final class AdminPageRegistry
 {
@@ -55,7 +55,7 @@ final class AdminPageRegistry
     }
 
     /**
-     * Re-sort only WpPack submenu items by their registered position value,
+     * Re-sort only WPPack submenu items by their registered position value,
      * keeping WordPress core items in their original positions.
      */
     private function sortSubmenu(): void
@@ -67,7 +67,7 @@ final class AdminPageRegistry
                 continue;
             }
 
-            // Separate WpPack items from the rest
+            // Separate WPPack items from the rest
             $wppackItems = [];
             $otherItems = [];
 
@@ -79,10 +79,10 @@ final class AdminPageRegistry
                 }
             }
 
-            // Sort WpPack items by position
+            // Sort WPPack items by position
             usort($wppackItems, fn(array $a, array $b): int => $slugPositions[$a[2]] <=> $slugPositions[$b[2]]);
 
-            // Append sorted WpPack items after core items
+            // Append sorted WPPack items after core items
             $submenu[$parent] = array_merge($otherItems, $wppackItems);
         }
     }

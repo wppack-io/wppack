@@ -3,7 +3,7 @@
  * Request panel template.
  *
  * @var array<string,mixed>                                          $data Request data
- * @var \WpPack\Component\Debug\Toolbar\Panel\TemplateFormatters     $fmt  Template formatters
+ * @var \WPPack\Component\Debug\Toolbar\Panel\TemplateFormatters     $fmt  Template formatters
  */
 $serverVars = $data['server_vars'] ?? [];
 $method = (string) ($data['method'] ?? '');

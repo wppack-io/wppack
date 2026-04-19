@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Logger\Tests\Handler;
+namespace WPPack\Component\Logger\Tests\Handler;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Logger\Exception\InvalidArgumentException;
-use WpPack\Component\Logger\Handler\ErrorLogHandler;
+use WPPack\Component\Logger\Exception\InvalidArgumentException;
+use WPPack\Component\Logger\Handler\ErrorLogHandler;
 
 final class ErrorLogHandlerTest extends TestCase
 {

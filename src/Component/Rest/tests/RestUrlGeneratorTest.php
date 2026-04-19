@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,19 +11,19 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Rest\Tests;
+namespace WPPack\Component\Rest\Tests;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\Rest\Attribute\Permission;
-use WpPack\Component\Rest\Attribute\RestRoute;
-use WpPack\Component\Rest\Exception\MissingParametersException;
-use WpPack\Component\Rest\Exception\RouteNotFoundException;
-use WpPack\Component\Rest\HttpMethod;
-use WpPack\Component\Rest\RestRegistry;
-use WpPack\Component\Rest\RestUrlGenerator;
+use WPPack\Component\HttpFoundation\Request;
+use WPPack\Component\Rest\Attribute\Permission;
+use WPPack\Component\Rest\Attribute\RestRoute;
+use WPPack\Component\Rest\Exception\MissingParametersException;
+use WPPack\Component\Rest\Exception\RouteNotFoundException;
+use WPPack\Component\Rest\HttpMethod;
+use WPPack\Component\Rest\RestRegistry;
+use WPPack\Component\Rest\RestUrlGenerator;
 
 #[CoversClass(RestUrlGenerator::class)]
 final class RestUrlGeneratorTest extends TestCase

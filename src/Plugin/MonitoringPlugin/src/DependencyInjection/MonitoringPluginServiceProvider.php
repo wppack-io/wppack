@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,19 +11,19 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\MonitoringPlugin\DependencyInjection;
+namespace WPPack\Plugin\MonitoringPlugin\DependencyInjection;
 
-use WpPack\Component\Admin\AdminPageRegistry;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\DependencyInjection\Reference;
-use WpPack\Component\DependencyInjection\ServiceProviderInterface;
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\Monitoring\Bridge\CloudWatch\DependencyInjection\CloudWatchServiceProvider;
-use WpPack\Component\Monitoring\DependencyInjection\MonitoringServiceProvider;
-use WpPack\Component\Rest\RestRegistry;
-use WpPack\Plugin\MonitoringPlugin\Admin\MonitoringDashboardPage;
-use WpPack\Plugin\MonitoringPlugin\Rest\SyncTemplatesController;
-use WpPack\Plugin\MonitoringPlugin\Template\MetricTemplateRegistry;
+use WPPack\Component\Admin\AdminPageRegistry;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\DependencyInjection\Reference;
+use WPPack\Component\DependencyInjection\ServiceProviderInterface;
+use WPPack\Component\HttpFoundation\Request;
+use WPPack\Component\Monitoring\Bridge\CloudWatch\DependencyInjection\CloudWatchServiceProvider;
+use WPPack\Component\Monitoring\DependencyInjection\MonitoringServiceProvider;
+use WPPack\Component\Rest\RestRegistry;
+use WPPack\Plugin\MonitoringPlugin\Admin\MonitoringDashboardPage;
+use WPPack\Plugin\MonitoringPlugin\Rest\SyncTemplatesController;
+use WPPack\Plugin\MonitoringPlugin\Template\MetricTemplateRegistry;
 
 final class MonitoringPluginServiceProvider implements ServiceProviderInterface
 {
@@ -41,7 +41,7 @@ final class MonitoringPluginServiceProvider implements ServiceProviderInterface
         $builder->register(MonitoringDashboardPage::class);
         $builder->register(MetricTemplateRegistry::class);
         $builder->register(SyncTemplatesController::class)
-            ->addArgument(new Reference(\WpPack\Component\Monitoring\MonitoringStore::class))
+            ->addArgument(new Reference(\WPPack\Component\Monitoring\MonitoringStore::class))
             ->addArgument(new Reference(MetricTemplateRegistry::class));
     }
 

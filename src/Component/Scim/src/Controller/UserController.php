@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,35 +11,35 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Scim\Controller;
+namespace WPPack\Component\Scim\Controller;
 
 use Psr\EventDispatcher\EventDispatcherInterface;
-use WpPack\Component\HttpFoundation\JsonResponse;
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\HttpFoundation\Response;
-use WpPack\Component\Rest\AbstractRestController;
-use WpPack\Component\Rest\Attribute\RestRoute;
-use WpPack\Component\Rest\HttpMethod;
-use WpPack\Component\Role\Attribute\IsGranted;
-use WpPack\Component\Scim\Event\UserDeactivatedEvent;
-use WpPack\Component\Scim\Event\UserDeletedEvent;
-use WpPack\Component\Scim\Event\UserProvisionedEvent;
-use WpPack\Component\Scim\Event\UserReactivatedEvent;
-use WpPack\Component\Scim\Event\UserUpdatedEvent;
-use WpPack\Component\Scim\Exception\InvalidValueException;
-use WpPack\Component\Scim\Exception\MutabilityException;
-use WpPack\Component\Scim\Exception\ResourceConflictException;
-use WpPack\Component\Scim\Exception\ResourceNotFoundException;
-use WpPack\Component\Scim\Exception\ScimException;
-use WpPack\Component\Scim\Filter\FilterParser;
-use WpPack\Component\Scim\Mapping\UserAttributeMapperInterface;
-use WpPack\Component\Scim\Patch\PatchProcessor;
-use WpPack\Component\Scim\Patch\PatchRequest;
-use WpPack\Component\Scim\Repository\ScimUserRepository;
-use WpPack\Component\Scim\Schema\ScimConstants;
-use WpPack\Component\Scim\Serialization\ErrorSerializer;
-use WpPack\Component\Scim\Serialization\ListResponseSerializer;
-use WpPack\Component\Scim\Serialization\ScimUserSerializer;
+use WPPack\Component\HttpFoundation\JsonResponse;
+use WPPack\Component\HttpFoundation\Request;
+use WPPack\Component\HttpFoundation\Response;
+use WPPack\Component\Rest\AbstractRestController;
+use WPPack\Component\Rest\Attribute\RestRoute;
+use WPPack\Component\Rest\HttpMethod;
+use WPPack\Component\Role\Attribute\IsGranted;
+use WPPack\Component\Scim\Event\UserDeactivatedEvent;
+use WPPack\Component\Scim\Event\UserDeletedEvent;
+use WPPack\Component\Scim\Event\UserProvisionedEvent;
+use WPPack\Component\Scim\Event\UserReactivatedEvent;
+use WPPack\Component\Scim\Event\UserUpdatedEvent;
+use WPPack\Component\Scim\Exception\InvalidValueException;
+use WPPack\Component\Scim\Exception\MutabilityException;
+use WPPack\Component\Scim\Exception\ResourceConflictException;
+use WPPack\Component\Scim\Exception\ResourceNotFoundException;
+use WPPack\Component\Scim\Exception\ScimException;
+use WPPack\Component\Scim\Filter\FilterParser;
+use WPPack\Component\Scim\Mapping\UserAttributeMapperInterface;
+use WPPack\Component\Scim\Patch\PatchProcessor;
+use WPPack\Component\Scim\Patch\PatchRequest;
+use WPPack\Component\Scim\Repository\ScimUserRepository;
+use WPPack\Component\Scim\Schema\ScimConstants;
+use WPPack\Component\Scim\Serialization\ErrorSerializer;
+use WPPack\Component\Scim\Serialization\ListResponseSerializer;
+use WPPack\Component\Scim\Serialization\ScimUserSerializer;
 
 #[RestRoute(namespace: 'scim/v2', route: '/Users')]
 #[IsGranted(ScimConstants::CAPABILITY_PROVISION)]

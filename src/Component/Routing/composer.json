@@ -15,12 +15,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\Routing\\": "src/"
+            "WPPack\\Component\\Routing\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Component\\Routing\\Tests\\": "tests/"
+            "WPPack\\Component\\Routing\\Tests\\": "tests/"
         }
     }
 }

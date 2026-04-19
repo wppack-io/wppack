@@ -116,11 +116,11 @@ ID,post_title,post_status
 ## 使用例
 
 ```php
-use WpPack\Component\Database\DatabaseManager;
-use WpPack\Component\Database\Bridge\Sqlite\SchemaReader\SqliteSchemaReader;
-use WpPack\Component\DatabaseExport\DatabaseExporter;
-use WpPack\Component\DatabaseExport\ExportConfiguration;
-use WpPack\Component\DatabaseExport\Writer\WpressSqlWriter;
+use WPPack\Component\Database\DatabaseManager;
+use WPPack\Component\Database\Bridge\Sqlite\SchemaReader\SqliteSchemaReader;
+use WPPack\Component\DatabaseExport\DatabaseExporter;
+use WPPack\Component\DatabaseExport\ExportConfiguration;
+use WPPack\Component\DatabaseExport\Writer\WpressSqlWriter;
 
 $db = new DatabaseManager(); // 接続先は db.php の DSN で決定
 $reader = new SqliteSchemaReader();

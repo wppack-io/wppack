@@ -1,4 +1,4 @@
-# WpPack Escaper
+# WPPack Escaper
 
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=escaper)](https://codecov.io/github/wppack-io/wppack)
 

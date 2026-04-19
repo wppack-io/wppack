@@ -1,7 +1,7 @@
 # Admin コンポーネント
 
 **パッケージ:** `wppack/admin`
-**名前空間:** `WpPack\Component\Admin\`
+**名前空間:** `WPPack\Component\Admin\`
 **レイヤー:** Feature
 
 WordPress 管理画面のページ登録とフック管理を提供するコンポーネントです。クラスベースの管理ページ定義と、Named Hook アトリビュートによる型安全なフック登録の 2 つのアプローチをサポートします。
@@ -19,8 +19,8 @@ composer require wppack/admin
 `AbstractAdminPage` を継承し、`#[AsAdminPage]` アトリビュートでページ設定を宣言します。
 
 ```php
-use WpPack\Component\Admin\AbstractAdminPage;
-use WpPack\Component\Admin\Attribute\AsAdminPage;
+use WPPack\Component\Admin\AbstractAdminPage;
+use WPPack\Component\Admin\Attribute\AsAdminPage;
 
 #[AsAdminPage(
     slug: 'my-plugin',
@@ -77,7 +77,7 @@ class MyPluginSettingsPage extends AbstractAdminPage
 
 ### サブメニューの表示位置
 
-`position` を指定するとサブメニュー内の並び順を制御できます。WpPack プラグインではカテゴリごとに 100 刻みで統一しています。
+`position` を指定するとサブメニュー内の並び順を制御できます。WPPack プラグインではカテゴリごとに 100 刻みで統一しています。
 
 | position | カテゴリ | 例 |
 |----------|---------|-----|
@@ -113,8 +113,8 @@ class MyPluginPage extends AbstractAdminPage
 `AdminPageRegistry` に `TemplateRendererInterface` を渡すと、登録時に各ページへ自動注入されます。`render()` ショートカットメソッドで `__invoke()` 内から簡潔にテンプレートを呼び出せます。
 
 ```php
-use WpPack\Component\Admin\AdminPageRegistry;
-use WpPack\Component\Templating\TemplateRendererInterface;
+use WPPack\Component\Admin\AdminPageRegistry;
+use WPPack\Component\Templating\TemplateRendererInterface;
 
 // Registry に TemplateRendererInterface を渡す
 $registry = new AdminPageRegistry($renderer);
@@ -159,7 +159,7 @@ class MyPluginPage extends AbstractAdminPage
 `AdminPageRegistry` でページを登録・削除します。
 
 ```php
-use WpPack\Component\Admin\AdminPageRegistry;
+use WPPack\Component\Admin\AdminPageRegistry;
 
 $registry = new AdminPageRegistry();
 
@@ -190,9 +190,9 @@ The Admin component supports registering pages in the network admin for multisit
 Specify the `scope` parameter on the `#[AsAdminPage]` attribute:
 
 ```php
-use WpPack\Component\Admin\AbstractAdminPage;
-use WpPack\Component\Admin\Attribute\AdminScope;
-use WpPack\Component\Admin\Attribute\AsAdminPage;
+use WPPack\Component\Admin\AbstractAdminPage;
+use WPPack\Component\Admin\Attribute\AdminScope;
+use WPPack\Component\Admin\Attribute\AsAdminPage;
 
 #[AsAdminPage(
     slug: 'my-plugin',
@@ -246,7 +246,7 @@ Based on the resolved network flag, `AdminPageRegistry` hooks the page into the 
 `admin_init` フックは管理画面のライフサイクルフックであり、Hook コンポーネントが所有しています。管理画面初期化時のフックには Hook コンポーネントの `AdminInitAction` を使用してください。
 
 ```php
-use WpPack\Component\Hook\Attribute\Action\AdminInitAction;
+use WPPack\Component\Hook\Attribute\Action\AdminInitAction;
 ```
 
 ## ダッシュボードウィジェットについて

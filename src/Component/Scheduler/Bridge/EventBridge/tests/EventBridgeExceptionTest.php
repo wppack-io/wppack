@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Scheduler\Bridge\EventBridge\Tests;
+namespace WPPack\Component\Scheduler\Bridge\EventBridge\Tests;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Scheduler\Bridge\EventBridge\Exception\EventBridgeException;
-use WpPack\Component\Scheduler\Exception\ExceptionInterface;
+use WPPack\Component\Scheduler\Bridge\EventBridge\Exception\EventBridgeException;
+use WPPack\Component\Scheduler\Exception\ExceptionInterface;
 
 #[CoversClass(EventBridgeException::class)]
 final class EventBridgeExceptionTest extends TestCase

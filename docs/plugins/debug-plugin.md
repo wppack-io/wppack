@@ -55,7 +55,7 @@ src/Plugin/DebugPlugin/
 ## 名前空間
 
 ```
-WpPack\Plugin\DebugPlugin\
+WPPack\Plugin\DebugPlugin\
 ```
 
 ## 設定
@@ -77,7 +77,7 @@ define('WP_DEBUG', true);
 
 両方とも `ErrorRenderer` による詳細なエラーページを表示します。
 
-プラグイン無効化時には、WpPack が設置したドロップインのみ削除します（シグネチャで判定）。
+プラグイン無効化時には、WPPack が設置したドロップインのみ削除します（シグネチャで判定）。
 
 ### `WPPACK_DEBUG_ENABLED` キルスイッチ
 
@@ -114,7 +114,7 @@ define('WPPACK_DEBUG_ENABLED', false);
 `PluginInterface` 実装。`Kernel::registerPlugin()` で登録される。
 
 ```php
-namespace WpPack\Plugin\DebugPlugin;
+namespace WPPack\Plugin\DebugPlugin;
 
 final class DebugPlugin extends AbstractPlugin
 {
@@ -152,14 +152,14 @@ final class DebugPlugin extends AbstractPlugin
 `fatal-error-handler.php` ドロップインのライフサイクル管理:
 
 - **`onActivate()`**: `wp-content/fatal-error-handler.php` が未存在かつ書き込み可能な場合、`wppack/debug` の `drop-in/fatal-error-handler.php` をコピー
-- **`onDeactivate()`**: シグネチャ（`WpPack Fatal Error Handler Drop-in`）を確認し、WpPack 製のドロップインのみ削除
+- **`onDeactivate()`**: シグネチャ（`WPPack Fatal Error Handler Drop-in`）を確認し、WPPack 製のドロップインのみ削除
 
 ### DependencyInjection\DebugPluginServiceProvider
 
 DI サービスプロバイダ。
 
 ```php
-namespace WpPack\Plugin\DebugPlugin\DependencyInjection;
+namespace WPPack\Plugin\DebugPlugin\DependencyInjection;
 
 final class DebugPluginServiceProvider implements ServiceProviderInterface
 {
@@ -193,8 +193,8 @@ final class DebugPluginServiceProvider implements ServiceProviderInterface
 `#[AsDataCollector]` アトリビュートを付けたクラスを作成するだけで自動検出されます:
 
 ```php
-use WpPack\Component\Debug\Attribute\AsDataCollector;
-use WpPack\Component\Debug\DataCollector\AbstractDataCollector;
+use WPPack\Component\Debug\Attribute\AsDataCollector;
+use WPPack\Component\Debug\DataCollector\AbstractDataCollector;
 
 #[AsDataCollector(name: 'my_collector', priority: 50)]
 final class MyDataCollector extends AbstractDataCollector

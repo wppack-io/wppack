@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Cache\Bridge\DynamoDb;
+namespace WPPack\Component\Cache\Bridge\DynamoDb;
 
 use AsyncAws\DynamoDb\DynamoDbClient;
 use AsyncAws\DynamoDb\Input\DeleteItemInput;
@@ -22,7 +22,7 @@ use AsyncAws\DynamoDb\Input\QueryInput;
 use AsyncAws\DynamoDb\Input\ScanInput;
 use AsyncAws\DynamoDb\ValueObject\AttributeValue;
 use AsyncAws\DynamoDb\ValueObject\WriteRequest;
-use WpPack\Component\Cache\Adapter\AbstractAdapter;
+use WPPack\Component\Cache\Adapter\AbstractAdapter;
 
 final class DynamoDbAdapter extends AbstractAdapter
 {

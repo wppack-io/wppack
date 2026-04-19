@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Storage\Test;
+namespace WPPack\Component\Storage\Test;
 
-use WpPack\Component\Storage\Adapter\StorageAdapterInterface;
-use WpPack\Component\Storage\Exception\ObjectNotFoundException;
-use WpPack\Component\Storage\Exception\UnsupportedOperationException;
-use WpPack\Component\Storage\ObjectMetadata;
-use WpPack\Component\Storage\Visibility;
+use WPPack\Component\Storage\Adapter\StorageAdapterInterface;
+use WPPack\Component\Storage\Exception\ObjectNotFoundException;
+use WPPack\Component\Storage\Exception\UnsupportedOperationException;
+use WPPack\Component\Storage\ObjectMetadata;
+use WPPack\Component\Storage\Visibility;
 
 final class InMemoryStorageAdapter implements StorageAdapterInterface
 {

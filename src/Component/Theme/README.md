@@ -1,4 +1,4 @@
-# WpPack Theme
+# WPPack Theme
 
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=theme)](https://codecov.io/github/wppack-io/wppack)
 
@@ -15,7 +15,7 @@ composer require wppack/theme
 ### Enqueue Scripts
 
 ```php
-use WpPack\Component\Hook\Attribute\Theme\Action\WpEnqueueScriptsAction;
+use WPPack\Component\Hook\Attribute\Theme\Action\WpEnqueueScriptsAction;
 
 final class AssetLoader
 {
@@ -31,7 +31,7 @@ final class AssetLoader
 ### Body Class Filter
 
 ```php
-use WpPack\Component\Hook\Attribute\Theme\Filter\BodyClassFilter;
+use WPPack\Component\Hook\Attribute\Theme\Filter\BodyClassFilter;
 
 final class ThemeBodyClass
 {

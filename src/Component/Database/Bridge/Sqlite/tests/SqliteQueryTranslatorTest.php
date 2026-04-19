@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database\Bridge\Sqlite\Tests;
+namespace WPPack\Component\Database\Bridge\Sqlite\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Database\Bridge\Sqlite\Translator\SqliteQueryTranslator;
+use WPPack\Component\Database\Bridge\Sqlite\Translator\SqliteQueryTranslator;
 
 final class SqliteQueryTranslatorTest extends TestCase
 {
@@ -762,7 +762,7 @@ CREATE TABLE `test_pk` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
 SQL;
 
-        $driver = new \WpPack\Component\Database\Bridge\Sqlite\SqliteDriver(':memory:');
+        $driver = new \WPPack\Component\Database\Bridge\Sqlite\SqliteDriver(':memory:');
         $driver->connect();
 
         $result = $this->translator->translate($sql);
@@ -858,7 +858,7 @@ SQL;
     #[Test]
     public function endToEndFullLifecycle(): void
     {
-        $driver = new \WpPack\Component\Database\Bridge\Sqlite\SqliteDriver(':memory:');
+        $driver = new \WPPack\Component\Database\Bridge\Sqlite\SqliteDriver(':memory:');
         $driver->connect();
 
         // CREATE TABLE with MySQL types (multi-line)
@@ -924,7 +924,7 @@ SQL);
     #[Test]
     public function endToEndCreateInsertSelectTruncate(): void
     {
-        $driver = new \WpPack\Component\Database\Bridge\Sqlite\SqliteDriver(':memory:');
+        $driver = new \WPPack\Component\Database\Bridge\Sqlite\SqliteDriver(':memory:');
         $driver->connect();
 
         // CREATE TABLE with MySQL types
@@ -1115,7 +1115,7 @@ SQL);
     #[Test]
     public function endToEndConcatAndDateFunctions(): void
     {
-        $driver = new \WpPack\Component\Database\Bridge\Sqlite\SqliteDriver(':memory:');
+        $driver = new \WPPack\Component\Database\Bridge\Sqlite\SqliteDriver(':memory:');
         $driver->connect();
 
         $driver->executeStatement('CREATE TABLE "t" ("id" INTEGER PRIMARY KEY, "first" TEXT, "last" TEXT, "created" TEXT)');
@@ -1204,7 +1204,7 @@ SQL);
     #[Test]
     public function onUpdateCurrentTimestampEndToEnd(): void
     {
-        $driver = new \WpPack\Component\Database\Bridge\Sqlite\SqliteDriver(':memory:');
+        $driver = new \WPPack\Component\Database\Bridge\Sqlite\SqliteDriver(':memory:');
         $driver->connect();
 
         $result = $this->translator->translate(
@@ -1315,7 +1315,7 @@ SQL);
     #[Test]
     public function md5UdfEndToEnd(): void
     {
-        $driver = new \WpPack\Component\Database\Bridge\Sqlite\SqliteDriver(':memory:');
+        $driver = new \WPPack\Component\Database\Bridge\Sqlite\SqliteDriver(':memory:');
         $driver->connect();
 
         $result = $driver->executeQuery("SELECT MD5('hello')");
@@ -1337,7 +1337,7 @@ SQL);
     #[Test]
     public function endToEndDeleteWithLimit(): void
     {
-        $driver = new \WpPack\Component\Database\Bridge\Sqlite\SqliteDriver(':memory:');
+        $driver = new \WPPack\Component\Database\Bridge\Sqlite\SqliteDriver(':memory:');
         $driver->connect();
 
         $driver->executeStatement('CREATE TABLE "t" ("id" INTEGER PRIMARY KEY, "status" TEXT)');
@@ -1357,7 +1357,7 @@ SQL);
     #[Test]
     public function endToEndUpdateWithLimit(): void
     {
-        $driver = new \WpPack\Component\Database\Bridge\Sqlite\SqliteDriver(':memory:');
+        $driver = new \WPPack\Component\Database\Bridge\Sqlite\SqliteDriver(':memory:');
         $driver->connect();
 
         $driver->executeStatement('CREATE TABLE "t" ("id" INTEGER PRIMARY KEY, "status" TEXT)');
@@ -1449,7 +1449,7 @@ SQL);
     #[Test]
     public function endToEndLogUdf(): void
     {
-        $driver = new \WpPack\Component\Database\Bridge\Sqlite\SqliteDriver(':memory:');
+        $driver = new \WPPack\Component\Database\Bridge\Sqlite\SqliteDriver(':memory:');
         $driver->connect();
 
         $result = $driver->executeQuery('SELECT LOG(2, 8)');
@@ -1461,7 +1461,7 @@ SQL);
     #[Test]
     public function endToEndUnhexUdf(): void
     {
-        $driver = new \WpPack\Component\Database\Bridge\Sqlite\SqliteDriver(':memory:');
+        $driver = new \WPPack\Component\Database\Bridge\Sqlite\SqliteDriver(':memory:');
         $driver->connect();
 
         $result = $driver->executeQuery("SELECT UNHEX('48656C6C6F')");
@@ -1473,7 +1473,7 @@ SQL);
     #[Test]
     public function endToEndBase64Udfs(): void
     {
-        $driver = new \WpPack\Component\Database\Bridge\Sqlite\SqliteDriver(':memory:');
+        $driver = new \WPPack\Component\Database\Bridge\Sqlite\SqliteDriver(':memory:');
         $driver->connect();
 
         $result = $driver->executeQuery("SELECT TO_BASE64('Hello')");
@@ -1488,7 +1488,7 @@ SQL);
     #[Test]
     public function endToEndInetUdfs(): void
     {
-        $driver = new \WpPack\Component\Database\Bridge\Sqlite\SqliteDriver(':memory:');
+        $driver = new \WPPack\Component\Database\Bridge\Sqlite\SqliteDriver(':memory:');
         $driver->connect();
 
         $result = $driver->executeQuery("SELECT INET_NTOA(INET_ATON('10.0.0.1'))");
@@ -1500,7 +1500,7 @@ SQL);
     #[Test]
     public function endToEndLockUdfs(): void
     {
-        $driver = new \WpPack\Component\Database\Bridge\Sqlite\SqliteDriver(':memory:');
+        $driver = new \WPPack\Component\Database\Bridge\Sqlite\SqliteDriver(':memory:');
         $driver->connect();
 
         self::assertSame(1, (int) $driver->executeQuery("SELECT GET_LOCK('test', 10)")->fetchOne());
@@ -1526,7 +1526,7 @@ SQL);
     #[Test]
     public function showCreateTableUsesCache(): void
     {
-        $driver = new \WpPack\Component\Database\Bridge\Sqlite\SqliteDriver(':memory:');
+        $driver = new \WPPack\Component\Database\Bridge\Sqlite\SqliteDriver(':memory:');
         $driver->connect();
 
         // Create table (with cache inserts)
@@ -1597,7 +1597,7 @@ SQL);
     #[Test]
     public function endToEndLikeEscape(): void
     {
-        $driver = new \WpPack\Component\Database\Bridge\Sqlite\SqliteDriver(':memory:');
+        $driver = new \WPPack\Component\Database\Bridge\Sqlite\SqliteDriver(':memory:');
         $driver->connect();
 
         $driver->executeStatement('CREATE TABLE "t" ("id" INTEGER PRIMARY KEY, "name" TEXT)');
@@ -1775,7 +1775,7 @@ SQL);
     #[Test]
     public function deleteJoinEndToEnd(): void
     {
-        $driver = new \WpPack\Component\Database\Bridge\Sqlite\SqliteDriver(':memory:');
+        $driver = new \WPPack\Component\Database\Bridge\Sqlite\SqliteDriver(':memory:');
         $driver->connect();
 
         $driver->executeStatement('CREATE TABLE "wp_options" ("option_id" INTEGER PRIMARY KEY, "option_name" TEXT, "option_value" TEXT)');
@@ -1937,7 +1937,7 @@ SQL);
     #[Test]
     public function substringIndexNegativeCountRaisesTranslationException(): void
     {
-        $this->expectException(\WpPack\Component\Database\Exception\TranslationException::class);
+        $this->expectException(\WPPack\Component\Database\Exception\TranslationException::class);
         $this->expectExceptionMessageMatches('/SUBSTRING_INDEX.*negative/');
 
         $this->translator->translate("SELECT SUBSTRING_INDEX(path, '/', -1) FROM t");
@@ -1950,7 +1950,7 @@ SQL);
     #[Test]
     public function spatialFunctionRaisesTranslationException(): void
     {
-        $this->expectException(\WpPack\Component\Database\Exception\TranslationException::class);
+        $this->expectException(\WPPack\Component\Database\Exception\TranslationException::class);
         $this->expectExceptionMessageMatches('/spatial/i');
 
         $this->translator->translate("SELECT ST_Distance(pt, ST_GeomFromText('POINT(1 2)')) FROM t");
@@ -1995,7 +1995,7 @@ SQL);
     #[Test]
     public function fulltextMatchAgainstRaisesTranslationException(): void
     {
-        $this->expectException(\WpPack\Component\Database\Exception\TranslationException::class);
+        $this->expectException(\WPPack\Component\Database\Exception\TranslationException::class);
         $this->expectExceptionMessageMatches('/FULLTEXT/');
 
         $this->translator->translate("SELECT * FROM posts WHERE MATCH(content) AGAINST('wordpress')");
@@ -2004,7 +2004,7 @@ SQL);
     #[Test]
     public function fulltextMatchAgainstBooleanModeAlsoRejected(): void
     {
-        $this->expectException(\WpPack\Component\Database\Exception\TranslationException::class);
+        $this->expectException(\WPPack\Component\Database\Exception\TranslationException::class);
 
         $this->translator->translate("SELECT * FROM t WHERE MATCH(col) AGAINST('term' IN BOOLEAN MODE)");
     }
@@ -2304,7 +2304,7 @@ SQL;
     #[Test]
     public function unparseableSqlRaisesTranslationException(): void
     {
-        $this->expectException(\WpPack\Component\Database\Exception\TranslationException::class);
+        $this->expectException(\WPPack\Component\Database\Exception\TranslationException::class);
 
         // A stream of punctuation that phpmyadmin/sql-parser can't produce
         // any statement for. The translator must refuse to silently hand the

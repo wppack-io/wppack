@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,15 +11,15 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Logger\Tests;
+namespace WPPack\Component\Logger\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
-use WpPack\Component\Logger\Context\LoggerContext;
-use WpPack\Component\Logger\Exception\InvalidArgumentException;
-use WpPack\Component\Logger\Logger;
-use WpPack\Component\Logger\Test\TestHandler;
+use WPPack\Component\Logger\Context\LoggerContext;
+use WPPack\Component\Logger\Exception\InvalidArgumentException;
+use WPPack\Component\Logger\Logger;
+use WPPack\Component\Logger\Test\TestHandler;
 
 final class LoggerTest extends TestCase
 {
@@ -213,7 +213,7 @@ final class LoggerTest extends TestCase
     #[Test]
     public function handlerIsSkippedWhenNotHandling(): void
     {
-        $skippingHandler = new class implements \WpPack\Component\Logger\Handler\HandlerInterface {
+        $skippingHandler = new class implements \WPPack\Component\Logger\Handler\HandlerInterface {
             public bool $called = false;
 
             public function isHandling(string $level): bool

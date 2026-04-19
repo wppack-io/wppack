@@ -11,7 +11,7 @@
  * @var list<string>                                                 $compilerPasses Compiler pass class names
  * @var array                                                        $taggedServices Tagged service groups
  * @var array                                                        $parameters     Container parameters
- * @var \WpPack\Component\Debug\Toolbar\Panel\TemplateFormatters     $fmt            Template formatters
+ * @var \WPPack\Component\Debug\Toolbar\Panel\TemplateFormatters     $fmt            Template formatters
  */
 ?>
 <div class="wpd-section">

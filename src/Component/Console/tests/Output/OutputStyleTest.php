@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Console\Tests\Output;
+namespace WPPack\Component\Console\Tests\Output;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Console\Output\BufferedOutput;
-use WpPack\Component\Console\Output\OutputStyle;
+use WPPack\Component\Console\Output\BufferedOutput;
+use WPPack\Component\Console\Output\OutputStyle;
 
 final class OutputStyleTest extends TestCase
 {

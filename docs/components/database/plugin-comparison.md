@@ -1,10 +1,10 @@
 # プラグイン比較: SQLite Database Integration / PG4WP
 
-WpPack Database コンポーネントの MySQL→SQLite / MySQL→PostgreSQL クエリ変換機能を、WordPress エコシステムの既存プラグインと比較する。
+WPPack Database コンポーネントの MySQL→SQLite / MySQL→PostgreSQL クエリ変換機能を、WordPress エコシステムの既存プラグインと比較する。
 
 ## 概要
 
-| | SQLite Database Integration | PG4WP | WpPack |
+| | SQLite Database Integration | PG4WP | WPPack |
 |---|---|---|---|
 | リポジトリ | wordpress/sqlite-database-integration | PostgreSQL-For-Wordpress/postgresql-for-wordpress | wppack-io/wppack |
 | エンジン | SQLite | PostgreSQL | SQLite + PostgreSQL + Aurora DSQL |
@@ -21,7 +21,7 @@ WpPack Database コンポーネントの MySQL→SQLite / MySQL→PostgreSQL ク
 
 ### 関数
 
-| MySQL 関数 | SQLite プラグイン | PG4WP | WpPack SQLite | WpPack PgSQL |
+| MySQL 関数 | SQLite プラグイン | PG4WP | WPPack SQLite | WPPack PgSQL |
 |-----------|:---:|:---:|:---:|:---:|
 | NOW() | ✅ UDF | N/A ネイティブ | ✅ AST | N/A ネイティブ |
 | CURDATE() / CURTIME() | ✅ UDF | — | ✅ AST | ✅ AST |
@@ -61,7 +61,7 @@ WpPack Database コンポーネントの MySQL→SQLite / MySQL→PostgreSQL ク
 
 ### DML 文
 
-| 機能 | SQLite プラグイン | PG4WP | WpPack SQLite | WpPack PgSQL |
+| 機能 | SQLite プラグイン | PG4WP | WPPack SQLite | WPPack PgSQL |
 |------|:---:|:---:|:---:|:---:|
 | INSERT IGNORE | ✅ | ✅ | ✅ | ✅ |
 | REPLACE INTO | ✅ | ✅ | ✅ | ✅ |
@@ -91,7 +91,7 @@ WpPack Database コンポーネントの MySQL→SQLite / MySQL→PostgreSQL ク
 
 ### DDL
 
-| 機能 | SQLite プラグイン | PG4WP | WpPack SQLite | WpPack PgSQL |
+| 機能 | SQLite プラグイン | PG4WP | WPPack SQLite | WPPack PgSQL |
 |------|:---:|:---:|:---:|:---:|
 | CREATE TABLE 型変換 | ✅ | ✅ | ✅ AST | ✅ AST |
 | PRIMARY KEY マージ | ✅ | N/A | ✅ AST | N/A |
@@ -109,7 +109,7 @@ WpPack Database コンポーネントの MySQL→SQLite / MySQL→PostgreSQL ク
 
 ### SHOW 文
 
-| 機能 | SQLite プラグイン | PG4WP | WpPack SQLite | WpPack PgSQL |
+| 機能 | SQLite プラグイン | PG4WP | WPPack SQLite | WPPack PgSQL |
 |------|:---:|:---:|:---:|:---:|
 | SHOW TABLES [LIKE] | ✅ | ✅ | ✅ | ✅ |
 | SHOW FULL TABLES | ✅ | — | ✅ | ✅ |
@@ -128,18 +128,18 @@ WpPack Database コンポーネントの MySQL→SQLite / MySQL→PostgreSQL ク
 
 ### コード規模
 
-| | SQLite プラグイン | WpPack SQLite | WpPack PgSQL |
+| | SQLite プラグイン | WPPack SQLite | WPPack PgSQL |
 |---|---:|---:|---:|
 | トランスレーター | 4,543行 | 1,940行 | 1,867行 |
 | QueryRewriter | 343行 | 279行 | 279行 |
 | UDF / Driver | 899行（46関数） | 342行（15関数） | — |
 | **合計** | **5,785行** | **~2,560行** | **~2,150行** |
 
-WpPack は phpmyadmin/sql-parser の AST を活用することで、プラグインの約半分のコード量で同等以上の機能をカバーする。プラグインは独自 Lexer（2,997行）を含むため、パーサー込みの総コスト差はさらに大きい。
+WPPack は phpmyadmin/sql-parser の AST を活用することで、プラグインの約半分のコード量で同等以上の機能をカバーする。プラグインは独自 Lexer（2,997行）を含むため、パーサー込みの総コスト差はさらに大きい。
 
 ### アーキテクチャ
 
-| | SQLite プラグイン | WpPack |
+| | SQLite プラグイン | WPPack |
 |---|---|---|
 | パーサー | 独自 WP_MySQL_Lexer（2,997行） | phpmyadmin/sql-parser v6.0（標準ライブラリ） |
 | 変換方式 | トークンストリーム書き換え + UDF 46個 | AST ルーティング + QueryRewriter + UDF 14個 |
@@ -151,12 +151,12 @@ WpPack は phpmyadmin/sql-parser の AST を活用することで、プラグイ
 
 ### 関数変換: UDF vs AST
 
-プラグインは46個の UDF を SQLite に登録する方式。WpPack は AST レベルで SQLite ネイティブ関数に変換し、UDF は14個に抑える。
+プラグインは46個の UDF を SQLite に登録する方式。WPPack は AST レベルで SQLite ネイティブ関数に変換し、UDF は14個に抑える。
 
 | 方式 | 利点 | 欠点 |
 |------|------|------|
 | UDF（プラグイン） | MySQL 動作の正確な再現 | 行ごとに PHP 呼び出し → パフォーマンス劣化。インデックス無効化 |
-| AST 変換（WpPack） | SQLite ネイティブ実行 → 高速。インデックス有効 | 100%の MySQL 互換性は保証できない |
+| AST 変換（WPPack） | SQLite ネイティブ実行 → 高速。インデックス有効 | 100%の MySQL 互換性は保証できない |
 
 例: 10,000行の SELECT で NOW() を使用する場合
 - UDF: NOW() が10,000回 PHP に呼び出される
@@ -164,41 +164,41 @@ WpPack は phpmyadmin/sql-parser の AST を活用することで、プラグイ
 
 ### 機能カバレッジ: 関数変換
 
-| 関数 | プラグイン | WpPack | 方式の違い |
+| 関数 | プラグイン | WPPack | 方式の違い |
 |------|:---:|:---:|---|
-| NOW() | UDF | **AST** | プラグイン: PHP `gmdate()` / WpPack: `datetime('now')` ネイティブ |
+| NOW() | UDF | **AST** | プラグイン: PHP `gmdate()` / WPPack: `datetime('now')` ネイティブ |
 | CURDATE() / CURTIME() | UDF | **AST** | 同上 |
-| UNIX_TIMESTAMP() | UDF | **AST** | WpPack: `strftime('%s','now')` |
-| FROM_UNIXTIME() | UDF | **AST** | WpPack: `datetime(t, 'unixepoch')` |
+| UNIX_TIMESTAMP() | UDF | **AST** | WPPack: `strftime('%s','now')` |
+| FROM_UNIXTIME() | UDF | **AST** | WPPack: `datetime(t, 'unixepoch')` |
 | UTC_TIMESTAMP/DATE/TIME | UDF | **AST** | 同上 |
-| DATE_ADD / DATE_SUB | トークン | **AST** | WpPack: 引数を再帰的に変換 |
+| DATE_ADD / DATE_SUB | トークン | **AST** | WPPack: 引数を再帰的に変換 |
 | DATE_FORMAT | トークン | **AST** | MySQL 全31仕様対応（プラグインは PHP date() フォーマット含む独自マップ） |
-| MONTH / YEAR / DAY | UDF | **AST** | WpPack: `strftime()` → `CAST AS INTEGER` |
+| MONTH / YEAR / DAY | UDF | **AST** | WPPack: `strftime()` → `CAST AS INTEGER` |
 | HOUR / MINUTE / SECOND | UDF | **AST** | 同上 |
-| DAYOFWEEK / WEEKDAY / WEEK | UDF | **AST** | WpPack: `strftime('%w')` 演算 |
-| DATEDIFF | UDF | **AST** | WpPack: `julianday()` 差分 |
+| DAYOFWEEK / WEEKDAY / WEEK | UDF | **AST** | WPPack: `strftime('%w')` 演算 |
+| DATEDIFF | UDF | **AST** | WPPack: `julianday()` 差分 |
 | CONCAT | トークン→\|\| | **AST**→\|\| | 同じ出力 |
-| LEFT / RIGHT | トークン | **AST** | WpPack: RIGHT も対応 |
+| LEFT / RIGHT | トークン | **AST** | WPPack: RIGHT も対応 |
 | SUBSTRING / CHAR_LENGTH | トークン | **AST** | 同等 |
-| MID / LCASE / UCASE | UDF (LCASE/UCASE) | **AST** | プラグイン: UDF / WpPack: `lower()`/`upper()` ネイティブ |
-| LOCATE | UDF | **AST** | WpPack: `INSTR()` ネイティブ |
-| IF | UDF | **AST** | WpPack: `CASE WHEN ... END` ネイティブ |
+| MID / LCASE / UCASE | UDF (LCASE/UCASE) | **AST** | プラグイン: UDF / WPPack: `lower()`/`upper()` ネイティブ |
+| LOCATE | UDF | **AST** | WPPack: `INSTR()` ネイティブ |
+| IF | UDF | **AST** | WPPack: `CASE WHEN ... END` ネイティブ |
 | IFNULL | ネイティブ | ネイティブ | 同等 |
-| GREATEST / LEAST | UDF | **AST** | WpPack: `MAX/MIN` ネイティブ |
-| RAND | UDF | **AST** | WpPack: `random()` ネイティブ |
-| VERSION | UDF | **AST** | プラグイン: '5.5' / WpPack: '10.0.0-wppack' |
-| LAST_INSERT_ID | — | **AST** | WpPack のみ対応 |
-| CONVERT | — | **AST** | WpPack: → `CAST(... AS ...)` |
-| ISNULL | UDF | **AST** | WpPack: `(x IS NULL)` 構造変換 |
+| GREATEST / LEAST | UDF | **AST** | WPPack: `MAX/MIN` ネイティブ |
+| RAND | UDF | **AST** | WPPack: `random()` ネイティブ |
+| VERSION | UDF | **AST** | プラグイン: '5.5' / WPPack: '10.0.0-wppack' |
+| LAST_INSERT_ID | — | **AST** | WPPack のみ対応 |
+| CONVERT | — | **AST** | WPPack: → `CAST(... AS ...)` |
+| ISNULL | UDF | **AST** | WPPack: `(x IS NULL)` 構造変換 |
 | MD5 / REGEXP / FIELD | UDF | **UDF** | 同方式 |
-| LOG | UDF | **UDF** | WpPack: UDF + 2引数構造変換 |
+| LOG | UDF | **UDF** | WPPack: UDF + 2引数構造変換 |
 | UNHEX / BASE64 / INET | UDF | **UDF** | 同方式 |
 | GET_LOCK / RELEASE_LOCK | UDF (no-op) | **UDF** (no-op) | 同方式 |
 | GROUP_CONCAT | ✅ ネイティブ | **AST** | SQLite: `group_concat(col, sep)` / PgSQL: `STRING_AGG(col, sep)` |
 
 ### 機能カバレッジ: 文レベル変換
 
-| 機能 | プラグイン | WpPack |
+| 機能 | プラグイン | WPPack |
 |------|:---:|:---:|
 | INSERT IGNORE | ✅ | ✅ |
 | REPLACE INTO | ✅ | ✅ |
@@ -226,7 +226,7 @@ WpPack は phpmyadmin/sql-parser の AST を活用することで、プラグイ
 
 ### 機能カバレッジ: DDL
 
-| 機能 | プラグイン | WpPack |
+| 機能 | プラグイン | WPPack |
 |------|:---:|:---:|
 | CREATE TABLE 型変換 | ✅ | ✅ (AST ベース) |
 | PRIMARY KEY マージ | ✅ | ✅ (AST ベース) |
@@ -238,7 +238,7 @@ WpPack は phpmyadmin/sql-parser の AST を活用することで、プラグイ
 
 ### 機能カバレッジ: SHOW 文
 
-| 機能 | プラグイン | WpPack |
+| 機能 | プラグイン | WPPack |
 |------|:---:|:---:|
 | SHOW TABLES [LIKE] | ✅ | ✅ |
 | SHOW FULL TABLES | ✅ | ✅ |
@@ -253,11 +253,11 @@ WpPack は phpmyadmin/sql-parser の AST を活用することで、プラグイ
 | DESCRIBE | — | ✅ |
 | CHECK / ANALYZE / REPAIR TABLE | ✅ | ✅ (ダミー) |
 
-### WpPack の優位点
+### WPPack の優位点
 
 | 機能 | 説明 |
 |------|------|
-| **PostgreSQL + Aurora DSQL** | プラグインは SQLite のみ。WpPack は3エンジン対応 |
+| **PostgreSQL + Aurora DSQL** | プラグインは SQLite のみ。WPPack は3エンジン対応 |
 | **AST ベース DDL** | `CreateDefinition[]` から型安全に構築。プラグインはトークン操作 |
 | **ネイティブ関数優先** | UDF 14個 vs プラグイン46個。パフォーマンスに直結 |
 | **真の Prepared Statement** | `?` パラメータを Driver に分離。SQL インジェクション構造的防止 |
@@ -275,7 +275,7 @@ WpPack は phpmyadmin/sql-parser の AST を活用することで、プラグイ
 
 ### コード規模
 
-| | PG4WP | WpPack PgSQL |
+| | PG4WP | WPPack PgSQL |
 |---|---:|---:|
 | トランスレーター/ドライバ | ~4,000行 | 1,867行 |
 | QueryRewriter | — | 279行 |
@@ -283,7 +283,7 @@ WpPack は phpmyadmin/sql-parser の AST を活用することで、プラグイ
 
 ### アーキテクチャ
 
-| | PG4WP | WpPack |
+| | PG4WP | WPPack |
 |---|---|---|
 | パース方式 | 正規表現ベース文字列置換 | phpmyadmin/sql-parser AST |
 | 関数変換 | ~20関数 | 50+関数 |
@@ -291,13 +291,13 @@ WpPack は phpmyadmin/sql-parser の AST を活用することで、プラグイ
 | Prepared Statement | なし | ネイティブ `?` パラメータ |
 | Reader/Writer Split | なし | DATABASE_READER_DSN 対応 |
 
-### WpPack のみの機能（PG4WP にない）
+### WPPack のみの機能（PG4WP にない）
 
-50以上の機能が WpPack のみ対応。
+50以上の機能が WPPack のみ対応。
 
-#### 関数（PG4WP 未対応 → WpPack 対応）
+#### 関数（PG4WP 未対応 → WPPack 対応）
 
-| MySQL | WpPack PgSQL 変換先 | カテゴリ |
+| MySQL | WPPack PgSQL 変換先 | カテゴリ |
 |-------|-------------------|---------|
 | `CURDATE()` / `CURTIME()` | `CURRENT_DATE` / `CURRENT_TIME` | 日時 |
 | `UTC_TIMESTAMP()` / `UTC_DATE()` / `UTC_TIME()` | `NOW() AT TIME ZONE 'UTC'` 等 | 日時 |
@@ -319,9 +319,9 @@ WpPack は phpmyadmin/sql-parser の AST を活用することで、プラグイ
 | `CONVERT(val, type)` | `CAST(val AS type)` | 型変換 |
 | `CAST(AS CHAR)` | `CAST(AS TEXT)` | 型変換 |
 
-#### DML 文（PG4WP 未対応 → WpPack 対応）
+#### DML 文（PG4WP 未対応 → WPPack 対応）
 
-| MySQL 構文 | WpPack PgSQL 変換 |
+| MySQL 構文 | WPPack PgSQL 変換 |
 |-----------|-----------------|
 | `TRUNCATE TABLE t` | `TRUNCATE ... RESTART IDENTITY` |
 | `START TRANSACTION` | `BEGIN` |
@@ -338,9 +338,9 @@ WpPack は phpmyadmin/sql-parser の AST を活用することで、プラグイ
 | `LOW_PRIORITY` / `DELAYED` | 除去 |
 | `'0000-00-00 00:00:00'` | `'0001-01-01 00:00:00'` |
 
-#### SHOW 文（PG4WP 未対応 → WpPack 対応）
+#### SHOW 文（PG4WP 未対応 → WPPack 対応）
 
-| MySQL SHOW | WpPack PgSQL 変換先 |
+| MySQL SHOW | WPPack PgSQL 変換先 |
 |-----------|-------------------|
 | `SHOW CREATE TABLE t` | `information_schema.columns` から再構築 |
 | `SHOW DATABASES` | `pg_database` クエリ |
@@ -367,18 +367,18 @@ WpPack は phpmyadmin/sql-parser の AST を活用することで、プラグイ
 | **COUNT(*) ORDER BY 除去** | 不要な ORDER BY をパフォーマンス向上のため除去 |
 | **608 ユニットテスト** | PG4WP は504スタブテスト |
 
-### PG4WP のみの機能（WpPack にない）
+### PG4WP のみの機能（WPPack にない）
 
 | 機能 | 説明 | WordPress 影響 | 実装必要性 |
 |------|------|---------------|-----------|
 | Akismet comment_ID 正規化 | 小文字 `comment_id` → 大文字 `comment_ID` | 低 | 不要（Akismet プラグイン固有のバグ。WP コアは常に正しいケースを使用） |
 | wp_options マルチ行 INSERT | 複数行 INSERT を個別実行 | なし | 不要（PgSQL はマルチ行 INSERT をネイティブサポート） |
 
-※ NextGen Gallery AS クォート（`AS 'alias'` → `AS "alias"`）は WpPack で汎用的に対応済み。
+※ NextGen Gallery AS クォート（`AS 'alias'` → `AS "alias"`）は WPPack で汎用的に対応済み。
 
 ## 総合評価
 
-| 評価軸 | SQLite プラグイン | PG4WP | WpPack |
+| 評価軸 | SQLite プラグイン | PG4WP | WPPack |
 |--------|:---:|:---:|:---:|
 | 関数カバレッジ | ★★★ (46 UDF) | ★★ (~20) | ★★★★ (50+ AST変換 + 14 UDF) |
 | パフォーマンス | ★★ (UDF オーバーヘッド) | ★★★ | ★★★★ (ネイティブ関数優先) |

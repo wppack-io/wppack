@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,37 +11,37 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\PasskeyLoginPlugin\DependencyInjection;
+namespace WPPack\Plugin\PasskeyLoginPlugin\DependencyInjection;
 
 use Psr\Log\LoggerInterface;
-use WpPack\Component\Admin\AdminPageRegistry;
-use WpPack\Component\Database\DatabaseManager;
-use WpPack\Component\Database\SchemaManager;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\DependencyInjection\Reference;
-use WpPack\Component\DependencyInjection\ServiceProviderInterface;
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\Logger\DependencyInjection\LoggerServiceProvider;
-use WpPack\Component\Rest\RestRegistry;
-use WpPack\Component\Security\AuthenticationSession;
-use WpPack\Component\Security\Bridge\Passkey\Ceremony\CeremonyManager;
-use WpPack\Component\Security\Bridge\Passkey\Configuration\PasskeyConfiguration;
-use WpPack\Component\Security\Bridge\Passkey\Controller\AuthenticationController;
-use WpPack\Component\Security\Bridge\Passkey\Controller\CredentialController;
-use WpPack\Component\Security\Bridge\Passkey\Controller\RegistrationController;
-use WpPack\Component\Security\Bridge\Passkey\Storage\CredentialRepositoryInterface;
-use WpPack\Component\Security\Bridge\Passkey\Storage\DatabaseCredentialRepository;
-use WpPack\Component\Site\BlogContext;
-use WpPack\Component\Site\BlogContextInterface;
-use WpPack\Component\Transient\TransientManager;
-use WpPack\Plugin\PasskeyLoginPlugin\Admin\PasskeyLoginSettingsController;
-use WpPack\Plugin\PasskeyLoginPlugin\Admin\PasskeyLoginSettingsPage;
-use WpPack\Plugin\PasskeyLoginPlugin\Configuration\PasskeyLoginConfiguration;
-use WpPack\Plugin\PasskeyLoginPlugin\Activation\PasskeyActivationController;
-use WpPack\Plugin\PasskeyLoginPlugin\Activation\PasskeyActivationPrompt;
-use WpPack\Plugin\PasskeyLoginPlugin\LoginForm\PasskeyLoginForm;
-use WpPack\Plugin\PasskeyLoginPlugin\Migration\PasskeyCredentialTable;
-use WpPack\Plugin\PasskeyLoginPlugin\Profile\PasskeyProfileSection;
+use WPPack\Component\Admin\AdminPageRegistry;
+use WPPack\Component\Database\DatabaseManager;
+use WPPack\Component\Database\SchemaManager;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\DependencyInjection\Reference;
+use WPPack\Component\DependencyInjection\ServiceProviderInterface;
+use WPPack\Component\HttpFoundation\Request;
+use WPPack\Component\Logger\DependencyInjection\LoggerServiceProvider;
+use WPPack\Component\Rest\RestRegistry;
+use WPPack\Component\Security\AuthenticationSession;
+use WPPack\Component\Security\Bridge\Passkey\Ceremony\CeremonyManager;
+use WPPack\Component\Security\Bridge\Passkey\Configuration\PasskeyConfiguration;
+use WPPack\Component\Security\Bridge\Passkey\Controller\AuthenticationController;
+use WPPack\Component\Security\Bridge\Passkey\Controller\CredentialController;
+use WPPack\Component\Security\Bridge\Passkey\Controller\RegistrationController;
+use WPPack\Component\Security\Bridge\Passkey\Storage\CredentialRepositoryInterface;
+use WPPack\Component\Security\Bridge\Passkey\Storage\DatabaseCredentialRepository;
+use WPPack\Component\Site\BlogContext;
+use WPPack\Component\Site\BlogContextInterface;
+use WPPack\Component\Transient\TransientManager;
+use WPPack\Plugin\PasskeyLoginPlugin\Admin\PasskeyLoginSettingsController;
+use WPPack\Plugin\PasskeyLoginPlugin\Admin\PasskeyLoginSettingsPage;
+use WPPack\Plugin\PasskeyLoginPlugin\Configuration\PasskeyLoginConfiguration;
+use WPPack\Plugin\PasskeyLoginPlugin\Activation\PasskeyActivationController;
+use WPPack\Plugin\PasskeyLoginPlugin\Activation\PasskeyActivationPrompt;
+use WPPack\Plugin\PasskeyLoginPlugin\LoginForm\PasskeyLoginForm;
+use WPPack\Plugin\PasskeyLoginPlugin\Migration\PasskeyCredentialTable;
+use WPPack\Plugin\PasskeyLoginPlugin\Profile\PasskeyProfileSection;
 
 final class PasskeyLoginPluginServiceProvider implements ServiceProviderInterface
 {

@@ -1,6 +1,6 @@
 # テーマ開発ガイド
 
-WpPack を使って WordPress テーマを一から開発するための実践ガイドです。クラシックテーマと FSE（ブロックテーマ）の両方式について、Kernel・DependencyInjection・Hook を組み合わせた開発方法を解説します。
+WPPack を使って WordPress テーマを一から開発するための実践ガイドです。クラシックテーマと FSE（ブロックテーマ）の両方式について、Kernel・DependencyInjection・Hook を組み合わせた開発方法を解説します。
 
 ## 使用するコンポーネント
 
@@ -31,7 +31,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/vendor/autoload.php';
 
 use MyTheme\MyTheme;
-use WpPack\Component\Kernel\Kernel;
+use WPPack\Component\Kernel\Kernel;
 
 Kernel::registerTheme(new MyTheme(__FILE__));
 ```
@@ -52,10 +52,10 @@ declare(strict_types=1);
 
 namespace MyTheme;
 
-use WpPack\Component\DependencyInjection\Container;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\Hook\DependencyInjection\RegisterHookSubscribersPass;
-use WpPack\Component\Kernel\AbstractTheme;
+use WPPack\Component\DependencyInjection\Container;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\Hook\DependencyInjection\RegisterHookSubscribersPass;
+use WPPack\Component\Kernel\AbstractTheme;
 
 final class MyTheme extends AbstractTheme
 {
@@ -170,7 +170,7 @@ my-classic-theme/
 ```css
 /*
 Theme Name: My Classic Theme
-Description: A WpPack-powered classic theme.
+Description: A WPPack-powered classic theme.
 Version: 1.0.0
 Requires PHP: 8.2
 Text Domain: my-classic-theme
@@ -223,8 +223,8 @@ declare(strict_types=1);
 
 namespace MyTheme\Hook;
 
-use WpPack\Component\Hook\Attribute\AsHookSubscriber;
-use WpPack\Component\Hook\Attribute\Theme\Action\WpEnqueueScriptsAction;
+use WPPack\Component\Hook\Attribute\AsHookSubscriber;
+use WPPack\Component\Hook\Attribute\Theme\Action\WpEnqueueScriptsAction;
 
 #[AsHookSubscriber]
 final class AssetLoader
@@ -268,10 +268,10 @@ declare(strict_types=1);
 
 namespace MyTheme\Hook;
 
-use WpPack\Component\Hook\Attribute\AsHookSubscriber;
-use WpPack\Component\Hook\Attribute\Theme\Action\WpHeadAction;
-use WpPack\Component\Hook\Attribute\Theme\Action\WpFooterAction;
-use WpPack\Component\Hook\Attribute\Theme\Filter\BodyClassFilter;
+use WPPack\Component\Hook\Attribute\AsHookSubscriber;
+use WPPack\Component\Hook\Attribute\Theme\Action\WpHeadAction;
+use WPPack\Component\Hook\Attribute\Theme\Action\WpFooterAction;
+use WPPack\Component\Hook\Attribute\Theme\Filter\BodyClassFilter;
 
 #[AsHookSubscriber]
 final class ThemeOutput
@@ -311,9 +311,9 @@ declare(strict_types=1);
 
 namespace MyTheme\Hook;
 
-use WpPack\Component\Hook\Attribute\AsHookSubscriber;
-use WpPack\Component\Hook\Attribute\Theme\Action\CustomizeRegisterAction;
-use WpPack\Component\Hook\Attribute\Theme\Action\CustomizePreviewInitAction;
+use WPPack\Component\Hook\Attribute\AsHookSubscriber;
+use WPPack\Component\Hook\Attribute\Theme\Action\CustomizeRegisterAction;
+use WPPack\Component\Hook\Attribute\Theme\Action\CustomizePreviewInitAction;
 
 #[AsHookSubscriber]
 final class ThemeCustomizer
@@ -368,8 +368,8 @@ declare(strict_types=1);
 
 namespace MyTheme\Hook;
 
-use WpPack\Component\Hook\Attribute\AsHookSubscriber;
-use WpPack\Component\Hook\Attribute\Action;
+use WPPack\Component\Hook\Attribute\AsHookSubscriber;
+use WPPack\Component\Hook\Attribute\Action;
 
 #[AsHookSubscriber]
 final class WidgetAreas
@@ -589,8 +589,8 @@ declare(strict_types=1);
 
 namespace MyTheme\Hook;
 
-use WpPack\Component\Hook\Attribute\Action\InitAction;
-use WpPack\Component\Hook\Attribute\AsHookSubscriber;
+use WPPack\Component\Hook\Attribute\Action\InitAction;
+use WPPack\Component\Hook\Attribute\AsHookSubscriber;
 
 #[AsHookSubscriber]
 final class BlockPatterns
@@ -637,7 +637,7 @@ final class BlockPatterns
         <h1 class="has-text-align-center"><?php esc_html_e('Welcome to My Site', 'my-block-theme'); ?></h1>
         <!-- /wp:heading -->
         <!-- wp:paragraph {"align":"center"} -->
-        <p class="has-text-align-center"><?php esc_html_e('A beautiful site built with WpPack.', 'my-block-theme'); ?></p>
+        <p class="has-text-align-center"><?php esc_html_e('A beautiful site built with WPPack.', 'my-block-theme'); ?></p>
         <!-- /wp:paragraph -->
     </div>
 </div>
@@ -653,8 +653,8 @@ declare(strict_types=1);
 
 namespace MyTheme\Hook;
 
-use WpPack\Component\Hook\Attribute\Action\InitAction;
-use WpPack\Component\Hook\Attribute\AsHookSubscriber;
+use WPPack\Component\Hook\Attribute\Action\InitAction;
+use WPPack\Component\Hook\Attribute\AsHookSubscriber;
 
 #[AsHookSubscriber]
 final class BlockStyles
@@ -691,9 +691,9 @@ declare(strict_types=1);
 
 namespace MyTheme\Hook;
 
-use WpPack\Component\Hook\Attribute\Block\Action\EnqueueBlockEditorAssetsAction;
-use WpPack\Component\Hook\Attribute\Block\Action\EnqueueBlockAssetsAction;
-use WpPack\Component\Hook\Attribute\AsHookSubscriber;
+use WPPack\Component\Hook\Attribute\Block\Action\EnqueueBlockEditorAssetsAction;
+use WPPack\Component\Hook\Attribute\Block\Action\EnqueueBlockAssetsAction;
+use WPPack\Component\Hook\Attribute\AsHookSubscriber;
 
 #[AsHookSubscriber]
 final class BlockAssets
@@ -773,7 +773,7 @@ final class BlockAssets
 | レイアウト | PHP + CSS | `theme.json` の `settings.layout` |
 | ウィジェット | `register_sidebar()` + ウィジェット画面 | ブロックウィジェット / テンプレートパーツ |
 | メニュー | `register_nav_menus()` + メニュー画面 | ナビゲーションブロック |
-| WpPack 共通 | `ThemeInterface`、`#[AsHookSubscriber]`、`ContainerConfigurator` | 同じ |
+| WPPack 共通 | `ThemeInterface`、`#[AsHookSubscriber]`、`ContainerConfigurator` | 同じ |
 
 ### 実践例：ブロックパターン付き FSE テーマ
 
@@ -833,7 +833,7 @@ my-block-theme/
 
 ### 共通のメリット
 
-どちらの方式でも、WpPack の以下の機能を同じように利用できます：
+どちらの方式でも、WPPack の以下の機能を同じように利用できます：
 
 - **ThemeInterface** によるライフサイクル管理
 - **ContainerConfigurator** / **services.php** によるサービスの自動検出

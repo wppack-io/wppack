@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,23 +11,23 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\MonitoringPlugin;
+namespace WPPack\Plugin\MonitoringPlugin;
 
-use WpPack\Component\Admin\AdminPageRegistry;
-use WpPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
-use WpPack\Component\DependencyInjection\Container;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\Hook\DependencyInjection\RegisterHookSubscribersPass;
-use WpPack\Component\Kernel\AbstractPlugin;
-use WpPack\Component\Kernel\Attribute\TextDomain;
-use WpPack\Component\Monitoring\DependencyInjection\RegisterMetricBridgesPass;
-use WpPack\Component\Monitoring\DependencyInjection\RegisterMetricProvidersPass;
-use WpPack\Component\Monitoring\MonitoringCollector;
-use WpPack\Component\Monitoring\Rest\MonitoringController;
-use WpPack\Component\Rest\DependencyInjection\RegisterRestControllersPass;
-use WpPack\Component\Rest\RestRegistry;
-use WpPack\Plugin\MonitoringPlugin\Admin\MonitoringDashboardPage;
-use WpPack\Plugin\MonitoringPlugin\DependencyInjection\MonitoringPluginServiceProvider;
+use WPPack\Component\Admin\AdminPageRegistry;
+use WPPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
+use WPPack\Component\DependencyInjection\Container;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\Hook\DependencyInjection\RegisterHookSubscribersPass;
+use WPPack\Component\Kernel\AbstractPlugin;
+use WPPack\Component\Kernel\Attribute\TextDomain;
+use WPPack\Component\Monitoring\DependencyInjection\RegisterMetricBridgesPass;
+use WPPack\Component\Monitoring\DependencyInjection\RegisterMetricProvidersPass;
+use WPPack\Component\Monitoring\MonitoringCollector;
+use WPPack\Component\Monitoring\Rest\MonitoringController;
+use WPPack\Component\Rest\DependencyInjection\RegisterRestControllersPass;
+use WPPack\Component\Rest\RestRegistry;
+use WPPack\Plugin\MonitoringPlugin\Admin\MonitoringDashboardPage;
+use WPPack\Plugin\MonitoringPlugin\DependencyInjection\MonitoringPluginServiceProvider;
 
 #[TextDomain(domain: 'wppack-monitoring')]
 final class MonitoringPlugin extends AbstractPlugin

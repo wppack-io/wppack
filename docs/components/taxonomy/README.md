@@ -1,7 +1,7 @@
 # Taxonomy コンポーネント
 
 **パッケージ:** `wppack/taxonomy`
-**名前空間:** `WpPack\Component\Taxonomy\`
+**名前空間:** `WPPack\Component\Taxonomy\`
 **レイヤー:** Application
 
 WordPress のタクソノミー登録関数 `register_taxonomy()` をアトリビュートでラップし、タームの CRUD フックを Named Hook アトリビュートとして提供するコンポーネントです。
@@ -44,13 +44,13 @@ add_action('pre_get_terms', function($query) {
 });
 ```
 
-### After（WpPack）
+### After（WPPack）
 
 ```php
-use WpPack\Component\Hook\Attribute\InitAction;
-use WpPack\Component\Taxonomy\Attribute\CreateTermAction;
-use WpPack\Component\Taxonomy\Attribute\PreGetTermsAction;
-use WpPack\Component\Taxonomy\TaxonomyRegistry;
+use WPPack\Component\Hook\Attribute\InitAction;
+use WPPack\Component\Taxonomy\Attribute\CreateTermAction;
+use WPPack\Component\Taxonomy\Attribute\PreGetTermsAction;
+use WPPack\Component\Taxonomy\TaxonomyRegistry;
 
 class ProductTaxonomy
 {
@@ -97,8 +97,8 @@ class ProductTaxonomy
 `TermRepositoryInterface` / `TermRepository` は、WordPress タームの CRUD 操作、メタデータ操作、オブジェクト-ターム関係操作を提供します。
 
 ```php
-use WpPack\Component\Taxonomy\TermRepository;
-use WpPack\Component\Taxonomy\TermRepositoryInterface;
+use WPPack\Component\Taxonomy\TermRepository;
+use WPPack\Component\Taxonomy\TermRepositoryInterface;
 
 $repository = new TermRepository();
 

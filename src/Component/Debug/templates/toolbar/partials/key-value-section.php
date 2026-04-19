@@ -4,7 +4,7 @@
  *
  * @var string                                                       $title Section heading
  * @var array<string,mixed>                                          $items Key-value pairs to display
- * @var \WpPack\Component\Debug\Toolbar\Panel\TemplateFormatters     $fmt   Template formatters
+ * @var \WPPack\Component\Debug\Toolbar\Panel\TemplateFormatters     $fmt   Template formatters
  */
 ?>
 <div class="wpd-section">

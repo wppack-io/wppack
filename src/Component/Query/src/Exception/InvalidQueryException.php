@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,6 +11,6 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Query\Exception;
+namespace WPPack\Component\Query\Exception;
 
 final class InvalidQueryException extends \InvalidArgumentException implements ExceptionInterface {}

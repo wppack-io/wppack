@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\HttpFoundation\Tests;
+namespace WPPack\Component\HttpFoundation\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\HttpFoundation\RequestValueResolver;
+use WPPack\Component\HttpFoundation\Request;
+use WPPack\Component\HttpFoundation\RequestValueResolver;
 
 final class RequestValueResolverTest extends TestCase
 {

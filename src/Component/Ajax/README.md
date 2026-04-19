@@ -1,4 +1,4 @@
-# WpPack Ajax
+# WPPack Ajax
 
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=ajax)](https://codecov.io/github/wppack-io/wppack)
 
@@ -15,10 +15,10 @@ composer require wppack/ajax
 ### Ajax Attribute
 
 ```php
-use WpPack\Component\Ajax\Access;
-use WpPack\Component\Ajax\Attribute\Ajax;
-use WpPack\Component\HttpFoundation\JsonResponse;
-use WpPack\Component\HttpFoundation\Request;
+use WPPack\Component\Ajax\Access;
+use WPPack\Component\Ajax\Attribute\Ajax;
+use WPPack\Component\HttpFoundation\JsonResponse;
+use WPPack\Component\HttpFoundation\Request;
 
 class ProductController
 {
@@ -43,7 +43,7 @@ class ProductController
 ### Access Enum
 
 ```php
-use WpPack\Component\Ajax\Access;
+use WPPack\Component\Ajax\Access;
 
 #[Ajax(action: 'public_action')]                          // Public (default)
 #[Ajax(action: 'auth_action', access: Access::Authenticated)]  // Authenticated users only
@@ -55,8 +55,8 @@ use WpPack\Component\Ajax\Access;
 Handler methods can receive a `Request` object by type-hinting the parameter:
 
 ```php
-use WpPack\Component\Ajax\Attribute\Ajax;
-use WpPack\Component\HttpFoundation\Request;
+use WPPack\Component\Ajax\Attribute\Ajax;
+use WPPack\Component\HttpFoundation\Request;
 
 #[Ajax(action: 'search_products')]
 public function search(Request $request): JsonResponse
@@ -73,8 +73,8 @@ If an `AjaxHandlerRegistry` is constructed with a `Request` instance, that insta
 Handler methods can receive the current WordPress user by adding the `#[CurrentUser]` attribute to a `\WP_User` parameter:
 
 ```php
-use WpPack\Component\Ajax\Attribute\Ajax;
-use WpPack\Component\Security\Attribute\CurrentUser;
+use WPPack\Component\Ajax\Attribute\Ajax;
+use WPPack\Component\Security\Attribute\CurrentUser;
 
 #[Ajax(action: 'get_profile', access: Access::Authenticated)]
 public function getProfile(#[CurrentUser] \WP_User $user): JsonResponse
@@ -98,10 +98,10 @@ public function updateProfile(Request $request, #[CurrentUser] \WP_User $user): 
 Extend `AbstractAjaxController` to access Security methods and the `json()` response helper:
 
 ```php
-use WpPack\Component\Ajax\AbstractAjaxController;
-use WpPack\Component\Ajax\Attribute\Ajax;
-use WpPack\Component\Ajax\Access;
-use WpPack\Component\HttpFoundation\JsonResponse;
+use WPPack\Component\Ajax\AbstractAjaxController;
+use WPPack\Component\Ajax\Attribute\Ajax;
+use WPPack\Component\Ajax\Access;
+use WPPack\Component\HttpFoundation\JsonResponse;
 
 class ProductController extends AbstractAjaxController
 {
@@ -129,9 +129,9 @@ Requires `wppack/security` for `getUser()`, `isGranted()`, and `denyAccessUnless
 ### AjaxHandlerRegistry
 
 ```php
-use WpPack\Component\Ajax\AjaxHandlerRegistry;
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\Security\Security;
+use WPPack\Component\Ajax\AjaxHandlerRegistry;
+use WPPack\Component\HttpFoundation\Request;
+use WPPack\Component\Security\Security;
 
 // Without constructor injection (Request::createFromGlobals() is used)
 $registry = new AjaxHandlerRegistry();
@@ -149,9 +149,9 @@ $registry->register(new ProductController());
 ### Named Hook Attributes
 
 ```php
-use WpPack\Component\Hook\Attribute\Ajax\Action\WpAjaxAction;
-use WpPack\Component\Hook\Attribute\Ajax\Action\WpAjaxNoprivAction;
-use WpPack\Component\Hook\Attribute\Ajax\Action\CheckAjaxRefererAction;
+use WPPack\Component\Hook\Attribute\Ajax\Action\WpAjaxAction;
+use WPPack\Component\Hook\Attribute\Ajax\Action\WpAjaxNoprivAction;
+use WPPack\Component\Hook\Attribute\Ajax\Action\CheckAjaxRefererAction;
 
 final class AjaxHooks
 {

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Debug\Tests\DependencyInjection\Fixtures;
+namespace WPPack\Component\Debug\Tests\DependencyInjection\Fixtures;
 
-use WpPack\Component\Debug\Attribute\AsPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\AbstractPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\RendererInterface;
+use WPPack\Component\Debug\Attribute\AsPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\AbstractPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\RendererInterface;
 
 #[AsPanelRenderer(name: 'default')]
 final class DefaultPriorityRenderer extends AbstractPanelRenderer implements RendererInterface

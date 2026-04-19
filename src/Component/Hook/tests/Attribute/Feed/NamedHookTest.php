@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,30 +11,30 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Hook\Tests\Attribute\Feed;
+namespace WPPack\Component\Hook\Tests\Attribute\Feed;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Hook\Attribute\Action;
-use WpPack\Component\Hook\Attribute\Filter;
-use WpPack\Component\Hook\Hook;
-use WpPack\Component\Hook\HookType;
-use WpPack\Component\Hook\Attribute\Feed\Action\AtomEntryAction;
-use WpPack\Component\Hook\Attribute\Feed\Action\AtomHeadAction;
-use WpPack\Component\Hook\Attribute\Feed\Action\CommentFeedRssAction;
-use WpPack\Component\Hook\Attribute\Feed\Action\Rss2HeadAction;
-use WpPack\Component\Hook\Attribute\Feed\Action\Rss2ItemAction;
-use WpPack\Component\Hook\Attribute\Feed\Action\Rss2NsAction;
-use WpPack\Component\Hook\Attribute\Feed\Action\RssChannelAction;
-use WpPack\Component\Hook\Attribute\Feed\Action\RssItemAction;
-use WpPack\Component\Hook\Attribute\Feed\Filter\BloginfoRssFilter;
-use WpPack\Component\Hook\Attribute\Feed\Filter\FeedContentTypeFilter;
-use WpPack\Component\Hook\Attribute\Feed\Filter\FeedLinksExtraFilter;
-use WpPack\Component\Hook\Attribute\Feed\Filter\FeedLinkFilter;
-use WpPack\Component\Hook\Attribute\Feed\Filter\SelfLinkFilter;
-use WpPack\Component\Hook\Attribute\Feed\Filter\TheContentFeedFilter;
-use WpPack\Component\Hook\Attribute\Feed\Filter\TheExcerptRssFilter;
-use WpPack\Component\Hook\Attribute\Feed\Filter\TheTitleRssFilter;
+use WPPack\Component\Hook\Attribute\Action;
+use WPPack\Component\Hook\Attribute\Filter;
+use WPPack\Component\Hook\Hook;
+use WPPack\Component\Hook\HookType;
+use WPPack\Component\Hook\Attribute\Feed\Action\AtomEntryAction;
+use WPPack\Component\Hook\Attribute\Feed\Action\AtomHeadAction;
+use WPPack\Component\Hook\Attribute\Feed\Action\CommentFeedRssAction;
+use WPPack\Component\Hook\Attribute\Feed\Action\Rss2HeadAction;
+use WPPack\Component\Hook\Attribute\Feed\Action\Rss2ItemAction;
+use WPPack\Component\Hook\Attribute\Feed\Action\Rss2NsAction;
+use WPPack\Component\Hook\Attribute\Feed\Action\RssChannelAction;
+use WPPack\Component\Hook\Attribute\Feed\Action\RssItemAction;
+use WPPack\Component\Hook\Attribute\Feed\Filter\BloginfoRssFilter;
+use WPPack\Component\Hook\Attribute\Feed\Filter\FeedContentTypeFilter;
+use WPPack\Component\Hook\Attribute\Feed\Filter\FeedLinksExtraFilter;
+use WPPack\Component\Hook\Attribute\Feed\Filter\FeedLinkFilter;
+use WPPack\Component\Hook\Attribute\Feed\Filter\SelfLinkFilter;
+use WPPack\Component\Hook\Attribute\Feed\Filter\TheContentFeedFilter;
+use WPPack\Component\Hook\Attribute\Feed\Filter\TheExcerptRssFilter;
+use WPPack\Component\Hook\Attribute\Feed\Filter\TheTitleRssFilter;
 
 final class NamedHookTest extends TestCase
 {

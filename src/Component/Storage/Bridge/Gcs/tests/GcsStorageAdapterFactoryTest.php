@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,16 +11,16 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Storage\Bridge\Gcs\Tests;
+namespace WPPack\Component\Storage\Bridge\Gcs\Tests;
 
 use Google\Cloud\Storage\Bucket;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Storage\Adapter\Dsn;
-use WpPack\Component\Storage\Bridge\Gcs\GcsStorageAdapter;
-use WpPack\Component\Storage\Bridge\Gcs\GcsStorageAdapterFactory;
-use WpPack\Component\Storage\Exception\InvalidArgumentException;
+use WPPack\Component\Storage\Adapter\Dsn;
+use WPPack\Component\Storage\Bridge\Gcs\GcsStorageAdapter;
+use WPPack\Component\Storage\Bridge\Gcs\GcsStorageAdapterFactory;
+use WPPack\Component\Storage\Exception\InvalidArgumentException;
 
 #[CoversClass(GcsStorageAdapterFactory::class)]
 final class GcsStorageAdapterFactoryTest extends TestCase

@@ -37,9 +37,9 @@ declare(strict_types=1);
 
 namespace App\Block\Subscriber;
 
-use WpPack\Component\Hook\Attribute\Block\Action\EnqueueBlockEditorAssetsAction;
-use WpPack\Component\Hook\Attribute\Block\Filter\BlockCategoriesAllFilter;
-use WpPack\Component\Hook\Attribute\Block\Filter\BlockEditorSettingsAllFilter;
+use WPPack\Component\Hook\Attribute\Block\Action\EnqueueBlockEditorAssetsAction;
+use WPPack\Component\Hook\Attribute\Block\Filter\BlockCategoriesAllFilter;
+use WPPack\Component\Hook\Attribute\Block\Filter\BlockEditorSettingsAllFilter;
 
 final class BlockEditorSubscriber
 {
@@ -97,9 +97,9 @@ declare(strict_types=1);
 
 namespace App\Block\Subscriber;
 
-use WpPack\Component\Hook\Attribute\Block\Filter\RenderBlockFilter;
-use WpPack\Component\Hook\Attribute\Block\Filter\PreRenderBlockFilter;
-use WpPack\Component\Hook\Attribute\Block\Filter\RenderBlockDataFilter;
+use WPPack\Component\Hook\Attribute\Block\Filter\RenderBlockFilter;
+use WPPack\Component\Hook\Attribute\Block\Filter\PreRenderBlockFilter;
+use WPPack\Component\Hook\Attribute\Block\Filter\RenderBlockDataFilter;
 
 final class BlockRenderSubscriber
 {
@@ -158,8 +158,8 @@ declare(strict_types=1);
 
 namespace App\Block\Subscriber;
 
-use WpPack\Component\Hook\Attribute\Block\Action\EnqueueBlockAssetsAction;
-use WpPack\Component\Hook\Attribute\Block\Filter\RegisterBlockTypeArgsFilter;
+use WPPack\Component\Hook\Attribute\Block\Action\EnqueueBlockAssetsAction;
+use WPPack\Component\Hook\Attribute\Block\Filter\RegisterBlockTypeArgsFilter;
 
 final class BlockRegistrationSubscriber
 {

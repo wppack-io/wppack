@@ -1,6 +1,6 @@
 {
     "name": "wppack/dynamodb-cache",
-    "description": "AWS DynamoDB cache adapter for WpPack Cache",
+    "description": "AWS DynamoDB cache adapter for WPPack Cache",
     "type": "library",
     "license": "MIT",
     "require": {
@@ -10,12 +10,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\Cache\\Bridge\\DynamoDb\\": "src/"
+            "WPPack\\Component\\Cache\\Bridge\\DynamoDb\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Component\\Cache\\Bridge\\DynamoDb\\Tests\\": "tests/"
+            "WPPack\\Component\\Cache\\Bridge\\DynamoDb\\Tests\\": "tests/"
         }
     }
 }

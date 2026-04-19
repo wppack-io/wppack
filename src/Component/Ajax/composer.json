@@ -13,12 +13,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\Ajax\\": "src/"
+            "WPPack\\Component\\Ajax\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Component\\Ajax\\Tests\\": "tests/"
+            "WPPack\\Component\\Ajax\\Tests\\": "tests/"
         }
     }
 }

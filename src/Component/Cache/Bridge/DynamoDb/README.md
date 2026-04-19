@@ -1,8 +1,8 @@
-# WpPack DynamoDB Cache
+# WPPack DynamoDB Cache
 
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=dynamodb_cache)](https://codecov.io/github/wppack-io/wppack)
 
-AWS DynamoDB cache adapter for the WpPack Cache component.
+AWS DynamoDB cache adapter for the WPPack Cache component.
 
 ## Installation
 

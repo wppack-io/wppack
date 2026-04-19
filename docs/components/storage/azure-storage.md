@@ -1,7 +1,7 @@
 # Azure Storage
 
 **パッケージ:** `wppack/azure-storage`
-**名前空間:** `WpPack\Component\Storage\Bridge\Azure\`
+**名前空間:** `WPPack\Component\Storage\Bridge\Azure\`
 **レイヤー:** Abstraction（Bridge）
 
 [Storage コンポーネント](./README.md) の Azure Blob Storage アダプタです。`azure-oss/storage` を利用して Azure Blob Storage にアクセスします。
@@ -63,7 +63,7 @@ azure://{account}.blob.core.windows.net/{container}/{prefix}
 ### DSN 経由
 
 ```php
-use WpPack\Component\Storage\Adapter\Storage;
+use WPPack\Component\Storage\Adapter\Storage;
 
 $adapter = Storage::fromDsn('azure://myaccount.blob.core.windows.net/mycontainer/uploads');
 
@@ -75,8 +75,8 @@ $url = $adapter->publicUrl('images/photo.jpg');
 
 ```php
 use AzureOss\Storage\Blob\BlobServiceClient;
-use WpPack\Component\Storage\Bridge\Azure\AzureBlobClient;
-use WpPack\Component\Storage\Bridge\Azure\AzureStorageAdapter;
+use WPPack\Component\Storage\Bridge\Azure\AzureBlobClient;
+use WPPack\Component\Storage\Bridge\Azure\AzureStorageAdapter;
 
 $serviceClient = BlobServiceClient::fromConnectionString(
     'DefaultEndpointsProtocol=https;AccountName=myaccount;AccountKey=...',
@@ -169,8 +169,8 @@ $url = $adapter->temporaryUploadUrl('uploads/photo.jpg', new \DateTimeImmutable(
 Azure 固有のエラーは `AbstractStorageAdapter` の `execute()` ラッパーにより `StorageException` に変換されます。ただし、404 系のエラーは `ObjectNotFoundException` として伝播します。
 
 ```php
-use WpPack\Component\Storage\Exception\ObjectNotFoundException;
-use WpPack\Component\Storage\Exception\StorageException;
+use WPPack\Component\Storage\Exception\ObjectNotFoundException;
+use WPPack\Component\Storage\Exception\StorageException;
 
 try {
     $contents = $adapter->read('nonexistent.txt');

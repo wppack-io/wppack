@@ -1,6 +1,6 @@
-# WpPack Aurora MySQL Data API Database Driver
+# WPPack Aurora MySQL Data API Database Driver
 
-Aurora MySQL Data API driver for the WpPack Database component. Uses RDS Data API (HTTP) instead of native MySQL connections.
+Aurora MySQL Data API driver for the WPPack Database component. Uses RDS Data API (HTTP) instead of native MySQL connections.
 
 ## Installation
 

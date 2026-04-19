@@ -217,7 +217,7 @@ cp vendor/wppack/cache/drop-in/object-cache.php wp-content/object-cache.php
 
 ### ドロップインの無効化
 
-ファイルを削除できないため、ドロップイン側にキルスイッチを実装する必要があります。WpPack の `object-cache.php` は `WPPACK_CACHE_ENABLED` 定数でこれに対応しています:
+ファイルを削除できないため、ドロップイン側にキルスイッチを実装する必要があります。WPPack の `object-cache.php` は `WPPACK_CACHE_ENABLED` 定数でこれに対応しています:
 
 ```php
 // wp-config.php — ドロップインを無効化
@@ -243,9 +243,9 @@ WordPress 管理画面からドロップインの状態を確認できます:
 - **サイトヘルス → 情報 → WordPress 定数**: `WP_CACHE` 等の関連定数
 - **WP-CLI**: `wp dropins list`（CLI で一覧表示）
 
-## WpPack での対応状況
+## WPPack での対応状況
 
-| ドロップイン | WpPack パッケージ | 状態 |
+| ドロップイン | WPPack パッケージ | 状態 |
 |-------------|------------------|------|
 | `object-cache.php` | `wppack/cache` | 実装済み |
 | `fatal-error-handler.php` | `wppack/debug` | 実装済み |

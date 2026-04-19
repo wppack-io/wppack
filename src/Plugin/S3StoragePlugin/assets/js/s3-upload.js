@@ -1,5 +1,5 @@
 /**
- * WpPack S3 Direct Upload Interceptor
+ * WPPack S3 Direct Upload Interceptor
  *
  * Replaces WordPress default media uploads with S3 direct uploads
  * via pre-signed URLs.

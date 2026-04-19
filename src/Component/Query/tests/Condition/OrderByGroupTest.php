@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Query\Tests\Condition;
+namespace WPPack\Component\Query\Tests\Condition;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Query\Condition\OrderByGroup;
-use WpPack\Component\Query\Enum\Order;
+use WPPack\Component\Query\Condition\OrderByGroup;
+use WPPack\Component\Query\Enum\Order;
 
 final class OrderByGroupTest extends TestCase
 {

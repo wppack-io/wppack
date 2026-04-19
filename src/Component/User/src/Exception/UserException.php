@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\User\Exception;
+namespace WPPack\Component\User\Exception;
 
 class UserException extends \RuntimeException implements ExceptionInterface
 {

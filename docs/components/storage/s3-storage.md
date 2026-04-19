@@ -1,7 +1,7 @@
 # S3 Storage
 
 **パッケージ:** `wppack/s3-storage`
-**名前空間:** `WpPack\Component\Storage\Bridge\S3\`
+**名前空間:** `WPPack\Component\Storage\Bridge\S3\`
 **レイヤー:** Abstraction（Bridge）
 
 [Storage コンポーネント](./README.md) の Amazon S3 アダプタです。`async-aws/s3` を利用して S3 互換のオブジェクトストレージにアクセスします。
@@ -55,7 +55,7 @@ s3://{bucket}.s3.{region}.amazonaws.com/{prefix}
 ### DSN 経由
 
 ```php
-use WpPack\Component\Storage\Adapter\Storage;
+use WPPack\Component\Storage\Adapter\Storage;
 
 $adapter = Storage::fromDsn('s3://my-bucket.s3.ap-northeast-1.amazonaws.com/uploads');
 
@@ -67,7 +67,7 @@ $url = $adapter->publicUrl('images/photo.jpg');
 
 ```php
 use AsyncAws\S3\S3Client;
-use WpPack\Component\Storage\Bridge\S3\S3StorageAdapter;
+use WPPack\Component\Storage\Bridge\S3\S3StorageAdapter;
 
 $s3Client = new S3Client(['region' => 'ap-northeast-1']);
 
@@ -198,8 +198,8 @@ $adapter = Storage::fromDsn('s3://my-bucket?endpoint=https://<account-id>.r2.clo
 S3 固有のエラーは `AbstractStorageAdapter` の `execute()` ラッパーにより `StorageException` に変換されます。ただし、404 系のエラーは `ObjectNotFoundException` として伝播します。
 
 ```php
-use WpPack\Component\Storage\Exception\ObjectNotFoundException;
-use WpPack\Component\Storage\Exception\StorageException;
+use WPPack\Component\Storage\Exception\ObjectNotFoundException;
+use WPPack\Component\Storage\Exception\StorageException;
 
 try {
     $contents = $adapter->read('nonexistent.txt');

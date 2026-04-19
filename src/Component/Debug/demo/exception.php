@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -13,18 +13,18 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/bootstrap.php';
 
-use WpPack\Component\Debug\DataCollector\AbstractDataCollector;
-use WpPack\Component\Debug\ErrorHandler\ErrorRenderer;
-use WpPack\Component\Debug\ErrorHandler\FlattenException;
-use WpPack\Component\Debug\Profiler\Profile;
-use WpPack\Component\Debug\Toolbar\Panel\CachePanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\DatabasePanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\EnvironmentPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\LoggerPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\MemoryPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\RequestPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\WordPressPanelRenderer;
-use WpPack\Component\Debug\Toolbar\ToolbarRenderer;
+use WPPack\Component\Debug\DataCollector\AbstractDataCollector;
+use WPPack\Component\Debug\ErrorHandler\ErrorRenderer;
+use WPPack\Component\Debug\ErrorHandler\FlattenException;
+use WPPack\Component\Debug\Profiler\Profile;
+use WPPack\Component\Debug\Toolbar\Panel\CachePanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\DatabasePanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\EnvironmentPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\LoggerPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\MemoryPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\RequestPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\WordPressPanelRenderer;
+use WPPack\Component\Debug\Toolbar\ToolbarRenderer;
 
 /**
  * Fake collector that injects pre-built data for demo purposes.
@@ -127,7 +127,7 @@ $collectors[] = new FakeCollector('request', 'Request', 'GET 500', 'red', [
         ],
         'response' => [
             'Content-Type' => 'text/html; charset=UTF-8',
-            'X-Powered-By' => 'WpPack',
+            'X-Powered-By' => 'WPPack',
         ],
     ],
 ]);
@@ -179,7 +179,7 @@ $collectors[] = new FakeCollector('wordpress', 'WordPress', '6.7.2', 'default', 
     'is_block_theme' => false,
     'is_child_theme' => false,
     'theme_version' => '1.2.0',
-    'active_plugins' => ['wppack/debug' => 'WpPack Debug', 'akismet/akismet.php' => 'Akismet Anti-spam'],
+    'active_plugins' => ['wppack/debug' => 'WPPack Debug', 'akismet/akismet.php' => 'Akismet Anti-spam'],
     'constants' => [
         'WP_DEBUG' => true,
         'SAVEQUERIES' => true,

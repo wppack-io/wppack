@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,22 +11,22 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Kernel\Tests;
+namespace WPPack\Component\Kernel\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
-use WpPack\Component\DependencyInjection\Container;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\Kernel\AbstractPlugin;
-use WpPack\Component\Kernel\AbstractTheme;
-use WpPack\Component\Kernel\Exception\KernelAlreadyBootedException;
-use WpPack\Component\Kernel\Kernel;
-use WpPack\Component\Kernel\Tests\Fixtures\AnotherPlugin;
-use WpPack\Component\Kernel\Tests\Fixtures\TestPlugin;
-use WpPack\Component\Kernel\Tests\Fixtures\TestService;
-use WpPack\Component\Kernel\Tests\Fixtures\TestTheme;
+use WPPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
+use WPPack\Component\DependencyInjection\Container;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\HttpFoundation\Request;
+use WPPack\Component\Kernel\AbstractPlugin;
+use WPPack\Component\Kernel\AbstractTheme;
+use WPPack\Component\Kernel\Exception\KernelAlreadyBootedException;
+use WPPack\Component\Kernel\Kernel;
+use WPPack\Component\Kernel\Tests\Fixtures\AnotherPlugin;
+use WPPack\Component\Kernel\Tests\Fixtures\TestPlugin;
+use WPPack\Component\Kernel\Tests\Fixtures\TestService;
+use WPPack\Component\Kernel\Tests\Fixtures\TestTheme;
 
 final class KernelTest extends TestCase
 {

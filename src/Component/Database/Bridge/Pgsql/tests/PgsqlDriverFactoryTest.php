@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database\Bridge\Pgsql\Tests;
+namespace WPPack\Component\Database\Bridge\Pgsql\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Database\Bridge\Pgsql\PgsqlDriver;
-use WpPack\Component\Database\Bridge\Pgsql\PgsqlDriverFactory;
-use WpPack\Component\Dsn\Dsn;
+use WPPack\Component\Database\Bridge\Pgsql\PgsqlDriver;
+use WPPack\Component\Database\Bridge\Pgsql\PgsqlDriverFactory;
+use WPPack\Component\Dsn\Dsn;
 
 final class PgsqlDriverFactoryTest extends TestCase
 {

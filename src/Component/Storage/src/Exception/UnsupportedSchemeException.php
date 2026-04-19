@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Storage\Exception;
+namespace WPPack\Component\Storage\Exception;
 
-use WpPack\Component\Storage\Adapter\Dsn;
+use WPPack\Component\Storage\Adapter\Dsn;
 
 final class UnsupportedSchemeException extends \LogicException implements ExceptionInterface
 {

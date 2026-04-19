@@ -1,7 +1,7 @@
 # Redis Cache Bridge
 
 **パッケージ:** `wppack/redis-cache`
-**名前空間:** `WpPack\Component\Cache\Bridge\Redis\`
+**名前空間:** `WPPack\Component\Cache\Bridge\Redis\`
 **レイヤー:** Abstraction
 
 Cache コンポーネントの Redis / Valkey アダプタ実装。Symfony Cache の DSN 形式に準拠し、複数の Redis クライアントライブラリをサポートする高性能な永続キャッシュを提供します。
@@ -371,7 +371,7 @@ AWS は ElastiCache で **Valkey** と **Redis OSS** の両方をサポートし
 | **互換性** | Redis 7.2 互換 | Redis 7.1+ |
 | **AWS の推奨** | 新規キャッシュのデフォルト | 既存環境の互換性維持 |
 
-新規プロジェクトでは **Valkey** を推奨します。WpPack は `valkey://` / `valkeys://` スキームで Valkey に対応しており、DSN のスキームを変更するだけで切り替え可能です。
+新規プロジェクトでは **Valkey** を推奨します。WPPack は `valkey://` / `valkeys://` スキームで Valkey に対応しており、DSN のスキームを変更するだけで切り替え可能です。
 
 ## アダプタクラス
 
@@ -479,7 +479,7 @@ define('WPPACK_CACHE_PREFIX', 'wp:');
 
 // 3. WordPress の Object Cache が自動的に Redis を使用
 // CacheManager は透過的に動作
-use WpPack\Component\Cache\CacheManager;
+use WPPack\Component\Cache\CacheManager;
 
 $cache = new CacheManager();
 $cache->set('key', 'value', 'my_app', 3600);
@@ -491,8 +491,8 @@ $data = $cache->get('key', 'my_app');
 ドロップインを使わず、直接 `ObjectCache` を使用することもできます。
 
 ```php
-use WpPack\Component\Cache\Adapter\Adapter;
-use WpPack\Component\Cache\ObjectCache;
+use WPPack\Component\Cache\Adapter\Adapter;
+use WPPack\Component\Cache\ObjectCache;
 
 $adapter = Adapter::fromDsn('redis://127.0.0.1:6379');
 $cache = new ObjectCache($adapter, 'wp:');

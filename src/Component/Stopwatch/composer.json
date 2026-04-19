@@ -8,12 +8,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\Stopwatch\\": "src/"
+            "WPPack\\Component\\Stopwatch\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Component\\Stopwatch\\Tests\\": "tests/"
+            "WPPack\\Component\\Stopwatch\\Tests\\": "tests/"
         }
     }
 }

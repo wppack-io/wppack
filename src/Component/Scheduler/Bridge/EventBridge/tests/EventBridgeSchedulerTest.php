@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Scheduler\Bridge\EventBridge\Tests;
+namespace WPPack\Component\Scheduler\Bridge\EventBridge\Tests;
 
 use AsyncAws\Scheduler\Exception\ConflictException;
 use AsyncAws\Scheduler\Exception\ResourceNotFoundException;
@@ -28,15 +28,15 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Symfony\Contracts\HttpClient\ResponseInterface;
-use WpPack\Component\Scheduler\Bridge\EventBridge\EventBridgeScheduleFactory;
-use WpPack\Component\Scheduler\Bridge\EventBridge\EventBridgeScheduler;
-use WpPack\Component\Scheduler\Bridge\EventBridge\Exception\EventBridgeException;
-use WpPack\Component\Scheduler\Bridge\EventBridge\MultisiteScheduleGroupResolver;
-use WpPack\Component\Scheduler\Bridge\EventBridge\ScheduleGroupResolverInterface;
-use WpPack\Component\Scheduler\Bridge\EventBridge\SqsPayloadFactory;
-use WpPack\Component\Scheduler\Message\ScheduledMessage;
-use WpPack\Component\Scheduler\Scheduler\SchedulerInterface;
-use WpPack\Component\Scheduler\Trigger\IntervalTrigger;
+use WPPack\Component\Scheduler\Bridge\EventBridge\EventBridgeScheduleFactory;
+use WPPack\Component\Scheduler\Bridge\EventBridge\EventBridgeScheduler;
+use WPPack\Component\Scheduler\Bridge\EventBridge\Exception\EventBridgeException;
+use WPPack\Component\Scheduler\Bridge\EventBridge\MultisiteScheduleGroupResolver;
+use WPPack\Component\Scheduler\Bridge\EventBridge\ScheduleGroupResolverInterface;
+use WPPack\Component\Scheduler\Bridge\EventBridge\SqsPayloadFactory;
+use WPPack\Component\Scheduler\Message\ScheduledMessage;
+use WPPack\Component\Scheduler\Scheduler\SchedulerInterface;
+use WPPack\Component\Scheduler\Trigger\IntervalTrigger;
 
 #[CoversClass(EventBridgeScheduler::class)]
 final class EventBridgeSchedulerTest extends TestCase
@@ -88,7 +88,7 @@ final class EventBridgeSchedulerTest extends TestCase
     public function scheduleWithDateTimeTriggerSetsAutoDelete(): void
     {
         $dateTime = new \DateTimeImmutable('+1 hour', new \DateTimeZone('UTC'));
-        $trigger = new \WpPack\Component\Scheduler\Trigger\DateTimeTrigger($dateTime);
+        $trigger = new \WPPack\Component\Scheduler\Trigger\DateTimeTrigger($dateTime);
         $message = $this->createMock(ScheduledMessage::class);
         $message->method('getTrigger')->willReturn($trigger);
         $message->method('getMessage')->willReturn(new \stdClass());

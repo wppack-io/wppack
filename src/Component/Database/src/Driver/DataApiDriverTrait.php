@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database\Driver;
+namespace WPPack\Component\Database\Driver;
 
 use AsyncAws\RdsDataService\Input\BeginTransactionRequest;
 use AsyncAws\RdsDataService\Input\CommitTransactionRequest;
@@ -20,12 +20,12 @@ use AsyncAws\RdsDataService\Input\RollbackTransactionRequest;
 use AsyncAws\RdsDataService\RdsDataServiceClient;
 use AsyncAws\RdsDataService\ValueObject\Field;
 use AsyncAws\RdsDataService\ValueObject\SqlParameter;
-use WpPack\Component\Database\Exception\CredentialsExpiredException;
-use WpPack\Component\Database\Exception\DriverException;
-use WpPack\Component\Database\Exception\DriverThrottledException;
-use WpPack\Component\Database\Exception\DriverTimeoutException;
-use WpPack\Component\Database\Result;
-use WpPack\Component\Database\Statement;
+use WPPack\Component\Database\Exception\CredentialsExpiredException;
+use WPPack\Component\Database\Exception\DriverException;
+use WPPack\Component\Database\Exception\DriverThrottledException;
+use WPPack\Component\Database\Exception\DriverTimeoutException;
+use WPPack\Component\Database\Result;
+use WPPack\Component\Database\Statement;
 
 /**
  * Shared RDS Data API logic for MySQL and PostgreSQL Data API drivers.
@@ -173,7 +173,7 @@ trait DataApiDriverTrait
     }
 
     /**
-     * Wrap an AWS-side exception in a WpPack driver exception, choosing a
+     * Wrap an AWS-side exception in a WPPack driver exception, choosing a
      * subtype the caller can act on:
      *
      *   - DriverThrottledException: service returned 429 / ThrottlingException

@@ -7,7 +7,7 @@
  * @var int                                                          $totalRoutes     Total registered route count
  * @var int                                                          $totalNamespaces Total namespace count
  * @var array                                                        $routes          Routes grouped by namespace
- * @var \WpPack\Component\Debug\Toolbar\Panel\TemplateFormatters     $fmt             Template formatters
+ * @var \WPPack\Component\Debug\Toolbar\Panel\TemplateFormatters     $fmt             Template formatters
  */
 if ($isRestRequest && is_array($currentRequest)):
     $method = (string) ($currentRequest['method'] ?? '');

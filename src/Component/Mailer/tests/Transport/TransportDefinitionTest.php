@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Mailer\Tests\Transport;
+namespace WPPack\Component\Mailer\Tests\Transport;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Mailer\Transport\TransportDefinition;
-use WpPack\Component\Mailer\Transport\TransportField;
+use WPPack\Component\Mailer\Transport\TransportDefinition;
+use WPPack\Component\Mailer\Transport\TransportField;
 
 #[CoversClass(TransportDefinition::class)]
 final class TransportDefinitionTest extends TestCase

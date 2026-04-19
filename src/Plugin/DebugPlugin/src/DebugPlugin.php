@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,24 +11,24 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\DebugPlugin;
+namespace WPPack\Plugin\DebugPlugin;
 
 use Composer\InstalledVersions;
-use WpPack\Component\Debug\DependencyInjection\InjectContainerSnapshotPass;
-use WpPack\Component\Debug\DependencyInjection\RegisterDataCollectorsPass;
-use WpPack\Component\Debug\DependencyInjection\RegisterPanelRenderersPass;
-use WpPack\Component\Debug\ErrorHandler\ExceptionHandler;
-use WpPack\Component\Debug\ErrorHandler\RedirectHandler;
-use WpPack\Component\Debug\ErrorHandler\WpDieHandler;
-use WpPack\Component\Debug\Toolbar\ToolbarSubscriber;
-use WpPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
-use WpPack\Component\DependencyInjection\Container;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\Hook\DependencyInjection\RegisterHookSubscribersPass;
-use WpPack\Component\Kernel\AbstractPlugin;
-use WpPack\Component\Kernel\ManagesDropin;
-use WpPack\Component\Logger\DependencyInjection\RegisterLoggerPass;
-use WpPack\Plugin\DebugPlugin\DependencyInjection\DebugPluginServiceProvider;
+use WPPack\Component\Debug\DependencyInjection\InjectContainerSnapshotPass;
+use WPPack\Component\Debug\DependencyInjection\RegisterDataCollectorsPass;
+use WPPack\Component\Debug\DependencyInjection\RegisterPanelRenderersPass;
+use WPPack\Component\Debug\ErrorHandler\ExceptionHandler;
+use WPPack\Component\Debug\ErrorHandler\RedirectHandler;
+use WPPack\Component\Debug\ErrorHandler\WpDieHandler;
+use WPPack\Component\Debug\Toolbar\ToolbarSubscriber;
+use WPPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
+use WPPack\Component\DependencyInjection\Container;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\Hook\DependencyInjection\RegisterHookSubscribersPass;
+use WPPack\Component\Kernel\AbstractPlugin;
+use WPPack\Component\Kernel\ManagesDropin;
+use WPPack\Component\Logger\DependencyInjection\RegisterLoggerPass;
+use WPPack\Plugin\DebugPlugin\DependencyInjection\DebugPluginServiceProvider;
 
 final class DebugPlugin extends AbstractPlugin
 {
@@ -97,7 +97,7 @@ final class DebugPlugin extends AbstractPlugin
 
     private function getDropinSignature(): string
     {
-        return 'WpPack Fatal Error Handler Drop-in';
+        return 'WPPack Fatal Error Handler Drop-in';
     }
 
     private function resolveDropinSource(): ?string

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database\Bridge\AuroraDsql;
+namespace WPPack\Component\Database\Bridge\AuroraDsql;
 
 use AsyncAws\Core\Configuration;
 use AsyncAws\Core\Credentials\ChainProvider;
@@ -21,12 +21,12 @@ use AsyncAws\Core\RequestContext;
 use AsyncAws\Core\Signer\SignerV4;
 use AsyncAws\Core\Stream\StringStream;
 use Psr\Log\LoggerInterface;
-use WpPack\Component\Database\Bridge\AuroraDsql\Translator\AuroraDsqlQueryTranslator;
-use WpPack\Component\Database\Bridge\Pgsql\PgsqlDriver;
-use WpPack\Component\Database\Exception\ConnectionException;
-use WpPack\Component\Database\Exception\DriverException;
-use WpPack\Component\Database\Result;
-use WpPack\Component\Database\Translator\QueryTranslatorInterface;
+use WPPack\Component\Database\Bridge\AuroraDsql\Translator\AuroraDsqlQueryTranslator;
+use WPPack\Component\Database\Bridge\Pgsql\PgsqlDriver;
+use WPPack\Component\Database\Exception\ConnectionException;
+use WPPack\Component\Database\Exception\DriverException;
+use WPPack\Component\Database\Result;
+use WPPack\Component\Database\Translator\QueryTranslatorInterface;
 
 /**
  * Aurora DSQL driver — extends PgsqlDriver with IAM token auth, SSL, and OCC retry.
@@ -100,7 +100,7 @@ class AuroraDsqlDriver extends PgsqlDriver
         );
     }
 
-    public function getPlatform(): \WpPack\Component\Database\Platform\PlatformInterface
+    public function getPlatform(): \WPPack\Component\Database\Platform\PlatformInterface
     {
         return new DsqlPlatform();
     }

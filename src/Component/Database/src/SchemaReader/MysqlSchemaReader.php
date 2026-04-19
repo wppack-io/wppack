@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database\SchemaReader;
+namespace WPPack\Component\Database\SchemaReader;
 
-use WpPack\Component\Database\DatabaseManager;
-use WpPack\Component\Database\Schema\ColumnSchema;
-use WpPack\Component\Database\Schema\DdlNormalizer;
-use WpPack\Component\Database\Schema\TableSchema;
+use WPPack\Component\Database\DatabaseManager;
+use WPPack\Component\Database\Schema\ColumnSchema;
+use WPPack\Component\Database\Schema\DdlNormalizer;
+use WPPack\Component\Database\Schema\TableSchema;
 
 class MysqlSchemaReader implements SchemaReaderInterface
 {

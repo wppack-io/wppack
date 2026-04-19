@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,18 +11,18 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\SiteHealth\Tests;
+namespace WPPack\Component\SiteHealth\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\SiteHealth\Attribute\AsDebugInfo;
-use WpPack\Component\SiteHealth\Attribute\AsHealthCheck;
-use WpPack\Component\SiteHealth\DebugSectionInterface;
-use WpPack\Component\SiteHealth\HealthCheckInterface;
-use WpPack\Component\SiteHealth\Exception\InvalidArgumentException;
-use WpPack\Component\SiteHealth\Exception\LogicException;
-use WpPack\Component\SiteHealth\Result;
-use WpPack\Component\SiteHealth\SiteHealthRegistry;
+use WPPack\Component\SiteHealth\Attribute\AsDebugInfo;
+use WPPack\Component\SiteHealth\Attribute\AsHealthCheck;
+use WPPack\Component\SiteHealth\DebugSectionInterface;
+use WPPack\Component\SiteHealth\HealthCheckInterface;
+use WPPack\Component\SiteHealth\Exception\InvalidArgumentException;
+use WPPack\Component\SiteHealth\Exception\LogicException;
+use WPPack\Component\SiteHealth\Result;
+use WPPack\Component\SiteHealth\SiteHealthRegistry;
 
 #[AsHealthCheck(id: 'test_direct', label: 'Direct Test', category: 'performance')]
 final class DirectHealthCheckStub implements HealthCheckInterface

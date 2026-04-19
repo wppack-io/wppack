@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,16 +11,16 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Hook\Tests\Attribute\Ajax;
+namespace WPPack\Component\Hook\Tests\Attribute\Ajax;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Hook\Attribute\Action;
-use WpPack\Component\Hook\Hook;
-use WpPack\Component\Hook\HookType;
-use WpPack\Component\Hook\Attribute\Ajax\Action\CheckAjaxRefererAction;
-use WpPack\Component\Hook\Attribute\Ajax\Action\WpAjaxAction;
-use WpPack\Component\Hook\Attribute\Ajax\Action\WpAjaxNoprivAction;
+use WPPack\Component\Hook\Attribute\Action;
+use WPPack\Component\Hook\Hook;
+use WPPack\Component\Hook\HookType;
+use WPPack\Component\Hook\Attribute\Ajax\Action\CheckAjaxRefererAction;
+use WPPack\Component\Hook\Attribute\Ajax\Action\WpAjaxAction;
+use WPPack\Component\Hook\Attribute\Ajax\Action\WpAjaxNoprivAction;
 
 final class NamedHookTest extends TestCase
 {

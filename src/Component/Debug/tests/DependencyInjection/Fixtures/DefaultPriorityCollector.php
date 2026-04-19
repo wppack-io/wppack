@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,10 +11,10 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Debug\Tests\DependencyInjection\Fixtures;
+namespace WPPack\Component\Debug\Tests\DependencyInjection\Fixtures;
 
-use WpPack\Component\Debug\Attribute\AsDataCollector;
-use WpPack\Component\Debug\DataCollector\DataCollectorInterface;
+use WPPack\Component\Debug\Attribute\AsDataCollector;
+use WPPack\Component\Debug\DataCollector\DataCollectorInterface;
 
 #[AsDataCollector(name: 'default')]
 final class DefaultPriorityCollector implements DataCollectorInterface

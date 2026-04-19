@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Query\Tests\Builder;
+namespace WPPack\Component\Query\Tests\Builder;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Query\Builder\TermQueryBuilder;
-use WpPack\Component\Query\Condition\ConditionGroup;
-use WpPack\Component\Query\Enum\Order;
+use WPPack\Component\Query\Builder\TermQueryBuilder;
+use WPPack\Component\Query\Condition\ConditionGroup;
+use WPPack\Component\Query\Enum\Order;
 
 final class TermQueryBuilderTest extends TestCase
 {
@@ -574,7 +574,7 @@ final class TermQueryBuilderTest extends TestCase
             ->setParameter('tax', 'category')
             ->get();
 
-        self::assertInstanceOf(\WpPack\Component\Query\Result\TermQueryResult::class, $result);
+        self::assertInstanceOf(\WPPack\Component\Query\Result\TermQueryResult::class, $result);
     }
 
     #[Test]

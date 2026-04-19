@@ -9,7 +9,7 @@
 **WordPress Hook:** `wp_mail_from`
 
 ```php
-use WpPack\Component\Hook\Attribute\Mailer\Filter\WpMailFromFilter;
+use WPPack\Component\Hook\Attribute\Mailer\Filter\WpMailFromFilter;
 
 class MailFromCustomizer
 {
@@ -26,7 +26,7 @@ class MailFromCustomizer
 **WordPress Hook:** `wp_mail_from_name`
 
 ```php
-use WpPack\Component\Hook\Attribute\Mailer\Filter\WpMailFromNameFilter;
+use WPPack\Component\Hook\Attribute\Mailer\Filter\WpMailFromNameFilter;
 
 class MailFromNameCustomizer
 {
@@ -43,7 +43,7 @@ class MailFromNameCustomizer
 **WordPress Hook:** `wp_mail_content_type`
 
 ```php
-use WpPack\Component\Hook\Attribute\Mailer\Filter\WpMailContentTypeFilter;
+use WPPack\Component\Hook\Attribute\Mailer\Filter\WpMailContentTypeFilter;
 
 class MailContentTypeCustomizer
 {
@@ -60,7 +60,7 @@ class MailContentTypeCustomizer
 **WordPress Hook:** `wp_mail_charset`
 
 ```php
-use WpPack\Component\Hook\Attribute\Mailer\Filter\WpMailCharsetFilter;
+use WPPack\Component\Hook\Attribute\Mailer\Filter\WpMailCharsetFilter;
 
 class MailCharsetCustomizer
 {
@@ -79,7 +79,7 @@ class MailCharsetCustomizer
 **WordPress Hook:** `wp_mail`
 
 ```php
-use WpPack\Component\Hook\Attribute\Mailer\Filter\WpMailFilter;
+use WPPack\Component\Hook\Attribute\Mailer\Filter\WpMailFilter;
 
 class MailModifier
 {
@@ -99,7 +99,7 @@ class MailModifier
 **WordPress Hook:** `pre_wp_mail`
 
 ```php
-use WpPack\Component\Hook\Attribute\Mailer\Filter\PreWpMailFilter;
+use WPPack\Component\Hook\Attribute\Mailer\Filter\PreWpMailFilter;
 
 class MailGatekeeper
 {
@@ -123,7 +123,7 @@ class MailGatekeeper
 **WordPress Hook:** `wp_mail_succeeded`
 
 ```php
-use WpPack\Component\Hook\Attribute\Mailer\Action\WpMailSucceededAction;
+use WPPack\Component\Hook\Attribute\Mailer\Action\WpMailSucceededAction;
 
 class MailSuccessHandler
 {
@@ -142,7 +142,7 @@ class MailSuccessHandler
 
 ```php
 use Psr\Log\LoggerInterface;
-use WpPack\Component\Hook\Attribute\Mailer\Action\WpMailFailedAction;
+use WPPack\Component\Hook\Attribute\Mailer\Action\WpMailFailedAction;
 
 class MailFailureHandler
 {
@@ -164,7 +164,7 @@ class MailFailureHandler
 **WordPress Hook:** `phpmailer_init`
 
 ```php
-use WpPack\Component\Hook\Attribute\Mailer\Action\PhpMailerInitAction;
+use WPPack\Component\Hook\Attribute\Mailer\Action\PhpMailerInitAction;
 
 class PhpMailerConfigurator
 {

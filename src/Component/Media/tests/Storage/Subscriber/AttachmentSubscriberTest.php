@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,15 +11,15 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Media\Tests\Storage\Subscriber;
+namespace WPPack\Component\Media\Tests\Storage\Subscriber;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\EventDispatcher\WordPressEvent;
-use WpPack\Component\Media\Storage\StorageConfiguration;
-use WpPack\Component\Media\Storage\Subscriber\AttachmentSubscriber;
-use WpPack\Component\Media\Storage\UrlResolver;
-use WpPack\Component\Storage\Test\InMemoryStorageAdapter;
+use WPPack\Component\EventDispatcher\WordPressEvent;
+use WPPack\Component\Media\Storage\StorageConfiguration;
+use WPPack\Component\Media\Storage\Subscriber\AttachmentSubscriber;
+use WPPack\Component\Media\Storage\UrlResolver;
+use WPPack\Component\Storage\Test\InMemoryStorageAdapter;
 
 final class AttachmentSubscriberTest extends TestCase
 {

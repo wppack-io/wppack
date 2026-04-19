@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,16 +11,16 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database\Bridge\Pgsql;
+namespace WPPack\Component\Database\Bridge\Pgsql;
 
-use WpPack\Component\Database\Bridge\Pgsql\Translator\PostgresqlQueryTranslator;
-use WpPack\Component\Database\Driver\AbstractDriver;
-use WpPack\Component\Database\Exception\ConnectionException;
-use WpPack\Component\Database\Exception\DriverException;
-use WpPack\Component\Database\Platform\PlatformInterface;
-use WpPack\Component\Database\Result;
-use WpPack\Component\Database\Sql\PlaceholderScanner;
-use WpPack\Component\Database\Statement;
+use WPPack\Component\Database\Bridge\Pgsql\Translator\PostgresqlQueryTranslator;
+use WPPack\Component\Database\Driver\AbstractDriver;
+use WPPack\Component\Database\Exception\ConnectionException;
+use WPPack\Component\Database\Exception\DriverException;
+use WPPack\Component\Database\Platform\PlatformInterface;
+use WPPack\Component\Database\Result;
+use WPPack\Component\Database\Sql\PlaceholderScanner;
+use WPPack\Component\Database\Statement;
 
 class PgsqlDriver extends AbstractDriver
 {
@@ -93,7 +93,7 @@ class PgsqlDriver extends AbstractDriver
         return new PostgresqlPlatform();
     }
 
-    public function getQueryTranslator(): \WpPack\Component\Database\Translator\QueryTranslatorInterface
+    public function getQueryTranslator(): \WPPack\Component\Database\Translator\QueryTranslatorInterface
     {
         return new PostgresqlQueryTranslator($this);
     }

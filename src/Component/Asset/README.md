@@ -1,4 +1,4 @@
-# WpPack Asset
+# WPPack Asset
 
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=asset)](https://codecov.io/github/wppack-io/wppack)
 
@@ -13,7 +13,7 @@ composer require wppack/asset
 ## Usage
 
 ```php
-use WpPack\Component\Asset\AssetManager;
+use WPPack\Component\Asset\AssetManager;
 
 $asset = new AssetManager();
 
@@ -35,8 +35,8 @@ if ($asset->scriptIs('jquery', 'enqueued')) {
 ## Named Hook Attributes
 
 ```php
-use WpPack\Component\Asset\AssetManager;
-use WpPack\Component\Hook\Attribute\Admin\Action\AdminEnqueueScriptsAction;
+use WPPack\Component\Asset\AssetManager;
+use WPPack\Component\Hook\Attribute\Admin\Action\AdminEnqueueScriptsAction;
 
 final class AdminAssetSubscriber
 {

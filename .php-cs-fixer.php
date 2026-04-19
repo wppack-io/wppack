@@ -21,7 +21,7 @@ return (new PhpCsFixer\Config())
         'declare_strict_types' => true,
         'header_comment' => [
             'header' => <<<'EOF'
-This file is part of the WpPack package.
+This file is part of the WPPack package.
 
 (c) Tsuyoshi Tsurushima
 

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Storage\Tests\StreamWrapper;
+namespace WPPack\Component\Storage\Tests\StreamWrapper;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Storage\StreamWrapper\StatCache;
-use WpPack\Component\Storage\StreamWrapper\StorageStreamWrapper;
-use WpPack\Component\Storage\Test\InMemoryStorageAdapter;
+use WPPack\Component\Storage\StreamWrapper\StatCache;
+use WPPack\Component\Storage\StreamWrapper\StorageStreamWrapper;
+use WPPack\Component\Storage\Test\InMemoryStorageAdapter;
 
 #[CoversClass(StorageStreamWrapper::class)]
 #[CoversClass(StatCache::class)]
@@ -893,7 +893,7 @@ final class StorageStreamWrapperTest extends TestCase
     public function testUrlStatReturnsFalseOnGenericException(): void
     {
         // Create a mock adapter that throws a generic exception on metadata
-        $errorAdapter = new class implements \WpPack\Component\Storage\Adapter\StorageAdapterInterface {
+        $errorAdapter = new class implements \WPPack\Component\Storage\Adapter\StorageAdapterInterface {
             public function getName(): string
             {
                 return 'error';
@@ -922,7 +922,7 @@ final class StorageStreamWrapperTest extends TestCase
             }
             public function copy(string $source, string $destination): void {}
             public function move(string $source, string $destination): void {}
-            public function metadata(string $path): \WpPack\Component\Storage\ObjectMetadata
+            public function metadata(string $path): \WPPack\Component\Storage\ObjectMetadata
             {
                 throw new \RuntimeException('Connection error');
             }
@@ -942,7 +942,7 @@ final class StorageStreamWrapperTest extends TestCase
             {
                 return [];
             }
-            public function setVisibility(string $path, \WpPack\Component\Storage\Visibility $visibility): void {}
+            public function setVisibility(string $path, \WPPack\Component\Storage\Visibility $visibility): void {}
         };
 
         StorageStreamWrapper::register('errtest', $errorAdapter);
@@ -965,7 +965,7 @@ final class StorageStreamWrapperTest extends TestCase
 
     public function testUnlinkReturnsFalseOnException(): void
     {
-        $errorAdapter = new class implements \WpPack\Component\Storage\Adapter\StorageAdapterInterface {
+        $errorAdapter = new class implements \WPPack\Component\Storage\Adapter\StorageAdapterInterface {
             public function getName(): string
             {
                 return 'error';
@@ -997,9 +997,9 @@ final class StorageStreamWrapperTest extends TestCase
             }
             public function copy(string $source, string $destination): void {}
             public function move(string $source, string $destination): void {}
-            public function metadata(string $path): \WpPack\Component\Storage\ObjectMetadata
+            public function metadata(string $path): \WPPack\Component\Storage\ObjectMetadata
             {
-                return new \WpPack\Component\Storage\ObjectMetadata(path: $path, size: 0);
+                return new \WPPack\Component\Storage\ObjectMetadata(path: $path, size: 0);
             }
             public function publicUrl(string $path): string
             {
@@ -1017,7 +1017,7 @@ final class StorageStreamWrapperTest extends TestCase
             {
                 return [];
             }
-            public function setVisibility(string $path, \WpPack\Component\Storage\Visibility $visibility): void {}
+            public function setVisibility(string $path, \WPPack\Component\Storage\Visibility $visibility): void {}
         };
 
         StorageStreamWrapper::register('unlinktest', $errorAdapter);
@@ -1036,7 +1036,7 @@ final class StorageStreamWrapperTest extends TestCase
 
     public function testRenameReturnsFalseOnException(): void
     {
-        $errorAdapter = new class implements \WpPack\Component\Storage\Adapter\StorageAdapterInterface {
+        $errorAdapter = new class implements \WPPack\Component\Storage\Adapter\StorageAdapterInterface {
             public function getName(): string
             {
                 return 'error';
@@ -1068,9 +1068,9 @@ final class StorageStreamWrapperTest extends TestCase
             {
                 throw new \RuntimeException('Move failed');
             }
-            public function metadata(string $path): \WpPack\Component\Storage\ObjectMetadata
+            public function metadata(string $path): \WPPack\Component\Storage\ObjectMetadata
             {
-                return new \WpPack\Component\Storage\ObjectMetadata(path: $path, size: 0);
+                return new \WPPack\Component\Storage\ObjectMetadata(path: $path, size: 0);
             }
             public function publicUrl(string $path): string
             {
@@ -1088,7 +1088,7 @@ final class StorageStreamWrapperTest extends TestCase
             {
                 return [];
             }
-            public function setVisibility(string $path, \WpPack\Component\Storage\Visibility $visibility): void {}
+            public function setVisibility(string $path, \WPPack\Component\Storage\Visibility $visibility): void {}
         };
 
         StorageStreamWrapper::register('renametest', $errorAdapter);
@@ -1117,7 +1117,7 @@ final class StorageStreamWrapperTest extends TestCase
 
     public function testDirOpendirReturnsFalseOnException(): void
     {
-        $errorAdapter = new class implements \WpPack\Component\Storage\Adapter\StorageAdapterInterface {
+        $errorAdapter = new class implements \WPPack\Component\Storage\Adapter\StorageAdapterInterface {
             public function getName(): string
             {
                 return 'error';
@@ -1146,9 +1146,9 @@ final class StorageStreamWrapperTest extends TestCase
             }
             public function copy(string $source, string $destination): void {}
             public function move(string $source, string $destination): void {}
-            public function metadata(string $path): \WpPack\Component\Storage\ObjectMetadata
+            public function metadata(string $path): \WPPack\Component\Storage\ObjectMetadata
             {
-                return new \WpPack\Component\Storage\ObjectMetadata(path: $path, size: 0);
+                return new \WPPack\Component\Storage\ObjectMetadata(path: $path, size: 0);
             }
             public function publicUrl(string $path): string
             {
@@ -1166,7 +1166,7 @@ final class StorageStreamWrapperTest extends TestCase
             {
                 throw new \RuntimeException('List failed');
             }
-            public function setVisibility(string $path, \WpPack\Component\Storage\Visibility $visibility): void {}
+            public function setVisibility(string $path, \WPPack\Component\Storage\Visibility $visibility): void {}
         };
 
         StorageStreamWrapper::register('dirtest', $errorAdapter);
@@ -1309,7 +1309,7 @@ final class StorageStreamWrapperTest extends TestCase
 
     public function testAppendModeReturnsFalseOnGenericError(): void
     {
-        $errorAdapter = new class implements \WpPack\Component\Storage\Adapter\StorageAdapterInterface {
+        $errorAdapter = new class implements \WPPack\Component\Storage\Adapter\StorageAdapterInterface {
             public function getName(): string
             {
                 return 'error';
@@ -1338,9 +1338,9 @@ final class StorageStreamWrapperTest extends TestCase
             }
             public function copy(string $source, string $destination): void {}
             public function move(string $source, string $destination): void {}
-            public function metadata(string $path): \WpPack\Component\Storage\ObjectMetadata
+            public function metadata(string $path): \WPPack\Component\Storage\ObjectMetadata
             {
-                return new \WpPack\Component\Storage\ObjectMetadata(path: $path, size: 0);
+                return new \WPPack\Component\Storage\ObjectMetadata(path: $path, size: 0);
             }
             public function publicUrl(string $path): string
             {
@@ -1358,7 +1358,7 @@ final class StorageStreamWrapperTest extends TestCase
             {
                 return [];
             }
-            public function setVisibility(string $path, \WpPack\Component\Storage\Visibility $visibility): void {}
+            public function setVisibility(string $path, \WPPack\Component\Storage\Visibility $visibility): void {}
         };
 
         StorageStreamWrapper::register('appendtest', $errorAdapter);
@@ -1377,7 +1377,7 @@ final class StorageStreamWrapperTest extends TestCase
 
     public function testModeCPlusReturnsFalseOnGenericError(): void
     {
-        $errorAdapter = new class implements \WpPack\Component\Storage\Adapter\StorageAdapterInterface {
+        $errorAdapter = new class implements \WPPack\Component\Storage\Adapter\StorageAdapterInterface {
             public function getName(): string
             {
                 return 'error';
@@ -1406,9 +1406,9 @@ final class StorageStreamWrapperTest extends TestCase
             }
             public function copy(string $source, string $destination): void {}
             public function move(string $source, string $destination): void {}
-            public function metadata(string $path): \WpPack\Component\Storage\ObjectMetadata
+            public function metadata(string $path): \WPPack\Component\Storage\ObjectMetadata
             {
-                return new \WpPack\Component\Storage\ObjectMetadata(path: $path, size: 0);
+                return new \WPPack\Component\Storage\ObjectMetadata(path: $path, size: 0);
             }
             public function publicUrl(string $path): string
             {
@@ -1426,7 +1426,7 @@ final class StorageStreamWrapperTest extends TestCase
             {
                 return [];
             }
-            public function setVisibility(string $path, \WpPack\Component\Storage\Visibility $visibility): void {}
+            public function setVisibility(string $path, \WPPack\Component\Storage\Visibility $visibility): void {}
         };
 
         StorageStreamWrapper::register('cplustest', $errorAdapter);
@@ -1445,7 +1445,7 @@ final class StorageStreamWrapperTest extends TestCase
 
     public function testModeXReturnsFalseWhenFileExistsThrows(): void
     {
-        $errorAdapter = new class implements \WpPack\Component\Storage\Adapter\StorageAdapterInterface {
+        $errorAdapter = new class implements \WPPack\Component\Storage\Adapter\StorageAdapterInterface {
             public function getName(): string
             {
                 return 'error';
@@ -1474,9 +1474,9 @@ final class StorageStreamWrapperTest extends TestCase
             }
             public function copy(string $source, string $destination): void {}
             public function move(string $source, string $destination): void {}
-            public function metadata(string $path): \WpPack\Component\Storage\ObjectMetadata
+            public function metadata(string $path): \WPPack\Component\Storage\ObjectMetadata
             {
-                return new \WpPack\Component\Storage\ObjectMetadata(path: $path, size: 0);
+                return new \WPPack\Component\Storage\ObjectMetadata(path: $path, size: 0);
             }
             public function publicUrl(string $path): string
             {
@@ -1494,7 +1494,7 @@ final class StorageStreamWrapperTest extends TestCase
             {
                 return [];
             }
-            public function setVisibility(string $path, \WpPack\Component\Storage\Visibility $visibility): void {}
+            public function setVisibility(string $path, \WPPack\Component\Storage\Visibility $visibility): void {}
         };
 
         StorageStreamWrapper::register('xtest', $errorAdapter);

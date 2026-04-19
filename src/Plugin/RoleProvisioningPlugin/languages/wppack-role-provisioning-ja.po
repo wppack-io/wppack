@@ -1,4 +1,4 @@
-# Japanese translation for WpPack Role Provisioning
+# Japanese translation for WPPack Role Provisioning
 msgid ""
 msgstr ""
 "Project-Id-Version: @wppack/role-provisioning-plugin 1.0.0\n"
@@ -8,8 +8,8 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 "PO-Revision-Date: 2026-04-08 00:00+0900\n"
-"Last-Translator: WpPack <dev@wppack.io>\n"
-"Language-Team: WpPack <dev@wppack.io>\n"
+"Last-Translator: WPPack <dev@wppack.io>\n"
+"Language-Team: WPPack <dev@wppack.io>\n"
 "Language: ja\n"
 "X-Domain: wppack-role-provisioning\n"
 

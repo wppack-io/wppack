@@ -11,7 +11,7 @@
 **WordPress Hook:** `user_has_cap`
 
 ```php
-use WpPack\Component\Hook\Attribute\Role\UserHasCapFilter;
+use WPPack\Component\Hook\Attribute\Role\UserHasCapFilter;
 
 class CapabilityManager
 {
@@ -47,7 +47,7 @@ class CapabilityManager
 **WordPress Hook:** `map_meta_cap`
 
 ```php
-use WpPack\Component\Hook\Attribute\Role\MapMetaCapFilter;
+use WPPack\Component\Hook\Attribute\Role\MapMetaCapFilter;
 
 class MetaCapabilityMapper
 {
@@ -87,7 +87,7 @@ class MetaCapabilityMapper
 **WordPress Hook:** `set_user_role`
 
 ```php
-use WpPack\Component\Hook\Attribute\Role\SetUserRoleAction;
+use WPPack\Component\Hook\Attribute\Role\SetUserRoleAction;
 
 class RoleChangeHandler
 {

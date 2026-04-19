@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,10 +11,10 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database\Driver;
+namespace WPPack\Component\Database\Driver;
 
-use WpPack\Component\Database\Exception\UnsupportedSchemeException;
-use WpPack\Component\Dsn\Dsn;
+use WPPack\Component\Database\Exception\UnsupportedSchemeException;
+use WPPack\Component\Dsn\Dsn;
 
 final class Driver
 {
@@ -36,14 +36,14 @@ final class Driver
         'mysql'         => MysqlDriverFactory::class,
         'mariadb'       => MysqlDriverFactory::class,
         'mysqli'        => MysqlDriverFactory::class,
-        'sqlite'        => 'WpPack\Component\Database\Bridge\Sqlite\SqliteDriverFactory',
-        'sqlite3'       => 'WpPack\Component\Database\Bridge\Sqlite\SqliteDriverFactory',
-        'pgsql'         => 'WpPack\Component\Database\Bridge\Pgsql\PgsqlDriverFactory',
-        'postgresql'    => 'WpPack\Component\Database\Bridge\Pgsql\PgsqlDriverFactory',
-        'postgres'      => 'WpPack\Component\Database\Bridge\Pgsql\PgsqlDriverFactory',
-        'mysql+dataapi' => 'WpPack\Component\Database\Bridge\MysqlDataApi\MysqlDataApiDriverFactory',
-        'pgsql+dataapi' => 'WpPack\Component\Database\Bridge\PgsqlDataApi\PgsqlDataApiDriverFactory',
-        'dsql'          => 'WpPack\Component\Database\Bridge\AuroraDsql\AuroraDsqlDriverFactory',
+        'sqlite'        => 'WPPack\Component\Database\Bridge\Sqlite\SqliteDriverFactory',
+        'sqlite3'       => 'WPPack\Component\Database\Bridge\Sqlite\SqliteDriverFactory',
+        'pgsql'         => 'WPPack\Component\Database\Bridge\Pgsql\PgsqlDriverFactory',
+        'postgresql'    => 'WPPack\Component\Database\Bridge\Pgsql\PgsqlDriverFactory',
+        'postgres'      => 'WPPack\Component\Database\Bridge\Pgsql\PgsqlDriverFactory',
+        'mysql+dataapi' => 'WPPack\Component\Database\Bridge\MysqlDataApi\MysqlDataApiDriverFactory',
+        'pgsql+dataapi' => 'WPPack\Component\Database\Bridge\PgsqlDataApi\PgsqlDataApiDriverFactory',
+        'dsql'          => 'WPPack\Component\Database\Bridge\AuroraDsql\AuroraDsqlDriverFactory',
     ];
 
     /** @param iterable<DriverFactoryInterface> $factories */

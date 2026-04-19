@@ -9,7 +9,7 @@
 設定ページの読み込み時に実行されるアクション。
 
 ```php
-use WpPack\Component\Hook\Attribute\Setting\Action\SettingsPageAction;
+use WPPack\Component\Hook\Attribute\Setting\Action\SettingsPageAction;
 
 class SettingsPageManager
 {

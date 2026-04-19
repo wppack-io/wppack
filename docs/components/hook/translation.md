@@ -22,7 +22,7 @@ Translation 関連の WordPress フックに対応する Named Hook アトリビ
 ### 使用例
 
 ```php
-use WpPack\Component\Hook\Attribute\Translation\Filter\GettextFilter;
+use WPPack\Component\Hook\Attribute\Translation\Filter\GettextFilter;
 
 class TranslationCustomizer
 {

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Cache\Bridge\ElastiCacheAuth;
+namespace WPPack\Component\Cache\Bridge\ElastiCacheAuth;
 
 use AsyncAws\Core\Configuration;
 use AsyncAws\Core\Credentials\ChainProvider;

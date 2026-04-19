@@ -8,12 +8,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\Nonce\\": "src/"
+            "WPPack\\Component\\Nonce\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Component\\Nonce\\Tests\\": "tests/"
+            "WPPack\\Component\\Nonce\\Tests\\": "tests/"
         }
     }
 }

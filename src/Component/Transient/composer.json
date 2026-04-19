@@ -8,12 +8,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\Transient\\": "src/"
+            "WPPack\\Component\\Transient\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Component\\Transient\\Tests\\": "tests/"
+            "WPPack\\Component\\Transient\\Tests\\": "tests/"
         }
     }
 }

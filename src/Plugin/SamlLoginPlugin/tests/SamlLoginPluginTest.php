@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,23 +11,23 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\SamlLoginPlugin\Tests;
+namespace WPPack\Plugin\SamlLoginPlugin\Tests;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Admin\AdminPageRegistry;
-use WpPack\Component\DependencyInjection\Container;
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\Option\OptionManager;
-use WpPack\Component\Rest\RestRegistry;
-use WpPack\Component\Routing\RouteRegistry;
-use WpPack\Component\Sanitizer\Sanitizer;
-use WpPack\Plugin\SamlLoginPlugin\Admin\SamlLoginSettingsController;
-use WpPack\Plugin\SamlLoginPlugin\Admin\SamlLoginSettingsPage;
-use WpPack\Plugin\SamlLoginPlugin\Configuration\SamlLoginConfiguration;
-use WpPack\Plugin\SamlLoginPlugin\SamlLoginForm;
-use WpPack\Plugin\SamlLoginPlugin\SamlLoginPlugin;
+use WPPack\Component\Admin\AdminPageRegistry;
+use WPPack\Component\DependencyInjection\Container;
+use WPPack\Component\HttpFoundation\Request;
+use WPPack\Component\Option\OptionManager;
+use WPPack\Component\Rest\RestRegistry;
+use WPPack\Component\Routing\RouteRegistry;
+use WPPack\Component\Sanitizer\Sanitizer;
+use WPPack\Plugin\SamlLoginPlugin\Admin\SamlLoginSettingsController;
+use WPPack\Plugin\SamlLoginPlugin\Admin\SamlLoginSettingsPage;
+use WPPack\Plugin\SamlLoginPlugin\Configuration\SamlLoginConfiguration;
+use WPPack\Plugin\SamlLoginPlugin\SamlLoginForm;
+use WPPack\Plugin\SamlLoginPlugin\SamlLoginPlugin;
 
 #[CoversClass(SamlLoginPlugin::class)]
 final class SamlLoginPluginTest extends TestCase
@@ -179,7 +179,7 @@ final class SamlLoginPluginTest extends TestCase
         self::assertCount(2, $passes);
 
         $classes = array_map(static fn(object $p): string => $p::class, $passes);
-        self::assertContains(\WpPack\Component\Security\DependencyInjection\RegisterAuthenticatorsPass::class, $classes);
-        self::assertContains(\WpPack\Component\EventDispatcher\DependencyInjection\RegisterEventListenersPass::class, $classes);
+        self::assertContains(\WPPack\Component\Security\DependencyInjection\RegisterAuthenticatorsPass::class, $classes);
+        self::assertContains(\WPPack\Component\EventDispatcher\DependencyInjection\RegisterEventListenersPass::class, $classes);
     }
 }

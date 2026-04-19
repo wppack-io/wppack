@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\DependencyInjection\Tests\Compiler;
+namespace WPPack\Component\DependencyInjection\Tests\Compiler;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
 
 final class CompilerPassAdapterTest extends TestCase
 {
@@ -44,7 +44,7 @@ final class CompilerPassAdapterTest extends TestCase
     }
 
     #[Test]
-    public function passReceivesWpPackContainerBuilder(): void
+    public function passReceivesWPPackContainerBuilder(): void
     {
         $builder = new ContainerBuilder();
         $builder->register('test.service', \stdClass::class);

@@ -1,7 +1,7 @@
 # AmazonMailer コンポーネント
 
 **パッケージ:** `wppack/amazon-mailer`
-**名前空間:** `WpPack\Component\Mailer\Bridge\Amazon\`
+**名前空間:** `WPPack\Component\Mailer\Bridge\Amazon\`
 **レイヤー:** Abstraction
 
 Mailer コンポーネントの Amazon SES トランスポート実装。Symfony の `symfony/amazon-mailer` と同じ DSN パターンで、SES を使ったメール送信を提供します。
@@ -202,9 +202,9 @@ SES メール送信に必要な最小権限:
 ## クイックスタート
 
 ```php
-use WpPack\Component\Mailer\Mailer;
-use WpPack\Component\Mailer\Email;
-use WpPack\Component\Mailer\Transport\Transport;
+use WPPack\Component\Mailer\Mailer;
+use WPPack\Component\Mailer\Email;
+use WPPack\Component\Mailer\Transport\Transport;
 
 // SES トランスポートの初期化（wppack/amazon-mailer インストール済みで自動検出）
 $transport = Transport::fromDsn(MAILER_DSN);

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\DashboardWidget;
+namespace WPPack\Component\DashboardWidget;
 
-use WpPack\Component\DashboardWidget\Attribute\AsDashboardWidget;
-use WpPack\Component\Role\Attribute\IsGranted;
-use WpPack\Component\Role\Authorization\IsGrantedChecker;
-use WpPack\Component\Templating\TemplateRendererInterface;
+use WPPack\Component\DashboardWidget\Attribute\AsDashboardWidget;
+use WPPack\Component\Role\Attribute\IsGranted;
+use WPPack\Component\Role\Authorization\IsGrantedChecker;
+use WPPack\Component\Templating\TemplateRendererInterface;
 
 abstract class AbstractDashboardWidget
 {

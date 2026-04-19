@@ -1,7 +1,7 @@
 # ElastiCache IAM 認証
 
 **パッケージ:** `wppack/elasticache-auth`
-**名前空間:** `WpPack\Component\Cache\Bridge\ElastiCacheAuth\`
+**名前空間:** `WPPack\Component\Cache\Bridge\ElastiCacheAuth\`
 
 AWS ElastiCache（Redis / Valkey）の IAM 認証をサポートする Bridge パッケージです。SigV4 署名付きトークンを AUTH パスワードとして使用し、パスワードの静的管理を不要にします。
 
@@ -67,7 +67,7 @@ define('WPPACK_CACHE_DSN', 'rediss://my-cluster.xxxxx.apne1.cache.amazonaws.com:
 
 ```php
 // wp-config.php
-use WpPack\Component\Cache\Bridge\ElastiCacheAuth\ElastiCacheIamTokenGenerator;
+use WPPack\Component\Cache\Bridge\ElastiCacheAuth\ElastiCacheIamTokenGenerator;
 
 $generator = new ElastiCacheIamTokenGenerator(
     region: 'ap-northeast-1',

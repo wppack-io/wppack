@@ -1,4 +1,4 @@
-# WpPack Option
+# WPPack Option
 
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=option)](https://codecov.io/github/wppack-io/wppack)
 
@@ -15,7 +15,7 @@ composer require wppack/option
 ### OptionManager
 
 ```php
-use WpPack\Component\Option\OptionManager;
+use WPPack\Component\Option\OptionManager;
 
 $option = new OptionManager();
 
@@ -35,7 +35,7 @@ $option->delete('my_plugin_old_setting');
 ### SiteOptionManager (Multisite)
 
 ```php
-use WpPack\Component\Option\SiteOptionManager;
+use WPPack\Component\Option\SiteOptionManager;
 
 $siteOption = new SiteOptionManager();
 
@@ -52,8 +52,8 @@ $siteOption->delete('network_old_setting');
 ### Named Hook Attributes
 
 ```php
-use WpPack\Component\Hook\Attribute\Option\Filter\PreOptionFilter;
-use WpPack\Component\Hook\Attribute\Option\Action\UpdateOptionAction;
+use WPPack\Component\Hook\Attribute\Option\Filter\PreOptionFilter;
+use WPPack\Component\Hook\Attribute\Option\Action\UpdateOptionAction;
 
 final class OptionHooks
 {

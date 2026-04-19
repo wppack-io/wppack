@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,10 +11,10 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Scim\Patch;
+namespace WPPack\Component\Scim\Patch;
 
-use WpPack\Component\Scim\Exception\InvalidPatchException;
-use WpPack\Component\Scim\Exception\MutabilityException;
+use WPPack\Component\Scim\Exception\InvalidPatchException;
+use WPPack\Component\Scim\Exception\MutabilityException;
 
 final class PatchProcessor
 {

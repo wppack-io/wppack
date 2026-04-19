@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,15 +11,15 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Cache\Tests\Adapter;
+namespace WPPack\Component\Cache\Tests\Adapter;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Cache\Adapter\Adapter;
-use WpPack\Component\Cache\Adapter\AdapterFactoryInterface;
-use WpPack\Component\Cache\Adapter\AdapterInterface;
-use WpPack\Component\Cache\Adapter\Dsn;
-use WpPack\Component\Cache\Exception\UnsupportedSchemeException;
+use WPPack\Component\Cache\Adapter\Adapter;
+use WPPack\Component\Cache\Adapter\AdapterFactoryInterface;
+use WPPack\Component\Cache\Adapter\AdapterInterface;
+use WPPack\Component\Cache\Adapter\Dsn;
+use WPPack\Component\Cache\Exception\UnsupportedSchemeException;
 
 final class AdapterTest extends TestCase
 {

@@ -2,7 +2,7 @@
 
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=elasticache_auth)](https://codecov.io/github/wppack-io/wppack)
 
-AWS ElastiCache IAM authentication bridge for WpPack Cache.
+AWS ElastiCache IAM authentication bridge for WPPack Cache.
 
 ## Installation
 
@@ -44,7 +44,7 @@ define('WPPACK_CACHE_DSN', 'rediss://my-cluster.xxxxx.apne1.cache.amazonaws.com:
 For advanced use cases where you need custom credential resolution:
 
 ```php
-use WpPack\Component\Cache\Bridge\ElastiCacheAuth\ElastiCacheIamTokenGenerator;
+use WPPack\Component\Cache\Bridge\ElastiCacheAuth\ElastiCacheIamTokenGenerator;
 
 $generator = new ElastiCacheIamTokenGenerator(
     region: 'ap-northeast-1',

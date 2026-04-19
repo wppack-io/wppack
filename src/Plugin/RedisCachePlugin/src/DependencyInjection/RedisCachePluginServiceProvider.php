@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,19 +11,19 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\RedisCachePlugin\DependencyInjection;
+namespace WPPack\Plugin\RedisCachePlugin\DependencyInjection;
 
-use WpPack\Component\Admin\AdminPageRegistry;
-use WpPack\Component\Cache\CacheManager;
-use WpPack\Component\Cache\ObjectCache;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\DependencyInjection\Reference;
-use WpPack\Component\DependencyInjection\ServiceProviderInterface;
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\Rest\RestRegistry;
-use WpPack\Plugin\RedisCachePlugin\Admin\RedisCacheSettingsController;
-use WpPack\Plugin\RedisCachePlugin\Admin\RedisCacheSettingsPage;
-use WpPack\Plugin\RedisCachePlugin\Configuration\RedisCacheConfiguration;
+use WPPack\Component\Admin\AdminPageRegistry;
+use WPPack\Component\Cache\CacheManager;
+use WPPack\Component\Cache\ObjectCache;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\DependencyInjection\Reference;
+use WPPack\Component\DependencyInjection\ServiceProviderInterface;
+use WPPack\Component\HttpFoundation\Request;
+use WPPack\Component\Rest\RestRegistry;
+use WPPack\Plugin\RedisCachePlugin\Admin\RedisCacheSettingsController;
+use WPPack\Plugin\RedisCachePlugin\Admin\RedisCacheSettingsPage;
+use WPPack\Plugin\RedisCachePlugin\Configuration\RedisCacheConfiguration;
 
 final class RedisCachePluginServiceProvider implements ServiceProviderInterface
 {

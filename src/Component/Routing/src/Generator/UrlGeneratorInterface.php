@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,10 +11,10 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Routing\Generator;
+namespace WPPack\Component\Routing\Generator;
 
-use WpPack\Component\Routing\Exception\MissingParametersException;
-use WpPack\Component\Routing\Exception\RouteNotFoundException;
+use WPPack\Component\Routing\Exception\MissingParametersException;
+use WPPack\Component\Routing\Exception\RouteNotFoundException;
 
 interface UrlGeneratorInterface
 {

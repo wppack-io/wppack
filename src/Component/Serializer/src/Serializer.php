@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,16 +11,16 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Serializer;
+namespace WPPack\Component\Serializer;
 
-use WpPack\Component\Serializer\Encoder\DecoderInterface;
-use WpPack\Component\Serializer\Encoder\EncoderInterface;
-use WpPack\Component\Serializer\Exception\InvalidArgumentException;
-use WpPack\Component\Serializer\Exception\NotNormalizableValueException;
-use WpPack\Component\Serializer\Normalizer\DenormalizerAwareInterface;
-use WpPack\Component\Serializer\Normalizer\DenormalizerInterface;
-use WpPack\Component\Serializer\Normalizer\NormalizerAwareInterface;
-use WpPack\Component\Serializer\Normalizer\NormalizerInterface;
+use WPPack\Component\Serializer\Encoder\DecoderInterface;
+use WPPack\Component\Serializer\Encoder\EncoderInterface;
+use WPPack\Component\Serializer\Exception\InvalidArgumentException;
+use WPPack\Component\Serializer\Exception\NotNormalizableValueException;
+use WPPack\Component\Serializer\Normalizer\DenormalizerAwareInterface;
+use WPPack\Component\Serializer\Normalizer\DenormalizerInterface;
+use WPPack\Component\Serializer\Normalizer\NormalizerAwareInterface;
+use WPPack\Component\Serializer\Normalizer\NormalizerInterface;
 
 final class Serializer implements SerializerInterface, NormalizerInterface, DenormalizerInterface
 {

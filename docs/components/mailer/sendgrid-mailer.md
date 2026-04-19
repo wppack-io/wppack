@@ -1,7 +1,7 @@
 # SendGridMailer コンポーネント
 
 **パッケージ:** `wppack/sendgrid-mailer`
-**名前空間:** `WpPack\Component\Mailer\Bridge\SendGrid\`
+**名前空間:** `WPPack\Component\Mailer\Bridge\SendGrid\`
 **レイヤー:** Abstraction
 
 Mailer コンポーネントの SendGrid トランスポート実装。SendGrid v3 Mail Send API および SMTP 経由でのメール送信を提供します。外部 SDK 不要で、API は `wppack/http-client` 経由で呼び出します。
@@ -126,8 +126,8 @@ $transport = Transport::fromDsn('sendgrid://SG.xxxxx@default');
 ## クイックスタート
 
 ```php
-use WpPack\Component\Mailer\Mailer;
-use WpPack\Component\Mailer\Transport\Transport;
+use WPPack\Component\Mailer\Mailer;
+use WPPack\Component\Mailer\Transport\Transport;
 
 // SendGrid トランスポートの初期化（wppack/sendgrid-mailer インストール済みで自動検出）
 $transport = Transport::fromDsn(MAILER_DSN);

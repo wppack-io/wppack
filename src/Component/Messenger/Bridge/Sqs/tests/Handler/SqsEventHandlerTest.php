@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,17 +11,17 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Messenger\Bridge\Sqs\Tests\Handler;
+namespace WPPack\Component\Messenger\Bridge\Sqs\Tests\Handler;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
-use WpPack\Component\Messenger\Bridge\Sqs\Handler\SqsEventHandler;
-use WpPack\Component\Messenger\Envelope;
-use WpPack\Component\Messenger\MessageBusInterface;
-use WpPack\Component\Messenger\Serializer\SerializerInterface;
-use WpPack\Component\Messenger\Stamp\ReceivedStamp;
+use WPPack\Component\Messenger\Bridge\Sqs\Handler\SqsEventHandler;
+use WPPack\Component\Messenger\Envelope;
+use WPPack\Component\Messenger\MessageBusInterface;
+use WPPack\Component\Messenger\Serializer\SerializerInterface;
+use WPPack\Component\Messenger\Stamp\ReceivedStamp;
 
 #[CoversClass(SqsEventHandler::class)]
 final class SqsEventHandlerTest extends TestCase

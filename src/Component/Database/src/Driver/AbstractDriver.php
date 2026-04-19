@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database\Driver;
+namespace WPPack\Component\Database\Driver;
 
-use WpPack\Component\Database\Exception\DriverException;
-use WpPack\Component\Database\Platform\PlatformInterface;
-use WpPack\Component\Database\Result;
-use WpPack\Component\Database\Statement;
-use WpPack\Component\Database\Translator\NullQueryTranslator;
-use WpPack\Component\Database\Translator\QueryTranslatorInterface;
+use WPPack\Component\Database\Exception\DriverException;
+use WPPack\Component\Database\Platform\PlatformInterface;
+use WPPack\Component\Database\Result;
+use WPPack\Component\Database\Statement;
+use WPPack\Component\Database\Translator\NullQueryTranslator;
+use WPPack\Component\Database\Translator\QueryTranslatorInterface;
 
 /**
  * Template method base class for database drivers.

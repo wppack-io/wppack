@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,21 +11,21 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\DatabaseExport\Tests;
+namespace WPPack\Component\DatabaseExport\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Database\DatabaseManager;
-use WpPack\Component\Database\Schema\ColumnSchema;
-use WpPack\Component\Database\Schema\TableSchema;
-use WpPack\Component\Database\SchemaReader\SchemaReaderInterface;
-use WpPack\Component\DatabaseExport\DatabaseExporter;
-use WpPack\Component\DatabaseExport\Exception\ExportException;
-use WpPack\Component\DatabaseExport\ExportConfiguration;
-use WpPack\Component\DatabaseExport\RowTransformer\RowTransformerInterface;
-use WpPack\Component\DatabaseExport\RowTransformer\WpOptionsTransformer;
-use WpPack\Component\DatabaseExport\TableFilter\TableFilterInterface;
-use WpPack\Component\DatabaseExport\Writer\WpressSqlWriter;
+use WPPack\Component\Database\DatabaseManager;
+use WPPack\Component\Database\Schema\ColumnSchema;
+use WPPack\Component\Database\Schema\TableSchema;
+use WPPack\Component\Database\SchemaReader\SchemaReaderInterface;
+use WPPack\Component\DatabaseExport\DatabaseExporter;
+use WPPack\Component\DatabaseExport\Exception\ExportException;
+use WPPack\Component\DatabaseExport\ExportConfiguration;
+use WPPack\Component\DatabaseExport\RowTransformer\RowTransformerInterface;
+use WPPack\Component\DatabaseExport\RowTransformer\WpOptionsTransformer;
+use WPPack\Component\DatabaseExport\TableFilter\TableFilterInterface;
+use WPPack\Component\DatabaseExport\Writer\WpressSqlWriter;
 
 final class DatabaseExporterTest extends TestCase
 {
@@ -73,7 +73,7 @@ final class DatabaseExporterTest extends TestCase
 
         $sql = $exporter->exportToString($config);
 
-        self::assertStringContainsString('-- WpPack Database Export', $sql);
+        self::assertStringContainsString('-- WPPack Database Export', $sql);
         self::assertStringContainsString('DROP TABLE IF EXISTS `WPPACK_PREFIX_posts`', $sql);
         self::assertStringContainsString('CREATE TABLE `WPPACK_PREFIX_posts`', $sql);
         self::assertStringContainsString('START TRANSACTION;', $sql);

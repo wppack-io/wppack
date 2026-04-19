@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Mailer\Exception;
+namespace WPPack\Component\Mailer\Exception;
 
-use WpPack\Component\Mailer\Transport\Dsn;
+use WPPack\Component\Mailer\Transport\Dsn;
 
 final class UnsupportedSchemeException extends \LogicException implements ExceptionInterface
 {

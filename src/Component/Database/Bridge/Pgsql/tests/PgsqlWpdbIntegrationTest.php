@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,16 +11,16 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database\Bridge\Pgsql\Tests;
+namespace WPPack\Component\Database\Bridge\Pgsql\Tests;
 
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Database\Bridge\Pgsql\PgsqlDriver;
-use WpPack\Component\Database\Tests\WpdbIntegrationTestTrait;
-use WpPack\Component\Database\WpPackWpdb;
-use WpPack\Component\Dsn\Dsn;
+use WPPack\Component\Database\Bridge\Pgsql\PgsqlDriver;
+use WPPack\Component\Database\Tests\WpdbIntegrationTestTrait;
+use WPPack\Component\Database\WPPackWpdb;
+use WPPack\Component\Dsn\Dsn;
 
 /**
- * WpPackWpdb integration tests with PostgreSQL driver and PostgresqlQueryTranslator.
+ * WPPackWpdb integration tests with PostgreSQL driver and PostgresqlQueryTranslator.
  *
  * Activates only when DATABASE_DSN selects the PostgreSQL engine. Connection
  * details (host, port, user, password, database) are parsed from the DSN.
@@ -29,7 +29,7 @@ final class PgsqlWpdbIntegrationTest extends TestCase
 {
     use WpdbIntegrationTestTrait;
 
-    private WpPackWpdb $testWpdb;
+    private WPPackWpdb $testWpdb;
     private PgsqlDriver $driver;
     private ?\wpdb $originalWpdb = null;
     private ?string $originalTablePrefix = null;
@@ -59,7 +59,7 @@ final class PgsqlWpdbIntegrationTest extends TestCase
 
         $this->dropTestTables();
 
-        $this->testWpdb = new WpPackWpdb(
+        $this->testWpdb = new WPPackWpdb(
             writer: $this->driver,
             translator: $this->driver->getQueryTranslator(),
             dbname: ltrim($parsed->getPath() ?? '', '/') ?: 'wppack_test',

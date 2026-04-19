@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Security\Tests;
+namespace WPPack\Component\Security\Tests;
 
-use WpPack\Component\Security\Authentication\AuthenticationManagerInterface;
-use WpPack\Component\Security\Authentication\Token\PostAuthenticationToken;
-use WpPack\Component\Security\Authentication\Token\TokenInterface;
-use WpPack\Component\Security\Authorization\AuthorizationCheckerInterface;
-use WpPack\Component\Security\Security;
+use WPPack\Component\Security\Authentication\AuthenticationManagerInterface;
+use WPPack\Component\Security\Authentication\Token\PostAuthenticationToken;
+use WPPack\Component\Security\Authentication\Token\TokenInterface;
+use WPPack\Component\Security\Authorization\AuthorizationCheckerInterface;
+use WPPack\Component\Security\Security;
 
 trait SecurityTestTrait
 {

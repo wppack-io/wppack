@@ -1,7 +1,7 @@
 # DashboardWidget コンポーネント
 
 **パッケージ:** `wppack/dashboard-widget`
-**名前空間:** `WpPack\Component\DashboardWidget\`
+**名前空間:** `WPPack\Component\DashboardWidget\`
 **レイヤー:** Application
 
 WordPress のダッシュボードウィジェット機能（`wp_add_dashboard_widget()`）をアトリビュートベースで登録・管理するコンポーネントです。
@@ -41,13 +41,13 @@ function my_dashboard_widget_configure() {
 }
 ```
 
-### After（WpPack）
+### After（WPPack）
 
 ```php
-use WpPack\Component\DashboardWidget\AbstractDashboardWidget;
-use WpPack\Component\DashboardWidget\Attribute\AsDashboardWidget;
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\Security\Attribute\IsGranted;
+use WPPack\Component\DashboardWidget\AbstractDashboardWidget;
+use WPPack\Component\DashboardWidget\Attribute\AsDashboardWidget;
+use WPPack\Component\HttpFoundation\Request;
+use WPPack\Component\Security\Attribute\IsGranted;
 
 #[IsGranted('edit_posts')]
 #[AsDashboardWidget(
@@ -78,9 +78,9 @@ class MyDashboardWidget extends AbstractDashboardWidget
 ### 統計ダッシュボードウィジェット
 
 ```php
-use WpPack\Component\DashboardWidget\AbstractDashboardWidget;
-use WpPack\Component\DashboardWidget\Attribute\AsDashboardWidget;
-use WpPack\Component\Security\Attribute\IsGranted;
+use WPPack\Component\DashboardWidget\AbstractDashboardWidget;
+use WPPack\Component\DashboardWidget\Attribute\AsDashboardWidget;
+use WPPack\Component\Security\Attribute\IsGranted;
 
 #[IsGranted('manage_options')]
 #[AsDashboardWidget(
@@ -161,7 +161,7 @@ class RecentActivityWidget extends AbstractDashboardWidget
 `configure()` メソッドを定義すると、WordPress のダッシュボードウィジェット設定パネルが有効になります。`configure()` は `string` を返します。
 
 ```php
-use WpPack\Component\HttpFoundation\Request;
+use WPPack\Component\HttpFoundation\Request;
 
 #[IsGranted('manage_options')]
 #[AsDashboardWidget(
@@ -255,8 +255,8 @@ class TemplatedConfigWidget extends AbstractDashboardWidget
 `DashboardWidgetRegistry` に `TemplateRendererInterface` を渡すと、登録時に各ウィジェットへ自動注入されます。`render()` ショートカットメソッドで `__invoke()` 内から簡潔にテンプレートを呼び出せます。
 
 ```php
-use WpPack\Component\DashboardWidget\DashboardWidgetRegistry;
-use WpPack\Component\Templating\TemplateRendererInterface;
+use WPPack\Component\DashboardWidget\DashboardWidgetRegistry;
+use WPPack\Component\Templating\TemplateRendererInterface;
 
 // Registry に TemplateRendererInterface を渡す
 $registry = new DashboardWidgetRegistry($renderer);
@@ -304,7 +304,7 @@ class StatsWidget extends AbstractDashboardWidget
 
 ```php
 add_action('init', function () {
-    $container = new WpPack\Container();
+    $container = new WPPack\Container();
     $container->register([
         SiteStatsWidget::class,
         RecentActivityWidget::class,

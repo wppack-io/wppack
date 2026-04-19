@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,16 +11,16 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Rest\Tests\DependencyInjection;
+namespace WPPack\Component\Rest\Tests\DependencyInjection;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\Rest\Attribute\Permission;
-use WpPack\Component\Rest\Attribute\RestRoute;
-use WpPack\Component\Rest\DependencyInjection\RegisterRestControllersPass;
-use WpPack\Component\Rest\HttpMethod;
-use WpPack\Component\Rest\RestRegistry;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\Rest\Attribute\Permission;
+use WPPack\Component\Rest\Attribute\RestRoute;
+use WPPack\Component\Rest\DependencyInjection\RegisterRestControllersPass;
+use WPPack\Component\Rest\HttpMethod;
+use WPPack\Component\Rest\RestRegistry;
 
 final class RegisterRestControllersPassTest extends TestCase
 {

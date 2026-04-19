@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,28 +11,28 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\OAuthLoginPlugin;
+namespace WPPack\Plugin\OAuthLoginPlugin;
 
-use WpPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
-use WpPack\Component\DependencyInjection\Container;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\EventDispatcher\DependencyInjection\RegisterEventListenersPass;
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\Admin\AdminPageRegistry;
-use WpPack\Component\Kernel\AbstractPlugin;
-use WpPack\Component\Kernel\Attribute\TextDomain;
-use WpPack\Component\Rest\RestRegistry;
-use WpPack\Component\Routing\RouteRegistry;
-use WpPack\Component\Security\Authentication\AuthenticationManager;
-use WpPack\Component\Security\Bridge\OAuth\OAuthEntryPoint;
-use WpPack\Component\Security\DependencyInjection\RegisterAuthenticatorsPass;
-use WpPack\Plugin\OAuthLoginPlugin\Admin\OAuthLoginSettingsController;
-use WpPack\Plugin\OAuthLoginPlugin\Admin\OAuthLoginSettingsPage;
-use WpPack\Plugin\OAuthLoginPlugin\Configuration\OAuthLoginConfiguration;
-use WpPack\Component\Security\Bridge\OAuth\OAuthAuthorizeController;
-use WpPack\Component\Security\Bridge\OAuth\OAuthCallbackController;
-use WpPack\Component\Security\Bridge\OAuth\OAuthVerifyController;
-use WpPack\Plugin\OAuthLoginPlugin\DependencyInjection\OAuthLoginPluginServiceProvider;
+use WPPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
+use WPPack\Component\DependencyInjection\Container;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\EventDispatcher\DependencyInjection\RegisterEventListenersPass;
+use WPPack\Component\HttpFoundation\Request;
+use WPPack\Component\Admin\AdminPageRegistry;
+use WPPack\Component\Kernel\AbstractPlugin;
+use WPPack\Component\Kernel\Attribute\TextDomain;
+use WPPack\Component\Rest\RestRegistry;
+use WPPack\Component\Routing\RouteRegistry;
+use WPPack\Component\Security\Authentication\AuthenticationManager;
+use WPPack\Component\Security\Bridge\OAuth\OAuthEntryPoint;
+use WPPack\Component\Security\DependencyInjection\RegisterAuthenticatorsPass;
+use WPPack\Plugin\OAuthLoginPlugin\Admin\OAuthLoginSettingsController;
+use WPPack\Plugin\OAuthLoginPlugin\Admin\OAuthLoginSettingsPage;
+use WPPack\Plugin\OAuthLoginPlugin\Configuration\OAuthLoginConfiguration;
+use WPPack\Component\Security\Bridge\OAuth\OAuthAuthorizeController;
+use WPPack\Component\Security\Bridge\OAuth\OAuthCallbackController;
+use WPPack\Component\Security\Bridge\OAuth\OAuthVerifyController;
+use WPPack\Plugin\OAuthLoginPlugin\DependencyInjection\OAuthLoginPluginServiceProvider;
 
 #[TextDomain(domain: 'wppack-oauth-login')]
 class OAuthLoginPlugin extends AbstractPlugin

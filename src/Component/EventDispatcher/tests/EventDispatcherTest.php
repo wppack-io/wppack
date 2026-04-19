@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,15 +11,15 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\EventDispatcher\Tests;
+namespace WPPack\Component\EventDispatcher\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
-use WpPack\Component\EventDispatcher\Event;
-use WpPack\Component\EventDispatcher\EventDispatcher;
-use WpPack\Component\EventDispatcher\Exception\InvalidArgumentException;
-use WpPack\Component\EventDispatcher\WordPressEvent;
+use WPPack\Component\EventDispatcher\Event;
+use WPPack\Component\EventDispatcher\EventDispatcher;
+use WPPack\Component\EventDispatcher\Exception\InvalidArgumentException;
+use WPPack\Component\EventDispatcher\WordPressEvent;
 
 final class EventDispatcherTest extends TestCase
 {

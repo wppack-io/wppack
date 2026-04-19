@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,40 +11,40 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\ScimPlugin\DependencyInjection;
+namespace WPPack\Plugin\ScimPlugin\DependencyInjection;
 
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\DependencyInjection\Reference;
-use WpPack\Component\DependencyInjection\ServiceProviderInterface;
-use WpPack\Component\EventDispatcher\DependencyInjection\EventDispatcherServiceProvider;
-use WpPack\Component\EventDispatcher\EventDispatcher;
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\Rest\RestRegistry;
-use WpPack\Component\Scim\Authentication\ScimBearerAuthenticator;
-use WpPack\Component\Scim\Controller\GroupController;
-use WpPack\Component\Scim\Controller\ResourceTypeController;
-use WpPack\Component\Scim\Controller\SchemaController;
-use WpPack\Component\Scim\Controller\ServiceProviderConfigController;
-use WpPack\Component\Scim\Controller\UserController;
-use WpPack\Component\Scim\DependencyInjection\ScimServiceProvider;
-use WpPack\Component\Scim\Repository\ScimGroupRepository;
-use WpPack\Component\Scim\Repository\ScimUserRepository;
-use WpPack\Component\Scim\Schema\ServiceProviderConfig;
-use WpPack\Component\Security\Authentication\AuthenticationManager;
-use WpPack\Component\Security\DependencyInjection\SecurityServiceProvider;
-use WpPack\Component\Site\BlogContext;
-use WpPack\Component\Site\BlogContextInterface;
-use WpPack\Component\Site\BlogSwitcher;
-use WpPack\Component\Site\BlogSwitcherInterface;
-use WpPack\Component\Site\SiteRepository;
-use WpPack\Component\Site\SiteRepositoryInterface;
-use WpPack\Component\User\UserRepository;
-use WpPack\Component\User\UserRepositoryInterface;
-use WpPack\Component\Admin\AdminPageRegistry;
-use WpPack\Component\Role\RoleProvider;
-use WpPack\Plugin\ScimPlugin\Admin\ScimSettingsController;
-use WpPack\Plugin\ScimPlugin\Admin\ScimSettingsPage;
-use WpPack\Plugin\ScimPlugin\Configuration\ScimConfiguration;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\DependencyInjection\Reference;
+use WPPack\Component\DependencyInjection\ServiceProviderInterface;
+use WPPack\Component\EventDispatcher\DependencyInjection\EventDispatcherServiceProvider;
+use WPPack\Component\EventDispatcher\EventDispatcher;
+use WPPack\Component\HttpFoundation\Request;
+use WPPack\Component\Rest\RestRegistry;
+use WPPack\Component\Scim\Authentication\ScimBearerAuthenticator;
+use WPPack\Component\Scim\Controller\GroupController;
+use WPPack\Component\Scim\Controller\ResourceTypeController;
+use WPPack\Component\Scim\Controller\SchemaController;
+use WPPack\Component\Scim\Controller\ServiceProviderConfigController;
+use WPPack\Component\Scim\Controller\UserController;
+use WPPack\Component\Scim\DependencyInjection\ScimServiceProvider;
+use WPPack\Component\Scim\Repository\ScimGroupRepository;
+use WPPack\Component\Scim\Repository\ScimUserRepository;
+use WPPack\Component\Scim\Schema\ServiceProviderConfig;
+use WPPack\Component\Security\Authentication\AuthenticationManager;
+use WPPack\Component\Security\DependencyInjection\SecurityServiceProvider;
+use WPPack\Component\Site\BlogContext;
+use WPPack\Component\Site\BlogContextInterface;
+use WPPack\Component\Site\BlogSwitcher;
+use WPPack\Component\Site\BlogSwitcherInterface;
+use WPPack\Component\Site\SiteRepository;
+use WPPack\Component\Site\SiteRepositoryInterface;
+use WPPack\Component\User\UserRepository;
+use WPPack\Component\User\UserRepositoryInterface;
+use WPPack\Component\Admin\AdminPageRegistry;
+use WPPack\Component\Role\RoleProvider;
+use WPPack\Plugin\ScimPlugin\Admin\ScimSettingsController;
+use WPPack\Plugin\ScimPlugin\Admin\ScimSettingsPage;
+use WPPack\Plugin\ScimPlugin\Configuration\ScimConfiguration;
 
 final class ScimPluginServiceProvider implements ServiceProviderInterface
 {

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Debug\ErrorHandler;
+namespace WPPack\Component\Debug\ErrorHandler;
 
-use WpPack\Component\Debug\CssTheme;
-use WpPack\Component\Debug\DataCollector\DataCollectorInterface;
-use WpPack\Component\Debug\DataCollector\RequestDataCollector;
-use WpPack\Component\Debug\DebugConfig;
-use WpPack\Component\Debug\Profiler\Profile;
-use WpPack\Component\Debug\Toolbar\ToolbarRenderer;
+use WPPack\Component\Debug\CssTheme;
+use WPPack\Component\Debug\DataCollector\DataCollectorInterface;
+use WPPack\Component\Debug\DataCollector\RequestDataCollector;
+use WPPack\Component\Debug\DebugConfig;
+use WPPack\Component\Debug\Profiler\Profile;
+use WPPack\Component\Debug\Toolbar\ToolbarRenderer;
 
 /**
  * Intercepts redirects to show a toolbar-equipped intermediate page.

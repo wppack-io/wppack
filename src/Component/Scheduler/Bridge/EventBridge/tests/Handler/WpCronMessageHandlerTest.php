@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Scheduler\Bridge\EventBridge\Tests\Handler;
+namespace WPPack\Component\Scheduler\Bridge\EventBridge\Tests\Handler;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
-use WpPack\Component\Scheduler\Bridge\EventBridge\Handler\WpCronMessageHandler;
-use WpPack\Component\Scheduler\Message\WpCronMessage;
+use WPPack\Component\Scheduler\Bridge\EventBridge\Handler\WpCronMessageHandler;
+use WPPack\Component\Scheduler\Message\WpCronMessage;
 
 final class WpCronMessageHandlerTest extends TestCase
 {
@@ -131,7 +131,7 @@ final class WpCronMessageHandlerTest extends TestCase
     public function handlerHasAsMessageHandlerAttribute(): void
     {
         $ref = new \ReflectionClass(WpCronMessageHandler::class);
-        $attributes = $ref->getAttributes(\WpPack\Component\Messenger\Attribute\AsMessageHandler::class);
+        $attributes = $ref->getAttributes(\WPPack\Component\Messenger\Attribute\AsMessageHandler::class);
 
         self::assertCount(1, $attributes);
     }

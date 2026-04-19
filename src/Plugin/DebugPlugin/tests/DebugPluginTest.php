@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,19 +11,19 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\DebugPlugin\Tests;
+namespace WPPack\Plugin\DebugPlugin\Tests;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Debug\DependencyInjection\InjectContainerSnapshotPass;
-use WpPack\Component\Debug\DependencyInjection\RegisterDataCollectorsPass;
-use WpPack\Component\Debug\DependencyInjection\RegisterPanelRenderersPass;
-use WpPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
-use WpPack\Component\Hook\DependencyInjection\RegisterHookSubscribersPass;
-use WpPack\Component\Kernel\ManagesDropin;
-use WpPack\Component\Logger\DependencyInjection\RegisterLoggerPass;
-use WpPack\Plugin\DebugPlugin\DebugPlugin;
+use WPPack\Component\Debug\DependencyInjection\InjectContainerSnapshotPass;
+use WPPack\Component\Debug\DependencyInjection\RegisterDataCollectorsPass;
+use WPPack\Component\Debug\DependencyInjection\RegisterPanelRenderersPass;
+use WPPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
+use WPPack\Component\Hook\DependencyInjection\RegisterHookSubscribersPass;
+use WPPack\Component\Kernel\ManagesDropin;
+use WPPack\Component\Logger\DependencyInjection\RegisterLoggerPass;
+use WPPack\Plugin\DebugPlugin\DebugPlugin;
 
 #[CoversClass(DebugPlugin::class)]
 #[CoversClass(ManagesDropin::class)]
@@ -145,7 +145,7 @@ final class DebugPluginTest extends TestCase
     {
         $dropinPath = $this->contentDir . '/fatal-error-handler.php';
 
-        // Place a foreign drop-in (no WpPack signature)
+        // Place a foreign drop-in (no WPPack signature)
         file_put_contents($dropinPath, '<?php // foreign drop-in');
 
         $plugin = new DebugPlugin(__FILE__);

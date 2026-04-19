@@ -1,7 +1,7 @@
 # Block コンポーネント
 
 **パッケージ:** `wppack/block`
-**名前空間:** `WpPack\Component\Block\`
+**名前空間:** `WPPack\Component\Block\`
 **レイヤー:** Application
 
 サーバーサイドレンダリング、ダイナミックブロック、ブロックパターン、ブロックバリエーション、WordPress ブロックエディター（Gutenberg）との完全統合を備えた、モダンなオブジェクト指向のブロック開発フレームワークです。
@@ -37,12 +37,12 @@ function render_featured_posts_block($attributes, $content) {
 }
 ```
 
-### After（WpPack）
+### After（WPPack）
 
 ```php
-use WpPack\Component\Block\AbstractBlock;
-use WpPack\Component\Block\Attribute\Block;
-use WpPack\Component\Block\Attribute\BlockAttribute;
+use WPPack\Component\Block\AbstractBlock;
+use WPPack\Component\Block\Attribute\Block;
+use WPPack\Component\Block\Attribute\BlockAttribute;
 
 #[Block(
     name: 'featured-posts',
@@ -83,10 +83,10 @@ class FeaturedPostsBlock extends AbstractBlock
 
 ```php
 <?php
-use WpPack\Component\Block\Attribute\Block;
-use WpPack\Component\Block\Attribute\BlockAttribute;
-use WpPack\Component\Block\Attribute\BlockStyle;
-use WpPack\Component\Block\AbstractBlock;
+use WPPack\Component\Block\Attribute\Block;
+use WPPack\Component\Block\Attribute\BlockAttribute;
+use WPPack\Component\Block\Attribute\BlockStyle;
+use WPPack\Component\Block\AbstractBlock;
 
 #[Block(
     name: 'customer-testimonial',
@@ -260,8 +260,8 @@ class ProductShowcaseBlock extends AbstractBlock
 ## ブロックバリエーションとスタイル
 
 ```php
-use WpPack\Component\Block\Attribute\BlockVariation;
-use WpPack\Component\Block\Attribute\BlockStyle;
+use WPPack\Component\Block\Attribute\BlockVariation;
+use WPPack\Component\Block\Attribute\BlockStyle;
 
 #[Block(name: 'card', namespace: 'ui')]
 #[BlockVariation('product-card', 'Product Card', [
@@ -343,8 +343,8 @@ class ContainerBlock extends AbstractBlock
 ## ブロックパターン
 
 ```php
-use WpPack\Component\Block\Attribute\BlockPattern;
-use WpPack\Component\Block\AbstractBlockPattern;
+use WPPack\Component\Block\Attribute\BlockPattern;
+use WPPack\Component\Block\AbstractBlockPattern;
 
 #[BlockPattern(
     name: 'hero-section',
@@ -391,8 +391,8 @@ class HeroSectionPattern extends AbstractBlockPattern
 ## ブロックコレクション
 
 ```php
-use WpPack\Component\Block\Attribute\BlockCollection;
-use WpPack\Component\Block\AbstractBlockCollection;
+use WPPack\Component\Block\Attribute\BlockCollection;
+use WPPack\Component\Block\AbstractBlockCollection;
 
 #[BlockCollection(
     name: 'e-commerce',

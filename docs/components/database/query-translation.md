@@ -1,6 +1,6 @@
 # Query Translation Architecture
 
-WordPress は MySQL SQL を生成するため、非 MySQL エンジン（SQLite、PostgreSQL）ではクエリ変換が必要になる。本ドキュメントでは、変換手法の比較と WpPack の設計判断を記録する。
+WordPress は MySQL SQL を生成するため、非 MySQL エンジン（SQLite、PostgreSQL）ではクエリ変換が必要になる。本ドキュメントでは、変換手法の比較と WPPack の設計判断を記録する。
 
 ## 変換手法の比較
 
@@ -106,13 +106,13 @@ SQLite:  SELECT datetime('now'), datetime(d, '+1 day') FROM posts WHERE id > 5 L
 - 式レベルの限界: phpmyadmin/sql-parser の `Expression.expr` は文字列のまま。関数引数は AST に分解されない
 - 複雑性: AST + トークン操作のハイブリッドが必要
 
-**採用例:** WpPack Database コンポーネント
+**採用例:** WPPack Database コンポーネント
 
-## WpPack の設計判断
+## WPPack の設計判断
 
 ### ハイブリッドアプローチ: AST + QueryRewriter
 
-WpPack は AST とトークン操作を組み合わせたハイブリッドアプローチを採用している。
+WPPack は AST とトークン操作を組み合わせたハイブリッドアプローチを採用している。
 
 ```
 SQL → Parser → AST（構造理解）+ TokensList（トークン列）
@@ -137,7 +137,7 @@ SQL → Parser → AST（構造理解）+ TokensList（トークン列）
 
 ### UDF を最小限に留める理由
 
-WpPack は UDF を14個に限定し、大半の関数は AST 変換でネイティブ関数に変換している。
+WPPack は UDF を14個に限定し、大半の関数は AST 変換でネイティブ関数に変換している。
 
 | 判断基準 | UDF で実装 | AST で変換 |
 |---------|-----------|-----------|
@@ -208,7 +208,7 @@ SQLite Database Integration プラグインおよび PG4WP (PostgreSQL for WordP
 | `LAST_INSERT_ID()` | システム | `last_insert_rowid()` | `lastval()` |
 | `VERSION()` | システム | `'10.0.0-wppack'` | `version()` |
 | `DATABASE()` | システム | `'main'` | `CURRENT_DATABASE()` |
-| `FOUND_ROWS()` | システム | WpPackWpdb でインターセプト | 同左 |
+| `FOUND_ROWS()` | システム | WPPackWpdb でインターセプト | 同左 |
 | `FIELD(val, 'a', 'b')` | 制御 | `CASE WHEN val='a' THEN 1 ... END` | 同左 |
 | `CONVERT(val, type)` | 型 | `CAST(val AS type)` | 同左 |
 | `CAST(x AS CHAR)` | 型 | `CAST(x AS TEXT)` | 同左 |
@@ -256,7 +256,7 @@ SQLite Database Integration プラグインおよび PG4WP (PostgreSQL for WordP
 | `FOR UPDATE` | 除去 | そのまま |
 | `START TRANSACTION` | `BEGIN` | `BEGIN` |
 | `TRUNCATE TABLE t` | `DELETE FROM t` + sqlite_sequence リセット | `TRUNCATE ... RESTART IDENTITY` |
-| `SQL_CALC_FOUND_ROWS` | 除去（WpPackWpdb でカウント保存） | 同左 |
+| `SQL_CALC_FOUND_ROWS` | 除去（WPPackWpdb でカウント保存） | 同左 |
 | `UPDATE/DELETE ... LIMIT N` | `rowid IN (SELECT rowid ... LIMIT N)` | `ctid IN (SELECT ctid ... LIMIT N)` |
 | `LOW_PRIORITY` / `DELAYED` | 除去 | 除去 |
 | `ALTER TABLE ADD INDEX` | `CREATE INDEX` | `CREATE INDEX` |
@@ -439,7 +439,7 @@ MySQL の名前付きロック関数を各エンジンで実装:
 | IS_FREE_LOCK | `_wppack_locks` テーブルで COUNT チェック | advisory lock 取得試行 + 即解放 |
 | 再入可能 | ✅（既存ロック検出で 1 を返す） | ✅（PostgreSQL ネイティブ動作） |
 
-**注:** WordPress 公式 SQLite Database Integration プラグインと PG4WP はいずれも GET_LOCK/RELEASE_LOCK をダミー（常に 1）で実装している。WpPack は実際のロック機構を提供する。
+**注:** WordPress 公式 SQLite Database Integration プラグインと PG4WP はいずれも GET_LOCK/RELEASE_LOCK をダミー（常に 1）で実装している。WPPack は実際のロック機構を提供する。
 
 - **SQLite:** UDF 内から `_wppack_locks` テーブルを PDO で直接操作。`$wpdb` を経由しないため循環依存なし
 - **PostgreSQL:** `hashtext()` で文字列名を bigint キーに変換し、PostgreSQL ネイティブの advisory lock を使用。セッションスコープ

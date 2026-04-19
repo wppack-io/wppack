@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\DatabaseExport\Writer;
+namespace WPPack\Component\DatabaseExport\Writer;
 
-use WpPack\Component\Database\Schema\ColumnSchema;
-use WpPack\Component\Database\Schema\TableSchema;
-use WpPack\Component\DatabaseExport\ExportConfiguration;
+use WPPack\Component\Database\Schema\ColumnSchema;
+use WPPack\Component\Database\Schema\TableSchema;
+use WPPack\Component\DatabaseExport\ExportConfiguration;
 
 /**
  * Writes database export in wpress-compatible SQL format.
@@ -37,7 +37,7 @@ final class WpressSqlWriter implements ExportWriterInterface
         $this->dbPrefix = $config->dbPrefix;
         $this->transactionSize = $config->transactionSize;
 
-        fwrite($stream, "-- WpPack Database Export\n");
+        fwrite($stream, "-- WPPack Database Export\n");
         fwrite($stream, '-- Generated: ' . gmdate('Y-m-d H:i:s') . " UTC\n");
         fwrite($stream, "--\n\n");
     }

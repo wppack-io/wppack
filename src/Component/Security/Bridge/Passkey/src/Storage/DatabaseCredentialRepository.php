@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Security\Bridge\Passkey\Storage;
+namespace WPPack\Component\Security\Bridge\Passkey\Storage;
 
-use WpPack\Component\Database\DatabaseManager;
+use WPPack\Component\Database\DatabaseManager;
 
 final class DatabaseCredentialRepository implements CredentialRepositoryInterface
 {

@@ -1,7 +1,7 @@
 # SqsMessenger コンポーネント
 
 **パッケージ:** `wppack/sqs-messenger`
-**名前空間:** `WpPack\Component\Messenger\Bridge\Sqs\`
+**名前空間:** `WPPack\Component\Messenger\Bridge\Sqs\`
 **レイヤー:** Abstraction
 
 Messenger コンポーネントの Amazon SQS トランスポート実装。SQS キューへのメッセージ送信と、Lambda 環境での SQS イベント受信・処理を提供します。
@@ -18,8 +18,8 @@ composer require wppack/sqs-messenger
 
 ```php
 use AsyncAws\Sqs\SqsClient;
-use WpPack\Component\Messenger\Bridge\Sqs\Transport\SqsTransport;
-use WpPack\Component\Messenger\Serializer\JsonSerializer;
+use WPPack\Component\Messenger\Bridge\Sqs\Transport\SqsTransport;
+use WPPack\Component\Messenger\Serializer\JsonSerializer;
 
 $transport = new SqsTransport(
     sqsClient: new SqsClient([
@@ -53,7 +53,7 @@ $transport = new SqsTransport(
 `DelayStamp` のミリ秒値を秒に変換（切り上げ）して SQS の `DelaySeconds` に設定します。SQS の上限は 900 秒（15 分）で、超過分はクランプされます。
 
 ```php
-use WpPack\Component\Messenger\Stamp\DelayStamp;
+use WPPack\Component\Messenger\Stamp\DelayStamp;
 
 // 5分後に実行
 $messageBus->dispatch(
@@ -73,8 +73,8 @@ $messageBus->dispatch(
 Lambda 環境で SQS メッセージを受信し、WordPress をブートストラップしてハンドラーを実行します。
 
 ```php
-use WpPack\Component\Messenger\Bridge\Sqs\Handler\SqsEventHandler;
-use WpPack\Component\Messenger\Serializer\JsonSerializer;
+use WPPack\Component\Messenger\Bridge\Sqs\Handler\SqsEventHandler;
+use WPPack\Component\Messenger\Serializer\JsonSerializer;
 
 // Lambda エントリポイント
 return new SqsEventHandler(
@@ -241,13 +241,13 @@ Lambda 側（受信・削除）:
 
 ```php
 use AsyncAws\Sqs\SqsClient;
-use WpPack\Component\Messenger\Bridge\Sqs\Transport\SqsTransport;
-use WpPack\Component\Messenger\MessageBus;
-use WpPack\Component\Messenger\Middleware\AddBusNameStampMiddleware;
-use WpPack\Component\Messenger\Middleware\AddMultisiteStampMiddleware;
-use WpPack\Component\Messenger\Middleware\HandleMessageMiddleware;
-use WpPack\Component\Messenger\Middleware\SendMessageMiddleware;
-use WpPack\Component\Messenger\Serializer\JsonSerializer;
+use WPPack\Component\Messenger\Bridge\Sqs\Transport\SqsTransport;
+use WPPack\Component\Messenger\MessageBus;
+use WPPack\Component\Messenger\Middleware\AddBusNameStampMiddleware;
+use WPPack\Component\Messenger\Middleware\AddMultisiteStampMiddleware;
+use WPPack\Component\Messenger\Middleware\HandleMessageMiddleware;
+use WPPack\Component\Messenger\Middleware\SendMessageMiddleware;
+use WPPack\Component\Messenger\Serializer\JsonSerializer;
 
 // トランスポート設定
 $sqsTransport = new SqsTransport(
@@ -267,7 +267,7 @@ $messageBus = new MessageBus([
 // メッセージをディスパッチ（SQS に送信）
 $messageBus->dispatch(
     new SendEmailMessage(userId: 123, subject: 'Welcome!', body: 'Hello!'),
-    [new \WpPack\Component\Messenger\Stamp\TransportStamp('sqs')],
+    [new \WPPack\Component\Messenger\Stamp\TransportStamp('sqs')],
 );
 ```
 

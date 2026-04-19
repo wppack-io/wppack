@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Setting;
+namespace WPPack\Component\Setting;
 
-use WpPack\Component\Admin\Attribute\AdminScope;
-use WpPack\Component\Option\OptionManager;
-use WpPack\Component\Role\Authorization\IsGrantedChecker;
-use WpPack\Component\Setting\Attribute\AsSettingsPage;
-use WpPack\Component\Templating\TemplateRendererInterface;
+use WPPack\Component\Admin\Attribute\AdminScope;
+use WPPack\Component\Option\OptionManager;
+use WPPack\Component\Role\Authorization\IsGrantedChecker;
+use WPPack\Component\Setting\Attribute\AsSettingsPage;
+use WPPack\Component\Templating\TemplateRendererInterface;
 
 abstract class AbstractSettingsPage
 {

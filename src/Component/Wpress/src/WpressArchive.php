@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,15 +11,15 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Wpress;
+namespace WPPack\Component\Wpress;
 
-use WpPack\Component\Wpress\ContentProcessor\ChainContentProcessor;
-use WpPack\Component\Wpress\ContentProcessor\CompressedContentProcessor;
-use WpPack\Component\Wpress\ContentProcessor\ContentProcessorInterface;
-use WpPack\Component\Wpress\ContentProcessor\EncryptedContentProcessor;
-use WpPack\Component\Wpress\ContentProcessor\PlainContentProcessor;
-use WpPack\Component\Wpress\Exception\ArchiveException;
-use WpPack\Component\Wpress\Exception\EntryNotFoundException;
+use WPPack\Component\Wpress\ContentProcessor\ChainContentProcessor;
+use WPPack\Component\Wpress\ContentProcessor\CompressedContentProcessor;
+use WPPack\Component\Wpress\ContentProcessor\ContentProcessorInterface;
+use WPPack\Component\Wpress\ContentProcessor\EncryptedContentProcessor;
+use WPPack\Component\Wpress\ContentProcessor\PlainContentProcessor;
+use WPPack\Component\Wpress\Exception\ArchiveException;
+use WPPack\Component\Wpress\Exception\EntryNotFoundException;
 
 final class WpressArchive implements \Countable
 {

@@ -23,12 +23,12 @@
             "src/Compat/bootstrap.php"
         ],
         "psr-4": {
-            "WpPack\\Component\\Debug\\": "src/"
+            "WPPack\\Component\\Debug\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Component\\Debug\\Tests\\": "tests/"
+            "WPPack\\Component\\Debug\\Tests\\": "tests/"
         }
     }
 }

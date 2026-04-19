@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Mailer\Tests\Transport;
+namespace WPPack\Component\Mailer\Tests\Transport;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Mailer\Exception\InvalidArgumentException;
-use WpPack\Component\Mailer\Transport\Dsn;
+use WPPack\Component\Mailer\Exception\InvalidArgumentException;
+use WPPack\Component\Mailer\Transport\Dsn;
 
 final class DsnTest extends TestCase
 {

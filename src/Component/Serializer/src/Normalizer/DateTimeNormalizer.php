@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Serializer\Normalizer;
+namespace WPPack\Component\Serializer\Normalizer;
 
-use WpPack\Component\Serializer\Exception\NotNormalizableValueException;
+use WPPack\Component\Serializer\Exception\NotNormalizableValueException;
 
 final class DateTimeNormalizer implements NormalizerInterface, DenormalizerInterface
 {

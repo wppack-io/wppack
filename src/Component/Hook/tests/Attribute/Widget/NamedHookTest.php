@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,28 +11,28 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Hook\Tests\Attribute\Widget;
+namespace WPPack\Component\Hook\Tests\Attribute\Widget;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Hook\Attribute\Action;
-use WpPack\Component\Hook\Attribute\Filter;
-use WpPack\Component\Hook\Hook;
-use WpPack\Component\Hook\HookType;
-use WpPack\Component\Hook\Attribute\Widget\Action\DynamicSidebarAfterAction;
-use WpPack\Component\Hook\Attribute\Widget\Action\DynamicSidebarBeforeAction;
-use WpPack\Component\Hook\Attribute\Widget\Action\WidgetsInitAction;
-use WpPack\Component\Hook\Attribute\Widget\Filter\DynamicSidebarHasWidgetsFilter;
-use WpPack\Component\Hook\Attribute\Widget\Filter\DynamicSidebarParamsFilter;
-use WpPack\Component\Hook\Attribute\Widget\Filter\RegisterSidebarFilter;
-use WpPack\Component\Hook\Attribute\Widget\Filter\WidgetAreaPreviewFilter;
-use WpPack\Component\Hook\Attribute\Widget\Filter\WidgetContentFilter;
-use WpPack\Component\Hook\Attribute\Widget\Filter\WidgetDisplayCallbackFilter;
-use WpPack\Component\Hook\Attribute\Widget\Filter\WidgetFormCallbackFilter;
-use WpPack\Component\Hook\Attribute\Widget\Filter\WidgetsPrefetchingFilter;
-use WpPack\Component\Hook\Attribute\Widget\Filter\WidgetTextFilter;
-use WpPack\Component\Hook\Attribute\Widget\Filter\WidgetTitleFilter;
-use WpPack\Component\Hook\Attribute\Widget\Filter\WidgetUpdateCallbackFilter;
+use WPPack\Component\Hook\Attribute\Action;
+use WPPack\Component\Hook\Attribute\Filter;
+use WPPack\Component\Hook\Hook;
+use WPPack\Component\Hook\HookType;
+use WPPack\Component\Hook\Attribute\Widget\Action\DynamicSidebarAfterAction;
+use WPPack\Component\Hook\Attribute\Widget\Action\DynamicSidebarBeforeAction;
+use WPPack\Component\Hook\Attribute\Widget\Action\WidgetsInitAction;
+use WPPack\Component\Hook\Attribute\Widget\Filter\DynamicSidebarHasWidgetsFilter;
+use WPPack\Component\Hook\Attribute\Widget\Filter\DynamicSidebarParamsFilter;
+use WPPack\Component\Hook\Attribute\Widget\Filter\RegisterSidebarFilter;
+use WPPack\Component\Hook\Attribute\Widget\Filter\WidgetAreaPreviewFilter;
+use WPPack\Component\Hook\Attribute\Widget\Filter\WidgetContentFilter;
+use WPPack\Component\Hook\Attribute\Widget\Filter\WidgetDisplayCallbackFilter;
+use WPPack\Component\Hook\Attribute\Widget\Filter\WidgetFormCallbackFilter;
+use WPPack\Component\Hook\Attribute\Widget\Filter\WidgetsPrefetchingFilter;
+use WPPack\Component\Hook\Attribute\Widget\Filter\WidgetTextFilter;
+use WPPack\Component\Hook\Attribute\Widget\Filter\WidgetTitleFilter;
+use WPPack\Component\Hook\Attribute\Widget\Filter\WidgetUpdateCallbackFilter;
 
 final class NamedHookTest extends TestCase
 {

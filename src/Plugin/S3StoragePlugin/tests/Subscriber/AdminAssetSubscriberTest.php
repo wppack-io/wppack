@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,16 +11,16 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\S3StoragePlugin\Tests\Subscriber;
+namespace WPPack\Plugin\S3StoragePlugin\Tests\Subscriber;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Asset\AssetManager;
-use WpPack\Component\Nonce\NonceManager;
-use WpPack\Component\Rest\RestUrlGenerator;
-use WpPack\Plugin\S3StoragePlugin\PreSignedUrl\UploadPolicy;
-use WpPack\Plugin\S3StoragePlugin\Subscriber\AdminAssetSubscriber;
+use WPPack\Component\Asset\AssetManager;
+use WPPack\Component\Nonce\NonceManager;
+use WPPack\Component\Rest\RestUrlGenerator;
+use WPPack\Plugin\S3StoragePlugin\PreSignedUrl\UploadPolicy;
+use WPPack\Plugin\S3StoragePlugin\Subscriber\AdminAssetSubscriber;
 
 #[CoversClass(AdminAssetSubscriber::class)]
 final class AdminAssetSubscriberTest extends TestCase
@@ -29,7 +29,7 @@ final class AdminAssetSubscriberTest extends TestCase
     public function canBeInstantiated(): void
     {
         $policy = new UploadPolicy(allowedMimeTypes: []);
-        $restRegistry = new \WpPack\Component\Rest\RestRegistry($this->createMock(\WpPack\Component\HttpFoundation\Request::class));
+        $restRegistry = new \WPPack\Component\Rest\RestRegistry($this->createMock(\WPPack\Component\HttpFoundation\Request::class));
         $subscriber = new AdminAssetSubscriber(
             pluginUrl: plugin_dir_url(__DIR__ . '/../../wppack-s3-storage.php'),
             policy: $policy,
@@ -45,7 +45,7 @@ final class AdminAssetSubscriberTest extends TestCase
     public function enqueueScriptsSkipsWhenMediaScriptsNotLoaded(): void
     {
         $policy = new UploadPolicy(allowedMimeTypes: []);
-        $restRegistry = new \WpPack\Component\Rest\RestRegistry($this->createMock(\WpPack\Component\HttpFoundation\Request::class));
+        $restRegistry = new \WPPack\Component\Rest\RestRegistry($this->createMock(\WPPack\Component\HttpFoundation\Request::class));
         $subscriber = new AdminAssetSubscriber(
             pluginUrl: plugin_dir_url(__DIR__ . '/../../wppack-s3-storage.php'),
             policy: $policy,

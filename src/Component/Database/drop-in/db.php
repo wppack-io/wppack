@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -62,7 +62,7 @@ if (str_starts_with($wppackDatabaseDsn, 'wpdb://')) {
 }
 
 // Load Composer autoloader (unless the host app already loaded it)
-if (!class_exists(\WpPack\Component\Database\Driver\Driver::class)) {
+if (!class_exists(\WPPack\Component\Database\Driver\Driver::class)) {
     $wppackAutoload = null;
 
     foreach ([
@@ -79,7 +79,7 @@ if (!class_exists(\WpPack\Component\Database\Driver\Driver::class)) {
 
     if ($wppackAutoload === null) {
         trigger_error(
-            'WpPack Database: Composer autoloader not found. Falling back to default wpdb.',
+            'WPPack Database: Composer autoloader not found. Falling back to default wpdb.',
             \E_USER_WARNING,
         );
 
@@ -92,10 +92,10 @@ if (!class_exists(\WpPack\Component\Database\Driver\Driver::class)) {
 
 // Create writer driver
 try {
-    $wppackWriter = \WpPack\Component\Database\Driver\Driver::fromDsn($wppackDatabaseDsn);
+    $wppackWriter = \WPPack\Component\Database\Driver\Driver::fromDsn($wppackDatabaseDsn);
 } catch (\Throwable $e) {
     trigger_error(
-        'WpPack Database: Failed to create driver from DSN: ' . $e->getMessage(),
+        'WPPack Database: Failed to create driver from DSN: ' . $e->getMessage(),
         \E_USER_WARNING,
     );
 
@@ -107,17 +107,17 @@ $wppackReader = null;
 
 if (defined('DATABASE_READER_DSN') && DATABASE_READER_DSN !== '') {
     try {
-        $wppackReader = \WpPack\Component\Database\Driver\Driver::fromDsn(DATABASE_READER_DSN);
+        $wppackReader = \WPPack\Component\Database\Driver\Driver::fromDsn(DATABASE_READER_DSN);
     } catch (\Throwable $e) {
         trigger_error(
-            'WpPack Database: Failed to create reader driver: ' . $e->getMessage(),
+            'WPPack Database: Failed to create reader driver: ' . $e->getMessage(),
             \E_USER_WARNING,
         );
     }
 }
 
 // Extract database name, charset, and collate from DSN
-$wppackDsnParsed = \WpPack\Component\Dsn\Dsn::fromString($wppackDatabaseDsn);
+$wppackDsnParsed = \WPPack\Component\Dsn\Dsn::fromString($wppackDatabaseDsn);
 $wppackDbName = ltrim($wppackDsnParsed->getPath() ?? '', '/');
 
 if ($wppackDbName === '' || $wppackDbName === ':memory:') {
@@ -134,8 +134,8 @@ $wppackCollate = $wppackDsnParsed->getOption('collate')
     ?? (\defined('DB_COLLATE') && DB_COLLATE !== '' ? DB_COLLATE : null)
     ?? '';
 
-// Create WpPack wpdb replacement
-$wpdb = new \WpPack\Component\Database\WpPackWpdb(
+// Create WPPack wpdb replacement
+$wpdb = new \WPPack\Component\Database\WPPackWpdb(
     writer: $wppackWriter,
     translator: $wppackWriter->getQueryTranslator(),
     dbname: $wppackDbName,

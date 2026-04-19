@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,19 +11,19 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Hook\Tests\Attribute\Translation;
+namespace WPPack\Component\Hook\Tests\Attribute\Translation;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Hook\Attribute\Action;
-use WpPack\Component\Hook\Attribute\Filter;
-use WpPack\Component\Hook\Hook;
-use WpPack\Component\Hook\HookType;
-use WpPack\Component\Hook\Attribute\Translation\Action\LoadTextdomainAction;
-use WpPack\Component\Hook\Attribute\Translation\Action\UnloadTextdomainAction;
-use WpPack\Component\Hook\Attribute\Translation\Filter\DetermineLocaleFilter;
-use WpPack\Component\Hook\Attribute\Translation\Filter\GettextFilter;
-use WpPack\Component\Hook\Attribute\Translation\Filter\LocaleFilter;
+use WPPack\Component\Hook\Attribute\Action;
+use WPPack\Component\Hook\Attribute\Filter;
+use WPPack\Component\Hook\Hook;
+use WPPack\Component\Hook\HookType;
+use WPPack\Component\Hook\Attribute\Translation\Action\LoadTextdomainAction;
+use WPPack\Component\Hook\Attribute\Translation\Action\UnloadTextdomainAction;
+use WPPack\Component\Hook\Attribute\Translation\Filter\DetermineLocaleFilter;
+use WPPack\Component\Hook\Attribute\Translation\Filter\GettextFilter;
+use WPPack\Component\Hook\Attribute\Translation\Filter\LocaleFilter;
 
 final class NamedHookTest extends TestCase
 {

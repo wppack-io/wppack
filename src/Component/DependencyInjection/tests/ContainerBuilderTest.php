@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,18 +11,18 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\DependencyInjection\Tests;
+namespace WPPack\Component\DependencyInjection\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\DependencyInjection\Definition;
-use WpPack\Component\DependencyInjection\Exception\ParameterNotFoundException;
-use WpPack\Component\DependencyInjection\Exception\ServiceNotFoundException;
-use WpPack\Component\DependencyInjection\Reference;
-use WpPack\Component\DependencyInjection\ServiceProviderInterface;
-use WpPack\Component\DependencyInjection\Tests\Fixtures\SimpleService;
+use WPPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\DependencyInjection\Definition;
+use WPPack\Component\DependencyInjection\Exception\ParameterNotFoundException;
+use WPPack\Component\DependencyInjection\Exception\ServiceNotFoundException;
+use WPPack\Component\DependencyInjection\Reference;
+use WPPack\Component\DependencyInjection\ServiceProviderInterface;
+use WPPack\Component\DependencyInjection\Tests\Fixtures\SimpleService;
 
 final class ContainerBuilderTest extends TestCase
 {
@@ -164,9 +164,9 @@ final class ContainerBuilderTest extends TestCase
     public function setsAndGetsParameters(): void
     {
         $builder = new ContainerBuilder();
-        $builder->setParameter('app.name', 'WpPack');
+        $builder->setParameter('app.name', 'WPPack');
 
-        self::assertSame('WpPack', $builder->getParameter('app.name'));
+        self::assertSame('WPPack', $builder->getParameter('app.name'));
         self::assertTrue($builder->hasParameter('app.name'));
         self::assertFalse($builder->hasParameter('missing'));
     }
@@ -261,7 +261,7 @@ final class ContainerBuilderTest extends TestCase
 
         $builder->addCompilerPass($pass);
 
-        // Verify the definitions can be read back with WpPack types
+        // Verify the definitions can be read back with WPPack types
         $pass->process($builder);
         $def = $builder->findDefinition('my.service');
 
@@ -352,7 +352,7 @@ final class ContainerBuilderTest extends TestCase
     {
         $builder = new ContainerBuilder();
 
-        // Register via WpPack
+        // Register via WPPack
         $builder->register('wppack.service', \stdClass::class);
 
         // Register directly via Symfony's builder

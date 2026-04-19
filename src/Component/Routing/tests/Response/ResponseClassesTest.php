@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Routing\Tests\Response;
+namespace WPPack\Component\Routing\Tests\Response;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\HttpFoundation\BinaryFileResponse;
-use WpPack\Component\HttpFoundation\JsonResponse;
-use WpPack\Component\HttpFoundation\RedirectResponse;
-use WpPack\Component\Routing\Response\BlockTemplateResponse;
+use WPPack\Component\HttpFoundation\BinaryFileResponse;
+use WPPack\Component\HttpFoundation\JsonResponse;
+use WPPack\Component\HttpFoundation\RedirectResponse;
+use WPPack\Component\Routing\Response\BlockTemplateResponse;
 
 final class ResponseClassesTest extends TestCase
 {
@@ -109,7 +109,7 @@ final class ResponseClassesTest extends TestCase
     {
         $response = new BlockTemplateResponse('page');
 
-        self::assertInstanceOf(\WpPack\Component\HttpFoundation\Response::class, $response);
+        self::assertInstanceOf(\WPPack\Component\HttpFoundation\Response::class, $response);
     }
 
     #[Test]

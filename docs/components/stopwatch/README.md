@@ -11,7 +11,7 @@ composer require wppack/stopwatch
 ## 基本的な使い方
 
 ```php
-use WpPack\Component\Stopwatch\Stopwatch;
+use WPPack\Component\Stopwatch\Stopwatch;
 
 $stopwatch = new Stopwatch();
 
@@ -48,8 +48,8 @@ $events = $stopwatch->getEvents();
 `wppack/debug` の `StopwatchDataCollector` は Stopwatch のデータを自動的に収集し、デバッグツールバーのパフォーマンスパネルに表示します。
 
 ```php
-use WpPack\Component\Stopwatch\Stopwatch;
-use WpPack\Component\Debug\Profiler\Profiler;
+use WPPack\Component\Stopwatch\Stopwatch;
+use WPPack\Component\Debug\Profiler\Profiler;
 
 $stopwatch = new Stopwatch();
 $profiler = new Profiler($stopwatch);

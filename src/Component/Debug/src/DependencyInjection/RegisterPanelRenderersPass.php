@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Debug\DependencyInjection;
+namespace WPPack\Component\Debug\DependencyInjection;
 
-use WpPack\Component\Debug\Attribute\AsPanelRenderer;
-use WpPack\Component\Debug\Toolbar\ToolbarRenderer;
-use WpPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\DependencyInjection\Reference;
+use WPPack\Component\Debug\Attribute\AsPanelRenderer;
+use WPPack\Component\Debug\Toolbar\ToolbarRenderer;
+use WPPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\DependencyInjection\Reference;
 
 final class RegisterPanelRenderersPass implements CompilerPassInterface
 {

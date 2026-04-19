@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Security\Bridge\SAML;
+namespace WPPack\Component\Security\Bridge\SAML;
 
 use LightSaml\Context\Profile\MessageContext;
 use LightSaml\Helper;
@@ -19,24 +19,24 @@ use LightSaml\Model\Assertion\Assertion;
 use LightSaml\Model\Protocol\Response as SamlResponse;
 use LightSaml\Model\XmlDSig\AbstractSignatureReader;
 use Psr\EventDispatcher\EventDispatcherInterface;
-use WpPack\Component\HttpFoundation\RedirectResponse;
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\HttpFoundation\Response;
-use WpPack\Component\Security\Authentication\AuthenticatorInterface;
-use WpPack\Component\Security\Authentication\Passport\Badge\UserBadge;
-use WpPack\Component\Security\Authentication\Passport\Passport;
-use WpPack\Component\Security\Authentication\Passport\SelfValidatingPassport;
-use WpPack\Component\Security\Authentication\Token\PostAuthenticationToken;
-use WpPack\Component\Security\Authentication\Token\TokenInterface;
-use WpPack\Component\Security\Bridge\SAML\Badge\SamlAttributesBadge;
-use WpPack\Component\Security\Bridge\SAML\Event\SamlResponseReceivedEvent;
-use WpPack\Component\Security\Bridge\SAML\Factory\SamlAuthFactory;
-use WpPack\Component\Security\Bridge\SAML\Multisite\CrossSiteRedirector;
-use WpPack\Component\Security\Bridge\SAML\Session\SamlSessionManager;
-use WpPack\Component\Security\Bridge\SAML\UserResolution\SamlUserResolverInterface;
-use WpPack\Component\Security\Exception\AuthenticationException;
-use WpPack\Component\Site\BlogContextInterface;
-use WpPack\Component\Transient\TransientManager;
+use WPPack\Component\HttpFoundation\RedirectResponse;
+use WPPack\Component\HttpFoundation\Request;
+use WPPack\Component\HttpFoundation\Response;
+use WPPack\Component\Security\Authentication\AuthenticatorInterface;
+use WPPack\Component\Security\Authentication\Passport\Badge\UserBadge;
+use WPPack\Component\Security\Authentication\Passport\Passport;
+use WPPack\Component\Security\Authentication\Passport\SelfValidatingPassport;
+use WPPack\Component\Security\Authentication\Token\PostAuthenticationToken;
+use WPPack\Component\Security\Authentication\Token\TokenInterface;
+use WPPack\Component\Security\Bridge\SAML\Badge\SamlAttributesBadge;
+use WPPack\Component\Security\Bridge\SAML\Event\SamlResponseReceivedEvent;
+use WPPack\Component\Security\Bridge\SAML\Factory\SamlAuthFactory;
+use WPPack\Component\Security\Bridge\SAML\Multisite\CrossSiteRedirector;
+use WPPack\Component\Security\Bridge\SAML\Session\SamlSessionManager;
+use WPPack\Component\Security\Bridge\SAML\UserResolution\SamlUserResolverInterface;
+use WPPack\Component\Security\Exception\AuthenticationException;
+use WPPack\Component\Site\BlogContextInterface;
+use WPPack\Component\Transient\TransientManager;
 
 final class SamlAuthenticator implements AuthenticatorInterface
 {

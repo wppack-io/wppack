@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Logger\DependencyInjection;
+namespace WPPack\Component\Logger\DependencyInjection;
 
 use Psr\Log\LoggerInterface;
-use WpPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\DependencyInjection\Reference;
-use WpPack\Component\Logger\Attribute\LoggerChannel;
-use WpPack\Component\Logger\LoggerFactory;
+use WPPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\DependencyInjection\Reference;
+use WPPack\Component\Logger\Attribute\LoggerChannel;
+use WPPack\Component\Logger\LoggerFactory;
 
 final class RegisterLoggerPass implements CompilerPassInterface
 {

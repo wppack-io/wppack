@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,15 +11,15 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Security\Tests\Exception;
+namespace WPPack\Component\Security\Tests\Exception;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Security\Exception\AccessDeniedException;
-use WpPack\Component\Security\Exception\AuthenticationException;
-use WpPack\Component\Security\Exception\ExceptionInterface;
-use WpPack\Component\Security\Exception\InvalidCredentialsException;
-use WpPack\Component\Security\Exception\UserNotFoundException;
+use WPPack\Component\Security\Exception\AccessDeniedException;
+use WPPack\Component\Security\Exception\AuthenticationException;
+use WPPack\Component\Security\Exception\ExceptionInterface;
+use WPPack\Component\Security\Exception\InvalidCredentialsException;
+use WPPack\Component\Security\Exception\UserNotFoundException;
 
 final class ExceptionHierarchyTest extends TestCase
 {

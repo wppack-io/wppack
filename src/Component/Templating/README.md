@@ -1,4 +1,4 @@
-# WpPack Templating
+# WPPack Templating
 
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=templating)](https://codecov.io/github/wppack-io/wppack)
 
@@ -15,7 +15,7 @@ composer require wppack/templating
 ### Basic Rendering
 
 ```php
-use WpPack\Component\Templating\PhpRenderer;
+use WPPack\Component\Templating\PhpRenderer;
 
 $renderer = new PhpRenderer([
     get_template_directory() . '/templates',
@@ -88,7 +88,7 @@ Child template (`pages/about.php`):
 ### Template Locator
 
 ```php
-use WpPack\Component\Templating\TemplateLocator;
+use WPPack\Component\Templating\TemplateLocator;
 
 $locator = new TemplateLocator(['/templates', '/fallback']);
 $file = $locator->locate('partials/card');            // partials/card.php
@@ -98,8 +98,8 @@ $file = $locator->locate('partials/card', 'featured'); // partials/card-featured
 ### Chain Renderer
 
 ```php
-use WpPack\Component\Templating\ChainRenderer;
-use WpPack\Component\Templating\PhpRenderer;
+use WPPack\Component\Templating\ChainRenderer;
+use WPPack\Component\Templating\PhpRenderer;
 
 $chain = new ChainRenderer([
     new PhpRenderer(['/templates']),
@@ -111,7 +111,7 @@ $html = $chain->render('pages/about', ['title' => 'About']);
 ### TemplatePart (WordPress)
 
 ```php
-use WpPack\Component\Templating\TemplatePart;
+use WPPack\Component\Templating\TemplatePart;
 
 TemplatePart::render('template-parts/content', 'post', ['show_thumbnail' => true]);
 $html = TemplatePart::capture('template-parts/card', 'product');
@@ -120,7 +120,7 @@ $html = TemplatePart::capture('template-parts/card', 'product');
 ### DI Integration
 
 ```php
-use WpPack\Component\Templating\DependencyInjection\TemplatingServiceProvider;
+use WPPack\Component\Templating\DependencyInjection\TemplatingServiceProvider;
 
 $builder->addServiceProvider(new TemplatingServiceProvider(
     paths: [get_template_directory() . '/templates'],

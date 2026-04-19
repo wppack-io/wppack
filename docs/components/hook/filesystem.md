@@ -9,7 +9,7 @@
 **WordPress Hook:** `filesystem_method`
 
 ```php
-use WpPack\Component\Hook\Attribute\Filesystem\Filter\FilesystemMethodFilter;
+use WPPack\Component\Hook\Attribute\Filesystem\Filter\FilesystemMethodFilter;
 
 final class FilesystemMethodSelector
 {
@@ -34,7 +34,7 @@ final class FilesystemMethodSelector
 **WordPress Hook:** `filesystem_method_file`
 
 ```php
-use WpPack\Component\Hook\Attribute\Filesystem\Filter\FilesystemMethodFileFilter;
+use WPPack\Component\Hook\Attribute\Filesystem\Filter\FilesystemMethodFileFilter;
 
 final class FilesystemDetectionCustomizer
 {
@@ -53,7 +53,7 @@ final class FilesystemDetectionCustomizer
 **WordPress Hook:** `upload_dir`
 
 ```php
-use WpPack\Component\Hook\Attribute\Filesystem\Filter\UploadDirFilter;
+use WPPack\Component\Hook\Attribute\Filesystem\Filter\UploadDirFilter;
 
 final class UploadDirectoryManager
 {
@@ -75,7 +75,7 @@ final class UploadDirectoryManager
 **WordPress Hook:** `wp_unique_filename`
 
 ```php
-use WpPack\Component\Hook\Attribute\Filesystem\Filter\WpUniqueFilenameFilter;
+use WPPack\Component\Hook\Attribute\Filesystem\Filter\WpUniqueFilenameFilter;
 
 final class FilenameGenerator
 {

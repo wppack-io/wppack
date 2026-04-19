@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Mailer\Bridge\Azure\Transport;
+namespace WPPack\Component\Mailer\Bridge\Azure\Transport;
 
-use WpPack\Component\HttpClient\HttpClient;
-use WpPack\Component\HttpClient\Exception\ConnectionException;
-use WpPack\Component\Mailer\Exception\TransportException;
-use WpPack\Component\Mailer\PhpMailer;
+use WPPack\Component\HttpClient\HttpClient;
+use WPPack\Component\HttpClient\Exception\ConnectionException;
+use WPPack\Component\Mailer\Exception\TransportException;
+use WPPack\Component\Mailer\PhpMailer;
 
 /**
  * Shared functionality for Azure Communication Services Email transports.

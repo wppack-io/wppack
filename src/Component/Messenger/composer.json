@@ -14,12 +14,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\Messenger\\": "src/"
+            "WPPack\\Component\\Messenger\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Component\\Messenger\\Tests\\": "tests/"
+            "WPPack\\Component\\Messenger\\Tests\\": "tests/"
         }
     }
 }

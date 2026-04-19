@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\DependencyInjection\Tests\Fixtures\Config;
+namespace WPPack\Component\DependencyInjection\Tests\Fixtures\Config;
 
-use WpPack\Component\DependencyInjection\Attribute\Env;
+use WPPack\Component\DependencyInjection\Attribute\Env;
 
 final readonly class TypeCastConfig
 {

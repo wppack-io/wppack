@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,20 +11,20 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Hook\Tests\Attribute\Database;
+namespace WPPack\Component\Hook\Tests\Attribute\Database;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Hook\Attribute\Action;
-use WpPack\Component\Hook\Attribute\Filter;
-use WpPack\Component\Hook\Hook;
-use WpPack\Component\Hook\HookType;
-use WpPack\Component\Hook\Attribute\Database\Action\WpUpgradeAction;
-use WpPack\Component\Hook\Attribute\Database\Filter\DbDeltaCreateQueriesFilter;
-use WpPack\Component\Hook\Attribute\Database\Filter\DbDeltaInsertQueriesFilter;
-use WpPack\Component\Hook\Attribute\Database\Filter\DbDeltaQueriesFilter;
-use WpPack\Component\Hook\Attribute\Database\Filter\DbprepareFilter;
-use WpPack\Component\Hook\Attribute\Database\Filter\QueryFilter;
+use WPPack\Component\Hook\Attribute\Action;
+use WPPack\Component\Hook\Attribute\Filter;
+use WPPack\Component\Hook\Hook;
+use WPPack\Component\Hook\HookType;
+use WPPack\Component\Hook\Attribute\Database\Action\WpUpgradeAction;
+use WPPack\Component\Hook\Attribute\Database\Filter\DbDeltaCreateQueriesFilter;
+use WPPack\Component\Hook\Attribute\Database\Filter\DbDeltaInsertQueriesFilter;
+use WPPack\Component\Hook\Attribute\Database\Filter\DbDeltaQueriesFilter;
+use WPPack\Component\Hook\Attribute\Database\Filter\DbprepareFilter;
+use WPPack\Component\Hook\Attribute\Database\Filter\QueryFilter;
 
 final class NamedHookTest extends TestCase
 {

@@ -1,4 +1,4 @@
-# WpPack Nonce
+# WPPack Nonce
 
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=nonce)](https://codecov.io/github/wppack-io/wppack)
 
@@ -13,7 +13,7 @@ composer require wppack/nonce
 ## Usage
 
 ```php
-use WpPack\Component\Nonce\NonceManager;
+use WPPack\Component\Nonce\NonceManager;
 
 $nonce = new NonceManager();
 
@@ -31,7 +31,7 @@ $url = $nonce->url('https://example.com/action', 'my-action');
 ## Named Hook Attributes
 
 ```php
-use WpPack\Component\Hook\Attribute\Nonce\Filter\NonceLifeFilter;
+use WPPack\Component\Hook\Attribute\Nonce\Filter\NonceLifeFilter;
 
 final class NonceLifetimeCustomizer
 {

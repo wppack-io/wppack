@@ -2,7 +2,7 @@
 
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=s3_storage)](https://codecov.io/github/wppack-io/wppack)
 
-Amazon S3 adapter for [WpPack Storage](../../README.md).
+Amazon S3 adapter for [WPPack Storage](../../README.md).
 
 ## Installation
 
@@ -15,7 +15,7 @@ composer require wppack/s3-storage
 ### Via DSN
 
 ```php
-use WpPack\Component\Storage\Adapter\Storage;
+use WPPack\Component\Storage\Adapter\Storage;
 
 // Using default AWS credentials (IAM role, environment variables, etc.)
 $adapter = Storage::fromDsn('s3://my-bucket.s3.ap-northeast-1.amazonaws.com/uploads');
@@ -34,7 +34,7 @@ $adapter = Storage::fromDsn('s3://my-bucket?endpoint=http://localhost:9000');
 
 ```php
 use AsyncAws\S3\S3Client;
-use WpPack\Component\Storage\Bridge\S3\S3StorageAdapter;
+use WPPack\Component\Storage\Bridge\S3\S3StorageAdapter;
 
 $s3Client = new S3Client(['region' => 'ap-northeast-1']);
 

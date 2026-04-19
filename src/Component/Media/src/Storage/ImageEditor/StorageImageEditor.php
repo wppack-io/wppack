@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Media\Storage\ImageEditor;
+namespace WPPack\Component\Media\Storage\ImageEditor;
 
 /**
  * Image editor that handles images stored in remote object storage.

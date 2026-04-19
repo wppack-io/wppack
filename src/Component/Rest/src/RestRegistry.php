@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,17 +11,17 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Rest;
+namespace WPPack\Component\Rest;
 
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\Rest\Attribute\Param;
-use WpPack\Component\Rest\Attribute\Permission;
-use WpPack\Component\Rest\Attribute\RestRoute;
-use WpPack\Component\Rest\Exception\RouteNotFoundException;
-use WpPack\Component\Security\Attribute\CurrentUser;
-use WpPack\Component\Role\Attribute\IsGranted;
-use WpPack\Component\Role\Authorization\IsGrantedChecker;
-use WpPack\Component\Security\Security;
+use WPPack\Component\HttpFoundation\Request;
+use WPPack\Component\Rest\Attribute\Param;
+use WPPack\Component\Rest\Attribute\Permission;
+use WPPack\Component\Rest\Attribute\RestRoute;
+use WPPack\Component\Rest\Exception\RouteNotFoundException;
+use WPPack\Component\Security\Attribute\CurrentUser;
+use WPPack\Component\Role\Attribute\IsGranted;
+use WPPack\Component\Role\Authorization\IsGrantedChecker;
+use WPPack\Component\Security\Security;
 
 final class RestRegistry
 {

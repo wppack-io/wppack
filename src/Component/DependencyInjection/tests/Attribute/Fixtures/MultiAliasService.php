@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\DependencyInjection\Tests\Attribute\Fixtures;
+namespace WPPack\Component\DependencyInjection\Tests\Attribute\Fixtures;
 
-use WpPack\Component\DependencyInjection\Attribute\AsAlias;
+use WPPack\Component\DependencyInjection\Attribute\AsAlias;
 
 #[AsAlias(id: 'alias.one')]
 #[AsAlias(id: 'alias.two')]

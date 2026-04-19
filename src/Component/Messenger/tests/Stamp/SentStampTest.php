@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Messenger\Tests\Stamp;
+namespace WPPack\Component\Messenger\Tests\Stamp;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Messenger\Stamp\SentStamp;
-use WpPack\Component\Messenger\Stamp\StampInterface;
+use WPPack\Component\Messenger\Stamp\SentStamp;
+use WPPack\Component\Messenger\Stamp\StampInterface;
 
 #[CoversClass(SentStamp::class)]
 final class SentStampTest extends TestCase

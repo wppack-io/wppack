@@ -11,12 +11,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\MuPlugin\\MultisiteUrlFixer\\": "src/"
+            "WPPack\\MuPlugin\\MultisiteUrlFixer\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\MuPlugin\\MultisiteUrlFixer\\Tests\\": "tests/"
+            "WPPack\\MuPlugin\\MultisiteUrlFixer\\Tests\\": "tests/"
         }
     }
 }

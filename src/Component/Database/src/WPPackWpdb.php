@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,27 +11,27 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database;
+namespace WPPack\Component\Database;
 
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
-use WpPack\Component\Database\Driver\DriverInterface;
-use WpPack\Component\Database\Event\DatabaseQueryCompletedEvent;
-use WpPack\Component\Database\Event\DatabaseQueryFailedEvent;
-use WpPack\Component\Database\Placeholder\PreparedBank;
-use WpPack\Component\Database\Sql\PlaceholderScanner;
-use WpPack\Component\Database\Translator\QueryTranslatorInterface;
+use WPPack\Component\Database\Driver\DriverInterface;
+use WPPack\Component\Database\Event\DatabaseQueryCompletedEvent;
+use WPPack\Component\Database\Event\DatabaseQueryFailedEvent;
+use WPPack\Component\Database\Placeholder\PreparedBank;
+use WPPack\Component\Database\Sql\PlaceholderScanner;
+use WPPack\Component\Database\Translator\QueryTranslatorInterface;
 
 /**
  * WordPress wpdb replacement with true prepared statements and reader/writer support.
  *
  * Overrides prepare() to keep parameters separate from SQL, then query() passes
  * them to the Driver for native prepared statement execution. No MySQL connection
- * is ever created — all queries go through the WpPack Driver abstraction.
+ * is ever created — all queries go through the WPPack Driver abstraction.
  *
  * Used by the db.php drop-in. Supports all database engines via DriverInterface.
  */
-class WpPackWpdb extends \wpdb
+class WPPackWpdb extends \wpdb
 {
     private readonly DriverInterface $writer;
     private readonly ?DriverInterface $reader;
@@ -147,7 +147,7 @@ class WpPackWpdb extends \wpdb
      *   placeholders bind to the right values.
      * - `null` bound via `%s` is coerced to the empty string `''`, matching
      *   standard wpdb behaviour. To express a real SQL NULL (e.g. `WHERE
-     *   col IS NULL`), use the `WpPackWpdb::insert()/update()/delete()`
+     *   col IS NULL`), use the `WPPackWpdb::insert()/update()/delete()`
      *   API — those paths treat PHP null specially and emit `IS NULL`
      *   clauses. Plugin code composing raw SQL through prepare() that needs
      *   NULL semantics must embed the literal `NULL` keyword itself.
@@ -317,7 +317,7 @@ class WpPackWpdb extends \wpdb
         // the caller's template string, never a legitimate runtime path.
         if ($inLiteral) {
             throw new \InvalidArgumentException(
-                'WpPackWpdb::prepare(): unterminated single-quoted literal in template. '
+                'WPPackWpdb::prepare(): unterminated single-quoted literal in template. '
                 . 'Check that every opening quote has a matching close quote. '
                 . '[Query: ' . (mb_strlen($query) > 200 ? mb_substr($query, 0, 200) . '...' : $query) . ']',
             );
@@ -819,7 +819,7 @@ class WpPackWpdb extends \wpdb
                 }
 
                 $this->last_error = $e->getMessage();
-                $this->errno = $e instanceof \WpPack\Component\Database\Exception\DriverException && $e->driverErrno !== null
+                $this->errno = $e instanceof \WPPack\Component\Database\Exception\DriverException && $e->driverErrno !== null
                     ? $e->driverErrno
                     : 0;
                 $this->last_result = [];
@@ -1045,10 +1045,10 @@ class WpPackWpdb extends \wpdb
     /**
      * Override the wpdb caller-stack summary so Debug Bar's "Queries by
      * Caller" panel shows the real plugin/theme caller instead of our
-     * internal WpPackWpdb frames.
+     * internal WPPackWpdb frames.
      *
      * Standard wpdb::get_caller() filters out its own class, but because
-     * WpPackWpdb is a subclass every frame from this class slips past
+     * WPPackWpdb is a subclass every frame from this class slips past
      * that filter. We fall back to debug_backtrace() and skip any frame
      * belonging to wpdb or a subclass.
      */

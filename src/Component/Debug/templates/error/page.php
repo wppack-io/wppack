@@ -19,7 +19,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title><?= $view->e($shortClass) ?> - WpPack Debug</title>
+<title><?= $view->e($shortClass) ?> - WPPack Debug</title>
 <style>
 /* ── Reset ─────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }

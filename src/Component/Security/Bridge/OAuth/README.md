@@ -2,7 +2,7 @@
 
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=oauth_security)](https://codecov.io/github/wppack-io/wppack)
 
-OAuth 2.0 / OpenID Connect authentication bridge (WpPack Security Bridge)
+OAuth 2.0 / OpenID Connect authentication bridge (WPPack Security Bridge)
 
 ## Overview
 

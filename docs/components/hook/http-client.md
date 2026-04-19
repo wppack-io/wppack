@@ -35,8 +35,8 @@
 ### 使用例：リクエストインターセプター
 
 ```php
-use WpPack\Component\Hook\Attribute\HttpClient\Filter\PreHttpRequestFilter;
-use WpPack\Component\Hook\Attribute\HttpClient\Filter\HttpResponseFilter;
+use WPPack\Component\Hook\Attribute\HttpClient\Filter\PreHttpRequestFilter;
+use WPPack\Component\Hook\Attribute\HttpClient\Filter\HttpResponseFilter;
 
 class HttpRequestHandler
 {

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Templating\Tests;
+namespace WPPack\Component\Templating\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Escaper\Escaper;
-use WpPack\Component\Templating\Exception\RenderingException;
-use WpPack\Component\Templating\PhpRenderer;
-use WpPack\Component\Templating\TemplateContext;
+use WPPack\Component\Escaper\Escaper;
+use WPPack\Component\Templating\Exception\RenderingException;
+use WPPack\Component\Templating\PhpRenderer;
+use WPPack\Component\Templating\TemplateContext;
 
 final class TemplateContextTest extends TestCase
 {

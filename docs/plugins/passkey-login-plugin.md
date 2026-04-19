@@ -113,7 +113,7 @@ src/Plugin/PasskeyLoginPlugin/
 ## 名前空間
 
 ```
-WpPack\Plugin\PasskeyLoginPlugin\
+WPPack\Plugin\PasskeyLoginPlugin\
 ```
 
 ## 設定

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,38 +11,38 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Hook\Tests\Attribute\Admin;
+namespace WPPack\Component\Hook\Tests\Attribute\Admin;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Hook\Attribute\Action;
-use WpPack\Component\Hook\Attribute\Filter;
-use WpPack\Component\Hook\Hook;
-use WpPack\Component\Hook\HookType;
-use WpPack\Component\Hook\Attribute\Admin\Action\AdminBarMenuAction;
-use WpPack\Component\Hook\Attribute\Admin\Action\AdminEnqueueScriptsAction;
-use WpPack\Component\Hook\Attribute\Admin\Action\CheckAdminRefererAction;
-use WpPack\Component\Hook\Attribute\Admin\Action\AdminFooterAction;
-use WpPack\Component\Hook\Attribute\Admin\Action\AdminHeadAction;
-use WpPack\Component\Hook\Attribute\Admin\Action\AdminMenuAction;
-use WpPack\Component\Hook\Attribute\Admin\Action\AdminNoticesAction;
-use WpPack\Component\Hook\Attribute\Admin\Action\AdminPrintFooterScriptsAction;
-use WpPack\Component\Hook\Attribute\Admin\Action\AdminPrintScriptsAction;
-use WpPack\Component\Hook\Attribute\Admin\Action\AdminPrintStylesAction;
-use WpPack\Component\Hook\Attribute\Admin\Action\AllAdminNoticesAction;
-use WpPack\Component\Hook\Attribute\Admin\Action\CurrentScreenAction;
-use WpPack\Component\Hook\Attribute\Admin\Action\ManagePostsCustomColumnAction;
-use WpPack\Component\Hook\Attribute\Admin\Action\NetworkAdminMenuAction;
-use WpPack\Component\Hook\Attribute\Admin\Action\NetworkAdminNoticesAction;
-use WpPack\Component\Hook\Attribute\Admin\Action\UserAdminMenuAction;
-use WpPack\Component\Hook\Attribute\Admin\Action\UserAdminNoticesAction;
-use WpPack\Component\Hook\Attribute\Admin\Action\WpBeforeAdminBarRenderAction;
-use WpPack\Component\Hook\Attribute\Admin\Filter\AdminBodyClassFilter;
-use WpPack\Component\Hook\Attribute\Admin\Filter\AdminFooterTextFilter;
-use WpPack\Component\Hook\Attribute\Admin\Filter\AdminTitleFilter;
-use WpPack\Component\Hook\Attribute\Admin\Filter\ManagePagesColumnsFilter;
-use WpPack\Component\Hook\Attribute\Admin\Filter\ManagePostsColumnsFilter;
-use WpPack\Component\Hook\Attribute\Admin\Filter\ManageUsersColumnsFilter;
+use WPPack\Component\Hook\Attribute\Action;
+use WPPack\Component\Hook\Attribute\Filter;
+use WPPack\Component\Hook\Hook;
+use WPPack\Component\Hook\HookType;
+use WPPack\Component\Hook\Attribute\Admin\Action\AdminBarMenuAction;
+use WPPack\Component\Hook\Attribute\Admin\Action\AdminEnqueueScriptsAction;
+use WPPack\Component\Hook\Attribute\Admin\Action\CheckAdminRefererAction;
+use WPPack\Component\Hook\Attribute\Admin\Action\AdminFooterAction;
+use WPPack\Component\Hook\Attribute\Admin\Action\AdminHeadAction;
+use WPPack\Component\Hook\Attribute\Admin\Action\AdminMenuAction;
+use WPPack\Component\Hook\Attribute\Admin\Action\AdminNoticesAction;
+use WPPack\Component\Hook\Attribute\Admin\Action\AdminPrintFooterScriptsAction;
+use WPPack\Component\Hook\Attribute\Admin\Action\AdminPrintScriptsAction;
+use WPPack\Component\Hook\Attribute\Admin\Action\AdminPrintStylesAction;
+use WPPack\Component\Hook\Attribute\Admin\Action\AllAdminNoticesAction;
+use WPPack\Component\Hook\Attribute\Admin\Action\CurrentScreenAction;
+use WPPack\Component\Hook\Attribute\Admin\Action\ManagePostsCustomColumnAction;
+use WPPack\Component\Hook\Attribute\Admin\Action\NetworkAdminMenuAction;
+use WPPack\Component\Hook\Attribute\Admin\Action\NetworkAdminNoticesAction;
+use WPPack\Component\Hook\Attribute\Admin\Action\UserAdminMenuAction;
+use WPPack\Component\Hook\Attribute\Admin\Action\UserAdminNoticesAction;
+use WPPack\Component\Hook\Attribute\Admin\Action\WpBeforeAdminBarRenderAction;
+use WPPack\Component\Hook\Attribute\Admin\Filter\AdminBodyClassFilter;
+use WPPack\Component\Hook\Attribute\Admin\Filter\AdminFooterTextFilter;
+use WPPack\Component\Hook\Attribute\Admin\Filter\AdminTitleFilter;
+use WPPack\Component\Hook\Attribute\Admin\Filter\ManagePagesColumnsFilter;
+use WPPack\Component\Hook\Attribute\Admin\Filter\ManagePostsColumnsFilter;
+use WPPack\Component\Hook\Attribute\Admin\Filter\ManageUsersColumnsFilter;
 
 final class NamedHookTest extends TestCase
 {

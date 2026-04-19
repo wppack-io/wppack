@@ -4,7 +4,7 @@ This file provides guidance for Claude Code when working in this repository.
 
 ## Project Overview
 
-WpPack is a monorepo of component libraries that extend WordPress with modern PHP.
+WPPack is a monorepo of component libraries that extend WordPress with modern PHP.
 
 ## Architecture Principles
 
@@ -27,13 +27,13 @@ Serverless environments such as Lambda and Cloud Functions are first-class citiz
 
 ### Component (Library)
 WordPress components. Installed via `composer require`.
-- Namespace: `WpPack\Component\{Name}\`
+- Namespace: `WPPack\Component\{Name}\`
 - Package name: `wppack/{name}`
 - Directory: `src/Component/{Name}/`
 
 ### Plugin (WordPress Plugin)
 Distributed as WordPress plugins. Built on top of Components.
-- Namespace: `WpPack\Plugin\{Name}\`
+- Namespace: `WPPack\Plugin\{Name}\`
 - Package name: `wppack/{name}`
 - Directory: `src/Plugin/{Name}/`
 
@@ -494,10 +494,10 @@ private function establishAuthSession(TokenInterface $token): void
 
 - **Wrap:** WordPress functions used across multiple classes or that affect external state (auth cookies, sessions, user switching, rewrite rules, etc.)
 - **No need to wrap:** Functions called only inside a single, self-contained utility (e.g., `home_url()` in a URL builder) or inside hooks registered before the DI container boots
-- **Use existing components first:** Before calling a WordPress function directly, check if a WpPack component already wraps it. Use the component API instead of the raw WordPress function.
+- **Use existing components first:** Before calling a WordPress function directly, check if a WPPack component already wraps it. Use the component API instead of the raw WordPress function.
 - **Prefer DI over `new`:** Always inject dependencies via the constructor rather than using `new ClassName()` as default parameter values. This ensures dependencies are properly managed by the DI container and makes the dependency graph explicit.
 
-| WordPress function | WpPack component method |
+| WordPress function | WPPack component method |
 |---|---|
 | `wp_logout()`, `wp_set_auth_cookie()`, `get_current_user_id()` | `AuthenticationSession::logout()`, `login()`, `getCurrentUserId()` |
 | `flush_rewrite_rules()`, `add_rewrite_rule()` | `RouteRegistry::flush()`, `addRoute()` |
@@ -522,7 +522,7 @@ The Hook component is retained for compatibility with existing code, but new imp
 All Named Hook attributes are centralized in the Hook component:
 - Details: [docs/components/hook/named-hook-conventions.md](docs/components/hook/named-hook-conventions.md)
 - The Hook component owns all lifecycle hooks (`init`, `admin_init`, etc.) and domain-specific hooks
-- Namespace: `WpPack\Component\Hook\Attribute\{ComponentName}\Action\` / `Filter\`
+- Namespace: `WPPack\Component\Hook\Attribute\{ComponentName}\Action\` / `Filter\`
 - Directory: `src/Component/Hook/src/Attribute/{ComponentName}/Action/` / `Filter/`
 - Auto-discovery: No additional configuration needed thanks to `ReflectionAttribute::IS_INSTANCEOF`
 
@@ -544,8 +544,8 @@ add_action($setHook, [$this, 'onTransientSet'], 10, 3);
 ### Namespaces
 
 ```
-WpPack\Component\{Name}\  - Components
-WpPack\Plugin\{Name}\     - Plugins
+WPPack\Component\{Name}\  - Components
+WPPack\Plugin\{Name}\     - Plugins
 ```
 
 ### Static Analysis & CI
@@ -643,7 +643,7 @@ When adding a new WordPress plugin package:
 
 ### Database Component Maintenance Notes
 
-The `wppack/database` component is the project's most feature-rich abstraction (multi-engine driver layer, AST-based query translation, WpPackWpdb replacement for `$wpdb`). A few rules when changing it:
+The `wppack/database` component is the project's most feature-rich abstraction (multi-engine driver layer, AST-based query translation, WPPackWpdb replacement for `$wpdb`). A few rules when changing it:
 
 - **AST-first translation.** Engine-specific rewrites live in `Bridge/{Sqlite,Pgsql,AuroraDsql}/src/Translator/*QueryTranslator.php`. Prefer AST-level transforms over string regex; only drop to `QueryRewriter` (token walk) when the shape isn't in phpmyadmin/sql-parser's AST. Silent pass-through is forbidden — unsupported features must raise `UnsupportedFeatureException` so callers see the gap.
 - **Integration CI matrix.** The test suite runs against MySQL, SQLite, PostgreSQL (wpdb variant plus 3 driver variants × 4 PHP versions). Only the `wpdb` variant blocks merge; other variants are `continue-on-error: true` because plugin-layer tests (Query component) still have pre-existing failures unrelated to Database. When adding translator behaviour, verify with all three integration runners locally before commit:
@@ -653,7 +653,7 @@ The `wppack/database` component is the project's most feature-rich abstraction (
   DATABASE_DSN='pgsql://wppack:wppack@127.0.0.1:5433/wppack_test' vendor/bin/phpunit --filter PgsqlWpdbIntegrationTest
   ```
 - **PSR-3 logger + PSR-14 events must never leak raw bound values.** Payloads flow through `paramsSummary()` (positional `#0 => 'string(7)'` type/length descriptors). The `WPPACK_DB_LOG_VALUES=1` env flag is for local dev only. Never inline raw `$params` into logger context.
-- **Reader/Writer routing.** `WpPackWpdb::selectDriver()` is the single dispatch point. Changes to which query goes where (SELECT vs write, transaction vs plain) touch replication-lag-sensitive code paths — always add a spy-driver test that seeds distinct data in the two connections.
+- **Reader/Writer routing.** `WPPackWpdb::selectDriver()` is the single dispatch point. Changes to which query goes where (SELECT vs write, transaction vs plain) touch replication-lag-sensitive code paths — always add a spy-driver test that seeds distinct data in the two connections.
 - **PreparedBank.** Markers are `/*WPP:<16-hex>*/` computed from a per-instance `random_bytes(8)` salt + sha1(sql + params). Never remove the salt (marker forge protection). When changing the marker format, update `MARKER_PATTERN` in both `PreparedBank.php` and every hardcoded test regex under `tests/`.
 - **Drivers' gone-away handling.** `MysqlDriver::throwQueryError()` and `PgsqlDriver::throwQueryError()` drop `$this->connection = null` on specific error codes so `ensureConnected()` re-opens on the next call. Do not restore a stale handle "just to be nice" — production callers rely on the nulling.
 - **Translator exceptions.** `TranslationException`, `ParserFailureException`, `UnsupportedFeatureException`. Drivers emit `DriverException`, `DriverThrottledException`, `DriverTimeoutException`, `CredentialsExpiredException`, `ConnectionException`. All implement `ExceptionInterface`.
@@ -675,7 +675,7 @@ Key patterns:
 
 ### Plugin Settings Menu Position
 
-Submenu `position` is grouped by category in increments of 100. Each plugin within a category gets a unique position value (base + 1, 2, 3...) to ensure deterministic ordering. `AdminPageRegistry` sorts WpPack submenu items by position after WordPress core items.
+Submenu `position` is grouped by category in increments of 100. Each plugin within a category gets a unique position value (base + 1, 2, 3...) to ensure deterministic ordering. `AdminPageRegistry` sorts WPPack submenu items by position after WordPress core items.
 
 | position | Category | Plugins |
 |----------|----------|---------|

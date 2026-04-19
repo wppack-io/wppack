@@ -1,4 +1,4 @@
-# WpPack Role Provisioning Plugin
+# WPPack Role Provisioning Plugin
 
 Rule-based role provisioning and blog membership management for WordPress.
 

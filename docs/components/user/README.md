@@ -1,7 +1,7 @@
 # User コンポーネント
 
 **パッケージ:** `wppack/user`
-**名前空間:** `WpPack\Component\User\`
+**名前空間:** `WPPack\Component\User\`
 **レイヤー:** Application
 
 WordPress ユーザー関連フックを Named Hook アトリビュートで型安全に利用するためのコンポーネントです。
@@ -39,12 +39,12 @@ function add_custom_fields(WP_User $user): void {
 }
 ```
 
-### After（WpPack）
+### After（WPPack）
 
 ```php
-use WpPack\Component\User\Attribute\UserRegisterAction;
-use WpPack\Component\User\Attribute\RegistrationErrorsFilter;
-use WpPack\Component\User\Attribute\ShowUserProfileAction;
+use WPPack\Component\User\Attribute\UserRegisterAction;
+use WPPack\Component\User\Attribute\RegistrationErrorsFilter;
+use WPPack\Component\User\Attribute\ShowUserProfileAction;
 
 class UserHandler
 {
@@ -80,8 +80,8 @@ class UserHandler
 `UserRepositoryInterface` / `UserRepository` は、WordPress ユーザーの CRUD 操作とメタデータ操作を提供します。
 
 ```php
-use WpPack\Component\User\UserRepository;
-use WpPack\Component\User\UserRepositoryInterface;
+use WPPack\Component\User\UserRepository;
+use WPPack\Component\User\UserRepositoryInterface;
 
 $repository = new UserRepository();
 

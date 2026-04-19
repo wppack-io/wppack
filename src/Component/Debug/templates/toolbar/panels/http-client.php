@@ -7,7 +7,7 @@
  * @var int                                                          $errorCount       Error count
  * @var int                                                          $slowCount        Slow request count
  * @var list<array>                                                  $requests         HTTP request records
- * @var \WpPack\Component\Debug\Toolbar\Panel\TemplateFormatters     $fmt              Template formatters
+ * @var \WPPack\Component\Debug\Toolbar\Panel\TemplateFormatters     $fmt              Template formatters
  * @var float                                                        $requestTimeFloat Request start timestamp
  */
 ?>

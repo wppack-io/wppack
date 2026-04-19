@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,18 +11,18 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\MonitoringPlugin\Rest;
+namespace WPPack\Plugin\MonitoringPlugin\Rest;
 
 use Psr\Log\LoggerInterface;
-use WpPack\Component\HttpFoundation\JsonResponse;
-use WpPack\Component\Monitoring\MonitoringStore;
-use WpPack\Component\Rest\AbstractRestController;
-use WpPack\Component\Rest\Attribute\RestRoute;
-use WpPack\Component\Rest\HttpMethod;
-use WpPack\Component\Role\Attribute\IsGranted;
-use WpPack\Component\Monitoring\MonitoringProvider;
-use WpPack\Plugin\MonitoringPlugin\Template\MetricTemplate;
-use WpPack\Plugin\MonitoringPlugin\Template\MetricTemplateRegistry;
+use WPPack\Component\HttpFoundation\JsonResponse;
+use WPPack\Component\Monitoring\MonitoringStore;
+use WPPack\Component\Rest\AbstractRestController;
+use WPPack\Component\Rest\Attribute\RestRoute;
+use WPPack\Component\Rest\HttpMethod;
+use WPPack\Component\Role\Attribute\IsGranted;
+use WPPack\Component\Monitoring\MonitoringProvider;
+use WPPack\Plugin\MonitoringPlugin\Template\MetricTemplate;
+use WPPack\Plugin\MonitoringPlugin\Template\MetricTemplateRegistry;
 
 #[RestRoute(namespace: 'wppack/v1/monitoring')]
 #[IsGranted('manage_options')]

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,10 +11,10 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\DependencyInjection\ValueResolver;
+namespace WPPack\Component\DependencyInjection\ValueResolver;
 
 use Psr\Container\ContainerInterface;
-use WpPack\Component\HttpFoundation\ValueResolverInterface;
+use WPPack\Component\HttpFoundation\ValueResolverInterface;
 
 final class ContainerValueResolver implements ValueResolverInterface
 {

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,18 +11,18 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Security\Bridge\OAuth\Tests;
+namespace WPPack\Component\Security\Bridge\OAuth\Tests;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\Security\AuthenticationSession;
-use WpPack\Component\Security\Bridge\OAuth\Configuration\OAuthConfiguration;
-use WpPack\Component\Security\Bridge\OAuth\OAuthEntryPoint;
-use WpPack\Component\Security\Bridge\OAuth\Provider\ProviderInterface;
-use WpPack\Component\Security\Bridge\OAuth\State\OAuthStateStore;
-use WpPack\Component\Transient\TransientManager;
+use WPPack\Component\HttpFoundation\Request;
+use WPPack\Component\Security\AuthenticationSession;
+use WPPack\Component\Security\Bridge\OAuth\Configuration\OAuthConfiguration;
+use WPPack\Component\Security\Bridge\OAuth\OAuthEntryPoint;
+use WPPack\Component\Security\Bridge\OAuth\Provider\ProviderInterface;
+use WPPack\Component\Security\Bridge\OAuth\State\OAuthStateStore;
+use WPPack\Component\Transient\TransientManager;
 
 #[CoversClass(OAuthEntryPoint::class)]
 final class OAuthEntryPointTest extends TestCase

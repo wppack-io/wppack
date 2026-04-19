@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\PasskeyLoginPlugin\Admin;
+namespace WPPack\Plugin\PasskeyLoginPlugin\Admin;
 
-use WpPack\Component\Admin\AbstractAdminPage;
-use WpPack\Component\Admin\Attribute\AdminScope;
-use WpPack\Component\Admin\Attribute\AsAdminPage;
-use WpPack\Component\Role\Attribute\IsGranted;
+use WPPack\Component\Admin\AbstractAdminPage;
+use WPPack\Component\Admin\Attribute\AdminScope;
+use WPPack\Component\Admin\Attribute\AsAdminPage;
+use WPPack\Component\Role\Attribute\IsGranted;
 
 #[AsAdminPage(
     slug: 'wppack-passkey-login',

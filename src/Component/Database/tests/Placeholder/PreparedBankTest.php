@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database\Tests\Placeholder;
+namespace WPPack\Component\Database\Tests\Placeholder;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Database\Placeholder\PreparedBank;
+use WPPack\Component\Database\Placeholder\PreparedBank;
 
 final class PreparedBankTest extends TestCase
 {
@@ -153,7 +153,7 @@ final class PreparedBankTest extends TestCase
 
         // Different instances generate different ids because each one carries
         // its own random salt. This makes markers non-forgeable across
-        // WpPackWpdb instances: a marker from a previous request / another
+        // WPPackWpdb instances: a marker from a previous request / another
         // process can't splice into the current bank.
         $b = new PreparedBank();
         self::assertNotSame($a->idFor('x = ?', ['q']), $b->idFor('x = ?', ['q']));

@@ -1,7 +1,7 @@
 # Translation コンポーネント
 
 **パッケージ:** `wppack/translation`
-**名前空間:** `WpPack\Component\Translation\`
+**名前空間:** `WPPack\Component\Translation\`
 **レイヤー:** Application
 
 WordPress の国際化（i18n）関数を型安全かつオブジェクト指向でラップするコンポーネントです。
@@ -30,11 +30,11 @@ echo sprintf(
 echo _x('Post', 'verb', 'my-plugin');
 ```
 
-### After（WpPack）
+### After（WPPack）
 
 ```php
-use WpPack\Component\Translation\Translator;
-use WpPack\Component\Kernel\Attribute\TextDomain;
+use WPPack\Component\Translation\Translator;
+use WPPack\Component\Kernel\Attribute\TextDomain;
 
 #[TextDomain(domain: 'my-plugin')]
 class MyPluginTranslator extends Translator
@@ -69,7 +69,7 @@ class MyPluginTranslator extends Translator
 テキストドメインの宣言には Kernel コンポーネントの `#[TextDomain]` アトリビュートを使用します。プラグインクラスに付与すると、Kernel が `boot()` の前に自動で `load_plugin_textdomain()` を呼び出します。
 
 ```php
-use WpPack\Component\Kernel\Attribute\TextDomain;
+use WPPack\Component\Kernel\Attribute\TextDomain;
 
 #[TextDomain(domain: 'my-plugin')]
 class PluginTranslator extends Translator {}
@@ -158,8 +158,8 @@ declare(strict_types=1);
 
 namespace MyPlugin\Translation;
 
-use WpPack\Component\Translation\Translator;
-use WpPack\Component\Kernel\Attribute\TextDomain;
+use WPPack\Component\Translation\Translator;
+use WPPack\Component\Kernel\Attribute\TextDomain;
 
 #[TextDomain(domain: 'my-shop')]
 final class ShopTranslator extends Translator
@@ -219,7 +219,7 @@ $t = $container->get(ShopTranslator::class);
 ### Named Hook アトリビュートとの併用
 
 ```php
-use WpPack\Component\Hook\Attribute\InitAction;
+use WPPack\Component\Hook\Attribute\InitAction;
 
 class ShopAdmin
 {

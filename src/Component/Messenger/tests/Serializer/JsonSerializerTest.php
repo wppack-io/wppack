@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,19 +11,19 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Messenger\Tests\Serializer;
+namespace WPPack\Component\Messenger\Tests\Serializer;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Messenger\Envelope;
-use WpPack\Component\Messenger\Exception\MessageDecodingFailedException;
-use WpPack\Component\Messenger\Exception\MessageEncodingFailedException;
-use WpPack\Component\Messenger\Serializer\JsonSerializer;
-use WpPack\Component\Messenger\Stamp\BusNameStamp;
-use WpPack\Component\Messenger\Stamp\DelayStamp;
-use WpPack\Component\Messenger\Tests\Fixtures\DummyMessage;
-use WpPack\Component\Serializer\SerializerInterface as ComponentSerializerInterface;
+use WPPack\Component\Messenger\Envelope;
+use WPPack\Component\Messenger\Exception\MessageDecodingFailedException;
+use WPPack\Component\Messenger\Exception\MessageEncodingFailedException;
+use WPPack\Component\Messenger\Serializer\JsonSerializer;
+use WPPack\Component\Messenger\Stamp\BusNameStamp;
+use WPPack\Component\Messenger\Stamp\DelayStamp;
+use WPPack\Component\Messenger\Tests\Fixtures\DummyMessage;
+use WPPack\Component\Serializer\SerializerInterface as ComponentSerializerInterface;
 
 #[CoversClass(JsonSerializer::class)]
 final class JsonSerializerTest extends TestCase

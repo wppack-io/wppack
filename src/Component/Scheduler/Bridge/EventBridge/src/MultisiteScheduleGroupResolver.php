@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,10 +11,10 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Scheduler\Bridge\EventBridge;
+namespace WPPack\Component\Scheduler\Bridge\EventBridge;
 
-use WpPack\Component\Site\BlogContext;
-use WpPack\Component\Site\BlogContextInterface;
+use WPPack\Component\Site\BlogContext;
+use WPPack\Component\Site\BlogContextInterface;
 
 final class MultisiteScheduleGroupResolver implements ScheduleGroupResolverInterface
 {

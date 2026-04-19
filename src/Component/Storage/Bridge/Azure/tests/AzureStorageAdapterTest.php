@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Storage\Bridge\Azure\Tests;
+namespace WPPack\Component\Storage\Bridge\Azure\Tests;
 
 use AzureOss\Storage\Blob\Models\BlobProperties;
 use AzureOss\Storage\Blob\Models\UploadBlobOptions;
@@ -20,9 +20,9 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\StreamInterface;
-use WpPack\Component\Storage\Bridge\Azure\AzureBlobClientInterface;
-use WpPack\Component\Storage\Bridge\Azure\AzureStorageAdapter;
-use WpPack\Component\Storage\Exception\ObjectNotFoundException;
+use WPPack\Component\Storage\Bridge\Azure\AzureBlobClientInterface;
+use WPPack\Component\Storage\Bridge\Azure\AzureStorageAdapter;
+use WPPack\Component\Storage\Exception\ObjectNotFoundException;
 use AzureOss\Storage\Blob\Exceptions\BlobNotFoundException;
 use AzureOss\Storage\Blob\Models\Blob;
 use AzureOss\Storage\Blob\Sas\BlobSasBuilder;

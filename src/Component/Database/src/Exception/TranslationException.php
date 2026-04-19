@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database\Exception;
+namespace WPPack\Component\Database\Exception;
 
 /**
  * Raised when the query translator cannot safely convert a MySQL-dialect
@@ -19,7 +19,7 @@ namespace WpPack\Component\Database\Exception;
  *
  * Production code should never swallow this: silent pass-through on a
  * parser failure risks executing subtly different semantics on the target
- * engine (e.g. MariaDB optimizer hints, vendor-specific DDL). WpPackWpdb
+ * engine (e.g. MariaDB optimizer hints, vendor-specific DDL). WPPackWpdb
  * catches this and surfaces the failure through $wpdb->last_error so the
  * caller can detect + retry with a simpler query.
  */

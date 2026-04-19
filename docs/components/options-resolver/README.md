@@ -1,7 +1,7 @@
 # OptionsResolver コンポーネント
 
 **パッケージ:** `wppack/options-resolver`
-**名前空間:** `WpPack\Component\OptionsResolver\`
+**名前空間:** `WPPack\Component\OptionsResolver\`
 **レイヤー:** Abstraction
 
 OptionsResolver コンポーネントは、Symfony OptionsResolver を WordPress 向けに拡張したコンポーネントです。`setAllowedTypes()` で単一の型を指定した場合に文字列からの自動キャストを行い、WordPress のショートコード属性のようにすべての値が文字列で渡される場面で型安全なオプション解決を提供します。
@@ -38,10 +38,10 @@ function my_shortcode($atts) {
 }
 ```
 
-### After（WpPack）
+### After（WPPack）
 
 ```php
-use WpPack\Component\OptionsResolver\OptionsResolver;
+use WPPack\Component\OptionsResolver\OptionsResolver;
 
 $resolver = new OptionsResolver();
 $resolver->setDefaults([
@@ -64,7 +64,7 @@ $resolved = $resolver->resolve(['count' => '10', 'enabled' => 'yes', 'style' => 
 Symfony OptionsResolver のすべての機能がそのまま利用可能です。
 
 ```php
-use WpPack\Component\OptionsResolver\OptionsResolver;
+use WPPack\Component\OptionsResolver\OptionsResolver;
 
 $resolver = new OptionsResolver();
 
@@ -148,9 +148,9 @@ $resolved = $resolver->resolve(['count' => '0']);
 `wppack/shortcode` コンポーネントの `configureAttributes()` メソッドで宣言的にアトリビュートを定義できます。
 
 ```php
-use WpPack\Component\OptionsResolver\OptionsResolver;
-use WpPack\Component\Shortcode\AbstractShortcode;
-use WpPack\Component\Shortcode\Attribute\AsShortcode;
+use WPPack\Component\OptionsResolver\OptionsResolver;
+use WPPack\Component\Shortcode\AbstractShortcode;
+use WPPack\Component\Shortcode\Attribute\AsShortcode;
 
 #[AsShortcode(name: 'recent_posts', description: 'Display recent posts')]
 class RecentPostsShortcode extends AbstractShortcode

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,15 +11,15 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\DependencyInjection\Tests;
+namespace WPPack\Component\DependencyInjection\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\DependencyInjection\Dumper\PhpDumper;
-use WpPack\Component\DependencyInjection\ServiceDiscovery;
-use WpPack\Component\DependencyInjection\Tests\Fixtures\SimpleService;
+use WPPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\DependencyInjection\Dumper\PhpDumper;
+use WPPack\Component\DependencyInjection\ServiceDiscovery;
+use WPPack\Component\DependencyInjection\Tests\Fixtures\SimpleService;
 
 final class IntegrationTest extends TestCase
 {
@@ -31,7 +31,7 @@ final class IntegrationTest extends TestCase
 
         $discovery->discover(
             __DIR__ . '/Fixtures',
-            'WpPack\\Component\\DependencyInjection\\Tests\\Fixtures',
+            'WPPack\\Component\\DependencyInjection\\Tests\\Fixtures',
         );
 
         // Register dependencies needed by discovered fixtures

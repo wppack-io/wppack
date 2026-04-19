@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,21 +11,21 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Rest\Tests;
+namespace WPPack\Component\Rest\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\Rest\AbstractRestController;
-use WpPack\Component\Rest\Attribute\Param;
-use WpPack\Component\Rest\Attribute\Permission;
-use WpPack\Component\Rest\Attribute\RestRoute;
-use WpPack\Component\Rest\Exception\RouteNotFoundException;
-use WpPack\Component\Rest\HttpMethod;
-use WpPack\Component\Rest\RestRegistry;
-use WpPack\Component\Security\Attribute\CurrentUser;
-use WpPack\Component\Role\Attribute\IsGranted;
-use WpPack\Component\Security\Tests\SecurityTestTrait;
+use WPPack\Component\HttpFoundation\Request;
+use WPPack\Component\Rest\AbstractRestController;
+use WPPack\Component\Rest\Attribute\Param;
+use WPPack\Component\Rest\Attribute\Permission;
+use WPPack\Component\Rest\Attribute\RestRoute;
+use WPPack\Component\Rest\Exception\RouteNotFoundException;
+use WPPack\Component\Rest\HttpMethod;
+use WPPack\Component\Rest\RestRegistry;
+use WPPack\Component\Security\Attribute\CurrentUser;
+use WPPack\Component\Role\Attribute\IsGranted;
+use WPPack\Component\Security\Tests\SecurityTestTrait;
 
 final class RestRegistryTest extends TestCase
 {
@@ -219,7 +219,7 @@ final class RestRegistryTest extends TestCase
     {
         $controller = new #[RestRoute('/items', namespace: 'test/v1')] #[Permission(public: true)] class {
             #[RestRoute(methods: HttpMethod::POST)]
-            public function create(string $title, \WpPack\Component\HttpFoundation\Request $request): array
+            public function create(string $title, \WPPack\Component\HttpFoundation\Request $request): array
             {
                 return [];
             }
@@ -483,10 +483,10 @@ final class RestRegistryTest extends TestCase
     public function callbackInjectsCustomRequestObject(): void
     {
         $controller = new #[RestRoute('/inject-request/(?P<id>\d+)', namespace: 'test/v1')] #[Permission(public: true)] class {
-            public ?\WpPack\Component\HttpFoundation\Request $capturedRequest = null;
+            public ?\WPPack\Component\HttpFoundation\Request $capturedRequest = null;
 
             #[RestRoute(methods: HttpMethod::GET)]
-            public function index(\WpPack\Component\HttpFoundation\Request $request): array
+            public function index(\WPPack\Component\HttpFoundation\Request $request): array
             {
                 $this->capturedRequest = $request;
 

@@ -1,7 +1,7 @@
 # Storage コンポーネント
 
 **パッケージ:** `wppack/storage`
-**名前空間:** `WpPack\Component\Storage\`
+**名前空間:** `WPPack\Component\Storage\`
 **レイヤー:** Abstraction
 
 WordPress のアップロードストレージ（`wp-content/uploads/`）を S3・GCS・Azure Blob 等のオブジェクトストレージに差し替えるための抽象化レイヤーです。Cache / Mailer と同じ Adapter / Bridge パターンを採用し、コアパッケージはストレージプロバイダに依存しません。
@@ -49,10 +49,10 @@ $s3Client->putObject(new PutObjectRequest([
 ]));
 ```
 
-### After（WpPack Storage）
+### After（WPPack Storage）
 
 ```php
-use WpPack\Component\Storage\Adapter\Storage;
+use WPPack\Component\Storage\Adapter\Storage;
 
 // DSN は S3 の実際の URL 形式をそのまま利用
 $adapter = Storage::fromDsn('s3://my-bucket.s3.ap-northeast-1.amazonaws.com/uploads');
@@ -113,7 +113,7 @@ interface StorageAdapterInterface
 ### ファイルの保存と取得
 
 ```php
-use WpPack\Component\Storage\Adapter\Storage;
+use WPPack\Component\Storage\Adapter\Storage;
 
 $adapter = Storage::fromDsn('s3://my-bucket.s3.ap-northeast-1.amazonaws.com');
 
@@ -320,7 +320,7 @@ $adapter = $storage->fromString('custom://...');
 テスト用のインメモリ実装。`StorageAdapterInterface` を完全に実装しており、ユニットテストで外部サービスに依存せずに利用できます。
 
 ```php
-use WpPack\Component\Storage\Test\InMemoryStorageAdapter;
+use WPPack\Component\Storage\Test\InMemoryStorageAdapter;
 
 $adapter = new InMemoryStorageAdapter();
 
@@ -390,7 +390,7 @@ ExceptionInterface                   extends \Throwable
 `StorageStreamWrapper` は PHP の `stream_wrapper_register` を使い、`StorageAdapterInterface` を介したオブジェクトストレージへのアクセスを PHP 標準ファイル関数（`file_exists`, `file_get_contents`, `fopen` 等）から透過的に行えるようにします。
 
 ```php
-use WpPack\Component\Storage\StreamWrapper\StorageStreamWrapper;
+use WPPack\Component\Storage\StreamWrapper\StorageStreamWrapper;
 
 $adapter = Storage::fromDsn('s3://my-bucket.s3.ap-northeast-1.amazonaws.com/uploads');
 StorageStreamWrapper::register('s3', $adapter);

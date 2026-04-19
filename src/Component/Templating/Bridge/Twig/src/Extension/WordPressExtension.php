@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Templating\Bridge\Twig\Extension;
+namespace WPPack\Component\Templating\Bridge\Twig\Extension;
 
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFilter;
 use Twig\TwigFunction;
-use WpPack\Component\Escaper\Escaper;
-use WpPack\Component\Sanitizer\Sanitizer;
+use WPPack\Component\Escaper\Escaper;
+use WPPack\Component\Sanitizer\Sanitizer;
 
 final class WordPressExtension extends AbstractExtension
 {

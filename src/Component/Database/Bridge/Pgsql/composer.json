@@ -1,6 +1,6 @@
 {
     "name": "wppack/pgsql-database",
-    "description": "PostgreSQL database driver for WpPack",
+    "description": "PostgreSQL database driver for WPPack",
     "type": "library",
     "license": "MIT",
     "require": {
@@ -11,12 +11,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\Database\\Bridge\\Pgsql\\": "src/"
+            "WPPack\\Component\\Database\\Bridge\\Pgsql\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Component\\Database\\Bridge\\Pgsql\\Tests\\": "tests/"
+            "WPPack\\Component\\Database\\Bridge\\Pgsql\\Tests\\": "tests/"
         }
     }
 }

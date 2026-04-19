@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database\Event;
+namespace WPPack\Component\Database\Event;
 
 /**
  * Dispatched after a query returns successfully, so APM integrations
  * (OpenTelemetry spans, New Relic segments, AWS X-Ray subsegments) can
  * wire up wall-clock duration and row counts without subclassing
- * WpPackWpdb or tailing SAVEQUERIES.
+ * WPPackWpdb or tailing SAVEQUERIES.
  *
  * $paramsSummary carries only positional type/length descriptors — never
  * the raw bound values — mirroring the logger redaction policy so

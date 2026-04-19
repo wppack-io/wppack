@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\HttpFoundation\Tests\File;
+namespace WPPack\Component\HttpFoundation\Tests\File;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\HttpFoundation\File\Exception\FileException;
-use WpPack\Component\HttpFoundation\File\Exception\FileNotFoundException;
-use WpPack\Component\HttpFoundation\File\File;
+use WPPack\Component\HttpFoundation\File\Exception\FileException;
+use WPPack\Component\HttpFoundation\File\Exception\FileNotFoundException;
+use WPPack\Component\HttpFoundation\File\File;
 
 final class FileTest extends TestCase
 {

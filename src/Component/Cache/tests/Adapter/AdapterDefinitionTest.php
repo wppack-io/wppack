@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Cache\Tests\Adapter;
+namespace WPPack\Component\Cache\Tests\Adapter;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Cache\Adapter\AdapterDefinition;
-use WpPack\Component\Cache\Adapter\AdapterField;
+use WPPack\Component\Cache\Adapter\AdapterDefinition;
+use WPPack\Component\Cache\Adapter\AdapterField;
 
 #[CoversClass(AdapterDefinition::class)]
 final class AdapterDefinitionTest extends TestCase

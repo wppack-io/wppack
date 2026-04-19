@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,23 +11,23 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Handler;
+namespace WPPack\Component\Handler;
 
 use Psr\Log\LoggerInterface;
-use WpPack\Component\Handler\Environment\Environment;
-use WpPack\Component\Handler\Exception\FileNotFoundException;
-use WpPack\Component\Handler\Exception\SecurityException;
-use WpPack\Component\Handler\Processor\DirectoryProcessor;
-use WpPack\Component\Handler\Processor\MultisiteProcessor;
-use WpPack\Component\Handler\Processor\PhpFileProcessor;
-use WpPack\Component\Handler\Processor\ProcessorInterface;
-use WpPack\Component\Handler\Processor\SecurityProcessor;
-use WpPack\Component\Handler\Processor\StaticFileProcessor;
-use WpPack\Component\Handler\Processor\TrailingSlashProcessor;
-use WpPack\Component\Handler\Processor\WordPressProcessor;
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\HttpFoundation\Response;
-use WpPack\Component\Kernel\Kernel;
+use WPPack\Component\Handler\Environment\Environment;
+use WPPack\Component\Handler\Exception\FileNotFoundException;
+use WPPack\Component\Handler\Exception\SecurityException;
+use WPPack\Component\Handler\Processor\DirectoryProcessor;
+use WPPack\Component\Handler\Processor\MultisiteProcessor;
+use WPPack\Component\Handler\Processor\PhpFileProcessor;
+use WPPack\Component\Handler\Processor\ProcessorInterface;
+use WPPack\Component\Handler\Processor\SecurityProcessor;
+use WPPack\Component\Handler\Processor\StaticFileProcessor;
+use WPPack\Component\Handler\Processor\TrailingSlashProcessor;
+use WPPack\Component\Handler\Processor\WordPressProcessor;
+use WPPack\Component\HttpFoundation\Request;
+use WPPack\Component\HttpFoundation\Response;
+use WPPack\Component\Kernel\Kernel;
 
 class Handler implements HandlerInterface
 {

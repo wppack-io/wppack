@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Security\Bridge\SAML\Tests;
+namespace WPPack\Component\Security\Bridge\SAML\Tests;
 
 use LightSaml\Binding\AbstractBinding;
 use LightSaml\Binding\BindingFactory;
@@ -20,13 +20,13 @@ use LightSaml\Model\Protocol\LogoutRequest;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\Security\AuthenticationSession;
-use WpPack\Component\Security\Bridge\SAML\Configuration\IdpSettings;
-use WpPack\Component\Security\Bridge\SAML\Configuration\SamlConfiguration;
-use WpPack\Component\Security\Bridge\SAML\Configuration\SpSettings;
-use WpPack\Component\Security\Bridge\SAML\Factory\SamlAuthFactory;
-use WpPack\Component\Security\Bridge\SAML\SamlLogoutHandler;
+use WPPack\Component\HttpFoundation\Request;
+use WPPack\Component\Security\AuthenticationSession;
+use WPPack\Component\Security\Bridge\SAML\Configuration\IdpSettings;
+use WPPack\Component\Security\Bridge\SAML\Configuration\SamlConfiguration;
+use WPPack\Component\Security\Bridge\SAML\Configuration\SpSettings;
+use WPPack\Component\Security\Bridge\SAML\Factory\SamlAuthFactory;
+use WPPack\Component\Security\Bridge\SAML\SamlLogoutHandler;
 
 #[CoversClass(SamlLogoutHandler::class)]
 final class SamlLogoutHandlerTest extends TestCase

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,10 +11,10 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Media;
+namespace WPPack\Component\Media;
 
-use WpPack\Component\Media\Exception\AttachmentException;
-use WpPack\Component\PostType\PostRepositoryInterface;
+use WPPack\Component\Media\Exception\AttachmentException;
+use WPPack\Component\PostType\PostRepositoryInterface;
 
 final readonly class AttachmentManager implements AttachmentManagerInterface
 {

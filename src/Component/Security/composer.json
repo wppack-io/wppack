@@ -18,12 +18,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\Security\\": "src/"
+            "WPPack\\Component\\Security\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Component\\Security\\Tests\\": "tests/"
+            "WPPack\\Component\\Security\\Tests\\": "tests/"
         }
     }
 }

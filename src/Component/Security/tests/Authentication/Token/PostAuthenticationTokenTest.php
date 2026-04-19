@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Security\Tests\Authentication\Token;
+namespace WPPack\Component\Security\Tests\Authentication\Token;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Security\Authentication\Token\NullToken;
-use WpPack\Component\Security\Authentication\Token\PostAuthenticationToken;
+use WPPack\Component\Security\Authentication\Token\NullToken;
+use WPPack\Component\Security\Authentication\Token\PostAuthenticationToken;
 
 final class PostAuthenticationTokenTest extends TestCase
 {

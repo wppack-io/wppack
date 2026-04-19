@@ -1,4 +1,4 @@
-# WpPack Feed
+# WPPack Feed
 
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=feed)](https://codecov.io/github/wppack-io/wppack)
 
@@ -15,8 +15,8 @@ composer require wppack/feed
 ### Custom Feed Registration
 
 ```php
-use WpPack\Component\Feed\AbstractFeed;
-use WpPack\Component\Feed\Attribute\AsFeed;
+use WPPack\Component\Feed\AbstractFeed;
+use WPPack\Component\Feed\Attribute\AsFeed;
 
 #[AsFeed(slug: 'products', label: 'Product Feed')]
 class ProductFeed extends AbstractFeed
@@ -32,7 +32,7 @@ class ProductFeed extends AbstractFeed
 ### FeedRegistry
 
 ```php
-use WpPack\Component\Feed\FeedRegistry;
+use WPPack\Component\Feed\FeedRegistry;
 
 $registry = new FeedRegistry();
 $registry->register(new ProductFeed());
@@ -43,9 +43,9 @@ $registry->all();         // ['products' => ProductFeed]
 ### Named Hook Attributes
 
 ```php
-use WpPack\Component\Hook\Attribute\Feed\Action\Rss2HeadAction;
-use WpPack\Component\Hook\Attribute\Feed\Action\Rss2ItemAction;
-use WpPack\Component\Hook\Attribute\Feed\Filter\TheContentFeedFilter;
+use WPPack\Component\Hook\Attribute\Feed\Action\Rss2HeadAction;
+use WPPack\Component\Hook\Attribute\Feed\Action\Rss2ItemAction;
+use WPPack\Component\Hook\Attribute\Feed\Filter\TheContentFeedFilter;
 
 class FeedCustomizer
 {

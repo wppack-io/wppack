@@ -2,7 +2,7 @@
 
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=http_foundation)](https://codecov.io/github/wppack-io/wppack)
 
-An object-oriented layer for HTTP request handling in WordPress. Provides type-safe access to superglobals (`$_GET`, `$_POST`, `$_FILES`, etc.) and base response classes used across all WpPack components.
+An object-oriented layer for HTTP request handling in WordPress. Provides type-safe access to superglobals (`$_GET`, `$_POST`, `$_FILES`, etc.) and base response classes used across all WPPack components.
 
 ## Installation
 
@@ -15,7 +15,7 @@ composer require wppack/http-foundation
 ### Request
 
 ```php
-use WpPack\Component\HttpFoundation\Request;
+use WPPack\Component\HttpFoundation\Request;
 
 $request = Request::createFromGlobals();
 
@@ -39,10 +39,10 @@ if ($request->isJson()) {
 ### Response
 
 ```php
-use WpPack\Component\HttpFoundation\Response;
-use WpPack\Component\HttpFoundation\JsonResponse;
-use WpPack\Component\HttpFoundation\RedirectResponse;
-use WpPack\Component\HttpFoundation\BinaryFileResponse;
+use WPPack\Component\HttpFoundation\Response;
+use WPPack\Component\HttpFoundation\JsonResponse;
+use WPPack\Component\HttpFoundation\RedirectResponse;
+use WPPack\Component\HttpFoundation\BinaryFileResponse;
 
 $response = new Response('Hello', 200, ['X-Custom' => 'value']);
 $json = new JsonResponse(['key' => 'value'], 200);
@@ -53,7 +53,7 @@ $file = new BinaryFileResponse('/path/to/file.pdf');
 ### File
 
 ```php
-use WpPack\Component\HttpFoundation\File\File;
+use WPPack\Component\HttpFoundation\File\File;
 
 $file = new File('/path/to/document.pdf');
 $mimeType = $file->getMimeType();     // Detected from disk
@@ -77,8 +77,8 @@ if ($file !== null && $file->isValid()) {
 ### HTTP Exceptions
 
 ```php
-use WpPack\Component\HttpFoundation\Exception\NotFoundException;
-use WpPack\Component\HttpFoundation\Exception\ForbiddenException;
+use WPPack\Component\HttpFoundation\Exception\NotFoundException;
+use WPPack\Component\HttpFoundation\Exception\ForbiddenException;
 
 throw new NotFoundException('Resource not found.');
 throw new ForbiddenException('Access denied.');
@@ -93,8 +93,8 @@ When using the Kernel component, `Request` is automatically registered as a synt
 `ArgumentResolver` resolves method parameters from a chain of `ValueResolverInterface` implementations.
 
 ```php
-use WpPack\Component\HttpFoundation\ArgumentResolver;
-use WpPack\Component\HttpFoundation\RequestValueResolver;
+use WPPack\Component\HttpFoundation\ArgumentResolver;
+use WPPack\Component\HttpFoundation\RequestValueResolver;
 
 $argumentResolver = new ArgumentResolver([
     new RequestValueResolver($request),

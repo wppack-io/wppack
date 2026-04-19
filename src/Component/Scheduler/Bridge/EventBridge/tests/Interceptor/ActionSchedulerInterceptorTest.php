@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Scheduler\Bridge\EventBridge\Tests\Interceptor;
+namespace WPPack\Component\Scheduler\Bridge\EventBridge\Tests\Interceptor;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
-use WpPack\Component\Scheduler\Bridge\EventBridge\EventBridgeScheduleFactory;
-use WpPack\Component\Scheduler\Bridge\EventBridge\Interceptor\ActionSchedulerInterceptor;
-use WpPack\Component\Scheduler\Bridge\EventBridge\SqsPayloadFactory;
+use WPPack\Component\Scheduler\Bridge\EventBridge\EventBridgeScheduleFactory;
+use WPPack\Component\Scheduler\Bridge\EventBridge\Interceptor\ActionSchedulerInterceptor;
+use WPPack\Component\Scheduler\Bridge\EventBridge\SqsPayloadFactory;
 
 final class ActionSchedulerInterceptorTest extends TestCase
 {

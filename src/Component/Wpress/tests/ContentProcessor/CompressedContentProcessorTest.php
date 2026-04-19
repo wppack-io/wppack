@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Wpress\Tests\ContentProcessor;
+namespace WPPack\Component\Wpress\Tests\ContentProcessor;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Wpress\ContentProcessor\CompressedContentProcessor;
-use WpPack\Component\Wpress\Exception\ArchiveException;
+use WPPack\Component\Wpress\ContentProcessor\CompressedContentProcessor;
+use WPPack\Component\Wpress\Exception\ArchiveException;
 
 final class CompressedContentProcessorTest extends TestCase
 {

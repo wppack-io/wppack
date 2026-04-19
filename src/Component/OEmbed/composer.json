@@ -8,12 +8,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\OEmbed\\": "src/"
+            "WPPack\\Component\\OEmbed\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Component\\OEmbed\\Tests\\": "tests/"
+            "WPPack\\Component\\OEmbed\\Tests\\": "tests/"
         }
     }
 }

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,45 +11,45 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\OAuthLoginPlugin\Tests\DependencyInjection;
+namespace WPPack\Plugin\OAuthLoginPlugin\Tests\DependencyInjection;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\DependencyInjection\Reference;
-use WpPack\Component\DependencyInjection\ServiceProviderInterface;
-use WpPack\Component\EventDispatcher\EventDispatcher;
-use WpPack\Component\Sanitizer\Sanitizer;
-use WpPack\Component\Security\Authentication\AuthenticationManager;
-use WpPack\Component\Security\Authentication\AuthenticationManagerInterface;
-use WpPack\Component\Security\Bridge\OAuth\Configuration\OAuthConfiguration;
-use WpPack\Component\Security\Bridge\OAuth\OAuthAuthenticator;
-use WpPack\Component\Security\Bridge\OAuth\OAuthCallbackController;
-use WpPack\Component\Security\Bridge\OAuth\OAuthVerifyController;
-use WpPack\Component\Security\Bridge\OAuth\Provider\AmazonProvider;
-use WpPack\Component\Security\Bridge\OAuth\Provider\AppleProvider;
-use WpPack\Component\Security\Bridge\OAuth\Provider\DAccountProvider;
-use WpPack\Component\Security\Bridge\OAuth\Provider\DiscordProvider;
-use WpPack\Component\Security\Bridge\OAuth\Provider\EntraIdProvider;
-use WpPack\Component\Security\Bridge\OAuth\Provider\FacebookProvider;
-use WpPack\Component\Security\Bridge\OAuth\Provider\GenericOidcProvider;
-use WpPack\Component\Security\Bridge\OAuth\Provider\GitHubProvider;
-use WpPack\Component\Security\Bridge\OAuth\Provider\GoogleProvider;
-use WpPack\Component\Security\Bridge\OAuth\Provider\LineProvider;
-use WpPack\Component\Security\Bridge\OAuth\Provider\MicrosoftProvider;
-use WpPack\Component\Security\Bridge\OAuth\Provider\OktaProvider;
-use WpPack\Component\Security\Bridge\OAuth\Provider\ProviderInterface;
-use WpPack\Component\Security\Bridge\OAuth\Provider\SlackProvider;
-use WpPack\Component\Security\Bridge\OAuth\Provider\YahooJapanProvider;
-use WpPack\Component\Security\Bridge\OAuth\Provider\YahooProvider;
-use WpPack\Component\Security\Bridge\OAuth\UserResolution\OAuthUserResolver;
-use WpPack\Component\Security\Bridge\OAuth\UserResolution\OAuthUserResolverInterface;
-use WpPack\Component\User\UserRepository;
-use WpPack\Plugin\OAuthLoginPlugin\Configuration\OAuthLoginConfiguration;
-use WpPack\Plugin\OAuthLoginPlugin\Configuration\ProviderConfiguration;
-use WpPack\Plugin\OAuthLoginPlugin\DependencyInjection\OAuthLoginPluginServiceProvider;
-use WpPack\Plugin\OAuthLoginPlugin\OAuthLoginForm;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\DependencyInjection\Reference;
+use WPPack\Component\DependencyInjection\ServiceProviderInterface;
+use WPPack\Component\EventDispatcher\EventDispatcher;
+use WPPack\Component\Sanitizer\Sanitizer;
+use WPPack\Component\Security\Authentication\AuthenticationManager;
+use WPPack\Component\Security\Authentication\AuthenticationManagerInterface;
+use WPPack\Component\Security\Bridge\OAuth\Configuration\OAuthConfiguration;
+use WPPack\Component\Security\Bridge\OAuth\OAuthAuthenticator;
+use WPPack\Component\Security\Bridge\OAuth\OAuthCallbackController;
+use WPPack\Component\Security\Bridge\OAuth\OAuthVerifyController;
+use WPPack\Component\Security\Bridge\OAuth\Provider\AmazonProvider;
+use WPPack\Component\Security\Bridge\OAuth\Provider\AppleProvider;
+use WPPack\Component\Security\Bridge\OAuth\Provider\DAccountProvider;
+use WPPack\Component\Security\Bridge\OAuth\Provider\DiscordProvider;
+use WPPack\Component\Security\Bridge\OAuth\Provider\EntraIdProvider;
+use WPPack\Component\Security\Bridge\OAuth\Provider\FacebookProvider;
+use WPPack\Component\Security\Bridge\OAuth\Provider\GenericOidcProvider;
+use WPPack\Component\Security\Bridge\OAuth\Provider\GitHubProvider;
+use WPPack\Component\Security\Bridge\OAuth\Provider\GoogleProvider;
+use WPPack\Component\Security\Bridge\OAuth\Provider\LineProvider;
+use WPPack\Component\Security\Bridge\OAuth\Provider\MicrosoftProvider;
+use WPPack\Component\Security\Bridge\OAuth\Provider\OktaProvider;
+use WPPack\Component\Security\Bridge\OAuth\Provider\ProviderInterface;
+use WPPack\Component\Security\Bridge\OAuth\Provider\SlackProvider;
+use WPPack\Component\Security\Bridge\OAuth\Provider\YahooJapanProvider;
+use WPPack\Component\Security\Bridge\OAuth\Provider\YahooProvider;
+use WPPack\Component\Security\Bridge\OAuth\UserResolution\OAuthUserResolver;
+use WPPack\Component\Security\Bridge\OAuth\UserResolution\OAuthUserResolverInterface;
+use WPPack\Component\User\UserRepository;
+use WPPack\Plugin\OAuthLoginPlugin\Configuration\OAuthLoginConfiguration;
+use WPPack\Plugin\OAuthLoginPlugin\Configuration\ProviderConfiguration;
+use WPPack\Plugin\OAuthLoginPlugin\DependencyInjection\OAuthLoginPluginServiceProvider;
+use WPPack\Plugin\OAuthLoginPlugin\OAuthLoginForm;
 
 #[CoversClass(OAuthLoginPluginServiceProvider::class)]
 final class OAuthLoginPluginServiceProviderTest extends TestCase
@@ -656,8 +656,8 @@ final class OAuthLoginPluginServiceProviderTest extends TestCase
             ],
         );
 
-        $authSession = new \WpPack\Component\Security\AuthenticationSession();
-        $request = \WpPack\Component\HttpFoundation\Request::create('https://example.com/wp-login.php');
+        $authSession = new \WPPack\Component\Security\AuthenticationSession();
+        $request = \WPPack\Component\HttpFoundation\Request::create('https://example.com/wp-login.php');
 
         $form = OAuthLoginPluginServiceProvider::createLoginForm($config, $authSession, $request);
 
@@ -681,7 +681,7 @@ final class OAuthLoginPluginServiceProviderTest extends TestCase
             providers: ['google' => $providerConfig],
         );
 
-        $blogContext = new \WpPack\Component\Site\BlogContext();
+        $blogContext = new \WPPack\Component\Site\BlogContext();
 
         $oauthConfig = OAuthLoginPluginServiceProvider::createOAuthConfiguration($providerConfig, $config, $blogContext);
 
@@ -708,7 +708,7 @@ final class OAuthLoginPluginServiceProviderTest extends TestCase
             providers: ['github' => $providerConfig],
         );
 
-        $blogContext = new \WpPack\Component\Site\BlogContext();
+        $blogContext = new \WPPack\Component\Site\BlogContext();
 
         $oauthConfig = OAuthLoginPluginServiceProvider::createOAuthConfiguration($providerConfig, $config, $blogContext);
 
@@ -752,8 +752,8 @@ final class OAuthLoginPluginServiceProviderTest extends TestCase
             providers: ['google' => $providerConfig],
         );
 
-        $authSession = new \WpPack\Component\Security\AuthenticationSession();
-        $request = \WpPack\Component\HttpFoundation\Request::create('https://example.com/wp-login.php');
+        $authSession = new \WPPack\Component\Security\AuthenticationSession();
+        $request = \WPPack\Component\HttpFoundation\Request::create('https://example.com/wp-login.php');
 
         $form = OAuthLoginPluginServiceProvider::createLoginForm($config, $authSession, $request);
 

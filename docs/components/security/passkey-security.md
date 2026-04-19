@@ -7,11 +7,11 @@ WebAuthn/Passkey 認証ブリッジ
 | 項目 | 値 |
 |------|-----|
 | パッケージ名 | `wppack/passkey-security` |
-| 名前空間 | `WpPack\Component\Security\Bridge\Passkey\` |
+| 名前空間 | `WPPack\Component\Security\Bridge\Passkey\` |
 | レイヤー | Abstraction（Bridge） |
 | 依存 | `wppack/security`, `web-auth/webauthn-lib ^5.2` |
 
-WebAuthn/Passkey によるパスワードレス認証を WpPack Security コンポーネントに統合する Bridge パッケージです。`web-auth/webauthn-lib` を使用した WebAuthn プロトコル実装と、クレデンシャルのストレージ抽象化を提供します。
+WebAuthn/Passkey によるパスワードレス認証を WPPack Security コンポーネントに統合する Bridge パッケージです。`web-auth/webauthn-lib` を使用した WebAuthn プロトコル実装と、クレデンシャルのストレージ抽象化を提供します。
 
 ## インストール
 
@@ -26,7 +26,7 @@ composer require wppack/passkey-security
 WebAuthn の登録（Attestation）と認証（Assertion）のセレモニーを管理します。チャレンジの生成・保存・消費を担当し、`TransientManager` でチャレンジを一時保存します。
 
 ```php
-use WpPack\Component\Security\Bridge\Passkey\Ceremony\CeremonyManager;
+use WPPack\Component\Security\Bridge\Passkey\Ceremony\CeremonyManager;
 
 // 登録オプション生成（ログイン済みユーザー向け）
 $options = $ceremonyManager->createRegistrationOptions($user);
@@ -50,7 +50,7 @@ $data = $ceremonyManager->consumeChallenge();
 パスキークレデンシャルの永続化インターフェースです。`DatabaseCredentialRepository` がデフォルト実装として提供されます。
 
 ```php
-use WpPack\Component\Security\Bridge\Passkey\Storage\CredentialRepositoryInterface;
+use WPPack\Component\Security\Bridge\Passkey\Storage\CredentialRepositoryInterface;
 
 interface CredentialRepositoryInterface
 {
@@ -70,7 +70,7 @@ interface CredentialRepositoryInterface
 AAGUID から認証器のデバイス名を推定するユーティリティクラスです。Apple iCloud Passkey、Google Password Manager、Windows Hello、YubiKey、1Password、Bitwarden 等の主要な認証器をサポートします。
 
 ```php
-use WpPack\Component\Security\Bridge\Passkey\Storage\AaguidResolver;
+use WPPack\Component\Security\Bridge\Passkey\Storage\AaguidResolver;
 
 $name = AaguidResolver::resolve('fbfc3007-154e-4ecc-8c0b-6e020557d7bd');
 // => 'iCloud Passkey'
@@ -96,7 +96,7 @@ $name = AaguidResolver::resolve('unknown-aaguid');
 パスキークレデンシャルの Value Object です。
 
 ```php
-use WpPack\Component\Security\Bridge\Passkey\Storage\PasskeyCredential;
+use WPPack\Component\Security\Bridge\Passkey\Storage\PasskeyCredential;
 
 final readonly class PasskeyCredential
 {
@@ -121,7 +121,7 @@ final readonly class PasskeyCredential
 WebAuthn セレモニーの設定を定義する Value Object です。
 
 ```php
-use WpPack\Component\Security\Bridge\Passkey\Configuration\PasskeyConfiguration;
+use WPPack\Component\Security\Bridge\Passkey\Configuration\PasskeyConfiguration;
 
 $config = new PasskeyConfiguration(
     rpName: 'My WordPress Site',

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,15 +11,15 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\DatabaseExport;
+namespace WPPack\Component\DatabaseExport;
 
-use WpPack\Component\Database\DatabaseManager;
-use WpPack\Component\Database\Schema\TableSchema;
-use WpPack\Component\Database\SchemaReader\SchemaReaderInterface;
-use WpPack\Component\DatabaseExport\Exception\ExportException;
-use WpPack\Component\DatabaseExport\RowTransformer\RowTransformerInterface;
-use WpPack\Component\DatabaseExport\TableFilter\TableFilterInterface;
-use WpPack\Component\DatabaseExport\Writer\ExportWriterInterface;
+use WPPack\Component\Database\DatabaseManager;
+use WPPack\Component\Database\Schema\TableSchema;
+use WPPack\Component\Database\SchemaReader\SchemaReaderInterface;
+use WPPack\Component\DatabaseExport\Exception\ExportException;
+use WPPack\Component\DatabaseExport\RowTransformer\RowTransformerInterface;
+use WPPack\Component\DatabaseExport\TableFilter\TableFilterInterface;
+use WPPack\Component\DatabaseExport\Writer\ExportWriterInterface;
 
 final class DatabaseExporter
 {

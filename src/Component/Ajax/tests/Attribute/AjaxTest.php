@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Ajax\Tests\Attribute;
+namespace WPPack\Component\Ajax\Tests\Attribute;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Ajax\Access;
-use WpPack\Component\Ajax\Attribute\Ajax;
+use WPPack\Component\Ajax\Access;
+use WPPack\Component\Ajax\Attribute\Ajax;
 
 final class AjaxTest extends TestCase
 {

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Monitoring\Bridge\Cloudflare;
+namespace WPPack\Component\Monitoring\Bridge\Cloudflare;
 
-use WpPack\Component\Monitoring\ProviderSettings;
+use WPPack\Component\Monitoring\ProviderSettings;
 
 final readonly class CloudflareProviderSettings extends ProviderSettings
 {

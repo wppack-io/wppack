@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Cache\Bridge\Redis\Tests\Adapter;
+namespace WPPack\Component\Cache\Bridge\Redis\Tests\Adapter;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Cache\Bridge\Redis\Adapter\RedisAdapter;
+use WPPack\Component\Cache\Bridge\Redis\Adapter\RedisAdapter;
 
 final class RedisAdapterTest extends TestCase
 {
@@ -497,7 +497,7 @@ final class RedisAdapterTest extends TestCase
             self::markTestSkipped('Redis Sentinel is not available.');
         }
 
-        $this->expectException(\WpPack\Component\Cache\Exception\AdapterException::class);
+        $this->expectException(\WPPack\Component\Cache\Exception\AdapterException::class);
         $this->expectExceptionMessage('No master found for Sentinel service "nonexistent_service"');
 
         $adapter->set('wppack_test:fail', 'value');

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,20 +11,20 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Security\Authentication\Authenticator;
+namespace WPPack\Component\Security\Authentication\Authenticator;
 
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\HttpFoundation\Response;
-use WpPack\Component\Security\Authentication\Passport\Badge\UserBadge;
-use WpPack\Component\Security\Authentication\Passport\Passport;
-use WpPack\Component\Security\Authentication\Passport\SelfValidatingPassport;
-use WpPack\Component\Security\Authentication\StatelessAuthenticatorInterface;
-use WpPack\Component\Security\Authentication\Token\PostAuthenticationToken;
-use WpPack\Component\Security\Authentication\Token\TokenInterface;
-use WpPack\Component\Security\AuthenticationSession;
-use WpPack\Component\Security\Exception\AuthenticationException;
-use WpPack\Component\Site\BlogContextInterface;
-use WpPack\Component\User\UserRepositoryInterface;
+use WPPack\Component\HttpFoundation\Request;
+use WPPack\Component\HttpFoundation\Response;
+use WPPack\Component\Security\Authentication\Passport\Badge\UserBadge;
+use WPPack\Component\Security\Authentication\Passport\Passport;
+use WPPack\Component\Security\Authentication\Passport\SelfValidatingPassport;
+use WPPack\Component\Security\Authentication\StatelessAuthenticatorInterface;
+use WPPack\Component\Security\Authentication\Token\PostAuthenticationToken;
+use WPPack\Component\Security\Authentication\Token\TokenInterface;
+use WPPack\Component\Security\AuthenticationSession;
+use WPPack\Component\Security\Exception\AuthenticationException;
+use WPPack\Component\Site\BlogContextInterface;
+use WPPack\Component\User\UserRepositoryInterface;
 
 final class CookieAuthenticator implements StatelessAuthenticatorInterface
 {

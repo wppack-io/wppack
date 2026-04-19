@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database\Bridge\Sqlite\TypeMapper;
+namespace WPPack\Component\Database\Bridge\Sqlite\TypeMapper;
 
-use WpPack\Component\Database\TypeMapper\TypeMapperInterface;
+use WPPack\Component\Database\TypeMapper\TypeMapperInterface;
 
 /**
  * Maps SQLite column types to MySQL-compatible equivalents.

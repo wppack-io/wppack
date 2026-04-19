@@ -1,7 +1,7 @@
 # Query Component
 
 **Package:** `wppack/query`
-**Namespace:** `WpPack\Component\Query\`
+**Namespace:** `WPPack\Component\Query\`
 **Layer:** Abstraction
 
 Query コンポーネントは、WordPress のネイティブクエリ（`WP_Query`、`WP_User_Query`、`WP_Term_Query`）に対する型安全で流暢なラッパーを提供します。
@@ -77,10 +77,10 @@ while ($query->have_posts()) {
 wp_reset_postdata();
 ```
 
-### After（WpPack）
+### After（WPPack）
 
 ```php
-use WpPack\Component\Query\QueryFactory;
+use WPPack\Component\Query\QueryFactory;
 
 public function __construct(private readonly QueryFactory $query) {}
 
@@ -107,7 +107,7 @@ foreach ($result as $post) {
 `QueryFactory` を DI コンテナから注入して使用します:
 
 ```php
-use WpPack\Component\Query\QueryFactory;
+use WPPack\Component\Query\QueryFactory;
 
 class ProductService
 {
@@ -294,7 +294,7 @@ condition  = <prefix>.<key>[:<hint>] <operator> [:<placeholder>]
 Closure ベースのネストも引き続き使用可能です:
 
 ```php
-use WpPack\Component\Query\Condition\ConditionGroup;
+use WPPack\Component\Query\Condition\ConditionGroup;
 
 // WHERE status = 'active' AND (featured = 1 OR on_sale = 1)
 $this->query->posts('product')
@@ -428,7 +428,7 @@ $this->query->posts('product')
 ### ソート
 
 ```php
-use WpPack\Component\Query\Enum\Order;
+use WPPack\Component\Query\Enum\Order;
 
 ->orderBy('date', Order::Desc)                   // 通常のソート
 ->orderBy('title', 'ASC')                        // 文字列でも指定可
@@ -542,7 +542,7 @@ $exists = $builder->exists();    // bool
 ```php
 <?php
 
-use WpPack\Component\Query\QueryFactory;
+use WPPack\Component\Query\QueryFactory;
 
 class BlogService
 {
@@ -603,8 +603,8 @@ class BlogService
 ```php
 <?php
 
-use WpPack\Component\Query\Condition\ConditionGroup;
-use WpPack\Component\Query\QueryFactory;
+use WPPack\Component\Query\Condition\ConditionGroup;
+use WPPack\Component\Query\QueryFactory;
 
 class ProductService
 {
@@ -671,7 +671,7 @@ class ProductService
 ```php
 <?php
 
-use WpPack\Component\Query\QueryFactory;
+use WPPack\Component\Query\QueryFactory;
 
 class UserService
 {
@@ -697,7 +697,7 @@ class UserService
 ```php
 <?php
 
-use WpPack\Component\Query\QueryFactory;
+use WPPack\Component\Query\QueryFactory;
 
 class CategoryService
 {

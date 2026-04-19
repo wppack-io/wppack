@@ -10,7 +10,7 @@
  * @var array                                                        $hookTimings    Hook timing data
  * @var array<string,int>                                            $listenerCounts Listener count per hook
  * @var array                                                        $componentSummary Component-level summary
- * @var \WpPack\Component\Debug\Toolbar\Panel\TemplateFormatters     $fmt            Template formatters
+ * @var \WPPack\Component\Debug\Toolbar\Panel\TemplateFormatters     $fmt            Template formatters
  */
 ?>
 <div class="wpd-section">

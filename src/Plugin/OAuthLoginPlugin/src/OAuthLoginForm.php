@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\OAuthLoginPlugin;
+namespace WPPack\Plugin\OAuthLoginPlugin;
 
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\Security\AuthenticationSession;
-use WpPack\Component\Security\Bridge\OAuth\Assets\ProviderIcons;
-use WpPack\Plugin\OAuthLoginPlugin\Configuration\OAuthLoginConfiguration;
-use WpPack\Plugin\OAuthLoginPlugin\Configuration\ProviderConfiguration;
+use WPPack\Component\HttpFoundation\Request;
+use WPPack\Component\Security\AuthenticationSession;
+use WPPack\Component\Security\Bridge\OAuth\Assets\ProviderIcons;
+use WPPack\Plugin\OAuthLoginPlugin\Configuration\OAuthLoginConfiguration;
+use WPPack\Plugin\OAuthLoginPlugin\Configuration\ProviderConfiguration;
 
 class OAuthLoginForm
 {

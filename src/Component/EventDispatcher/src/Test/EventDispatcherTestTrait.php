@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\EventDispatcher\Test;
+namespace WPPack\Component\EventDispatcher\Test;
 
-use WpPack\Component\EventDispatcher\EventDispatcher;
+use WPPack\Component\EventDispatcher\EventDispatcher;
 
 /**
  * Helper trait for testing event listeners.

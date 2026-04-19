@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\HttpClient;
+namespace WPPack\Component\HttpClient;
 
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
-use WpPack\Component\HttpClient\Exception\RequestException;
+use WPPack\Component\HttpClient\Exception\RequestException;
 
 final class Response implements ResponseInterface
 {

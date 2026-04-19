@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,16 +11,16 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Setting\Tests;
+namespace WPPack\Component\Setting\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Admin\Attribute\AdminScope;
-use WpPack\Component\Setting\AbstractSettingsPage;
-use WpPack\Component\Setting\Attribute\AsSettingsPage;
-use WpPack\Component\Setting\SettingsConfigurator;
-use WpPack\Component\Setting\SettingsRegistry;
-use WpPack\Component\Templating\TemplateRendererInterface;
+use WPPack\Component\Admin\Attribute\AdminScope;
+use WPPack\Component\Setting\AbstractSettingsPage;
+use WPPack\Component\Setting\Attribute\AsSettingsPage;
+use WPPack\Component\Setting\SettingsConfigurator;
+use WPPack\Component\Setting\SettingsRegistry;
+use WPPack\Component\Templating\TemplateRendererInterface;
 
 final class SettingsRegistryTest extends TestCase
 {

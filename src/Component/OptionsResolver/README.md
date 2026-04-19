@@ -1,4 +1,4 @@
-# WpPack OptionsResolver
+# WPPack OptionsResolver
 
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=options_resolver)](https://codecov.io/github/wppack-io/wppack)
 
@@ -17,7 +17,7 @@ composer require wppack/options-resolver
 All features of Symfony OptionsResolver are available as-is.
 
 ```php
-use WpPack\Component\OptionsResolver\OptionsResolver;
+use WPPack\Component\OptionsResolver\OptionsResolver;
 
 $resolver = new OptionsResolver();
 $resolver->setDefaults([

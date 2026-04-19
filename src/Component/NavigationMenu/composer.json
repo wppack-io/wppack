@@ -8,12 +8,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\NavigationMenu\\": "src/"
+            "WPPack\\Component\\NavigationMenu\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Component\\NavigationMenu\\Tests\\": "tests/"
+            "WPPack\\Component\\NavigationMenu\\Tests\\": "tests/"
         }
     }
 }

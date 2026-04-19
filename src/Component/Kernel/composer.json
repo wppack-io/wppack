@@ -10,12 +10,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\Kernel\\": "src/"
+            "WPPack\\Component\\Kernel\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Component\\Kernel\\Tests\\": "tests/"
+            "WPPack\\Component\\Kernel\\Tests\\": "tests/"
         }
     },
     "minimum-stability": "stable"

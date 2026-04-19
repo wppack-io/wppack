@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Filesystem\Tests;
+namespace WPPack\Component\Filesystem\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Filesystem\Filesystem;
+use WPPack\Component\Filesystem\Filesystem;
 
 final class FilesystemTest extends TestCase
 {

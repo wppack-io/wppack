@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Filesystem\Tests\WordPress;
+namespace WPPack\Component\Filesystem\Tests\WordPress;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Filesystem\WordPress\UploadPath;
+use WPPack\Component\Filesystem\WordPress\UploadPath;
 
 final class UploadPathTest extends TestCase
 {

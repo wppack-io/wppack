@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\HttpClient\Tests\Exception;
+namespace WPPack\Component\HttpClient\Tests\Exception;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Client\NetworkExceptionInterface;
-use WpPack\Component\HttpClient\Exception\ConnectionException;
-use WpPack\Component\HttpClient\Request;
+use WPPack\Component\HttpClient\Exception\ConnectionException;
+use WPPack\Component\HttpClient\Request;
 
 #[CoversClass(ConnectionException::class)]
 final class ConnectionExceptionTest extends TestCase

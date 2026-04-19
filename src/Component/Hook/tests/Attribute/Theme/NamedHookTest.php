@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,26 +11,26 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Hook\Tests\Attribute\Theme;
+namespace WPPack\Component\Hook\Tests\Attribute\Theme;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Hook\Attribute\Action;
-use WpPack\Component\Hook\Attribute\Filter;
-use WpPack\Component\Hook\Hook;
-use WpPack\Component\Hook\HookType;
-use WpPack\Component\Hook\Attribute\Theme\Action\CustomizePreviewInitAction;
-use WpPack\Component\Hook\Attribute\Theme\Action\CustomizeRegisterAction;
-use WpPack\Component\Hook\Attribute\Theme\Action\WpBodyOpenAction;
-use WpPack\Component\Hook\Attribute\Theme\Action\WpEnqueueScriptsAction;
-use WpPack\Component\Hook\Attribute\Theme\Action\WpFooterAction;
-use WpPack\Component\Hook\Attribute\Theme\Action\WpHeadAction;
-use WpPack\Component\Hook\Attribute\Theme\Action\WpPrintScriptsAction;
-use WpPack\Component\Hook\Attribute\Theme\Action\WpPrintStylesAction;
-use WpPack\Component\Hook\Attribute\Theme\Filter\BodyClassFilter;
-use WpPack\Component\Hook\Attribute\Theme\Filter\PostClassFilter;
-use WpPack\Component\Hook\Attribute\Theme\Filter\ScriptLoaderTagFilter;
-use WpPack\Component\Hook\Attribute\Theme\Filter\StyleLoaderTagFilter;
+use WPPack\Component\Hook\Attribute\Action;
+use WPPack\Component\Hook\Attribute\Filter;
+use WPPack\Component\Hook\Hook;
+use WPPack\Component\Hook\HookType;
+use WPPack\Component\Hook\Attribute\Theme\Action\CustomizePreviewInitAction;
+use WPPack\Component\Hook\Attribute\Theme\Action\CustomizeRegisterAction;
+use WPPack\Component\Hook\Attribute\Theme\Action\WpBodyOpenAction;
+use WPPack\Component\Hook\Attribute\Theme\Action\WpEnqueueScriptsAction;
+use WPPack\Component\Hook\Attribute\Theme\Action\WpFooterAction;
+use WPPack\Component\Hook\Attribute\Theme\Action\WpHeadAction;
+use WPPack\Component\Hook\Attribute\Theme\Action\WpPrintScriptsAction;
+use WPPack\Component\Hook\Attribute\Theme\Action\WpPrintStylesAction;
+use WPPack\Component\Hook\Attribute\Theme\Filter\BodyClassFilter;
+use WPPack\Component\Hook\Attribute\Theme\Filter\PostClassFilter;
+use WPPack\Component\Hook\Attribute\Theme\Filter\ScriptLoaderTagFilter;
+use WPPack\Component\Hook\Attribute\Theme\Filter\StyleLoaderTagFilter;
 
 final class NamedHookTest extends TestCase
 {

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,41 +11,41 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Debug\Tests\Toolbar;
+namespace WPPack\Component\Debug\Tests\Toolbar;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Debug\DataCollector\DataCollectorInterface;
-use WpPack\Component\Debug\Profiler\Profile;
-use WpPack\Component\Debug\Toolbar\Panel\CachePanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\DatabasePanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\DumpPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\EnvironmentPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\EventPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\HttpClientPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\LoggerPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\MailPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\MemoryPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\PluginPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\RequestPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\RouterPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\SchedulerPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\ThemePanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\StopwatchPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\AdminPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\AjaxPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\AssetPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\ContainerPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\FeedPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\RestPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\SecurityPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\ShortcodePanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\TranslationPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\WidgetPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\GenericPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\PerformancePanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\WordPressPanelRenderer;
-use WpPack\Component\Debug\Toolbar\ToolbarRenderer;
+use WPPack\Component\Debug\DataCollector\DataCollectorInterface;
+use WPPack\Component\Debug\Profiler\Profile;
+use WPPack\Component\Debug\Toolbar\Panel\CachePanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\DatabasePanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\DumpPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\EnvironmentPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\EventPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\HttpClientPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\LoggerPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\MailPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\MemoryPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\PluginPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\RequestPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\RouterPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\SchedulerPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\ThemePanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\StopwatchPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\AdminPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\AjaxPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\AssetPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\ContainerPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\FeedPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\RestPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\SecurityPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\ShortcodePanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\TranslationPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\WidgetPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\GenericPanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\PerformancePanelRenderer;
+use WPPack\Component\Debug\Toolbar\Panel\WordPressPanelRenderer;
+use WPPack\Component\Debug\Toolbar\ToolbarRenderer;
 
 final class ToolbarRendererTest extends TestCase
 {

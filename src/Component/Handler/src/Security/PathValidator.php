@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Handler\Security;
+namespace WPPack\Component\Handler\Security;
 
-use WpPack\Component\Handler\Exception\SecurityException;
+use WPPack\Component\Handler\Exception\SecurityException;
 
 class PathValidator
 {

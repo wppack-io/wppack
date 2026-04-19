@@ -4,7 +4,7 @@
  *
  * @var list<array{title: string, html: string}>                    $panels     Debug Bar panels
  * @var int                                                          $panelCount Panel count
- * @var \WpPack\Component\Debug\Toolbar\Panel\TemplateFormatters     $fmt        Template formatters
+ * @var \WPPack\Component\Debug\Toolbar\Panel\TemplateFormatters     $fmt        Template formatters
  */
 ?>
 <?php if (empty($panels)): ?>

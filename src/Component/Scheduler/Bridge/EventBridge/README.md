@@ -2,7 +2,7 @@
 
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=eventbridge_scheduler)](https://codecov.io/github/wppack-io/wppack)
 
-Amazon EventBridge Scheduler backend for [WpPack Scheduler](../../README.md).
+Amazon EventBridge Scheduler backend for [WPPack Scheduler](../../README.md).
 
 ## Installation
 
@@ -15,7 +15,7 @@ composer require wppack/eventbridge-scheduler
 ### Register the Scheduler
 
 ```php
-use WpPack\Component\Scheduler\Bridge\EventBridge\EventBridgeScheduler;
+use WPPack\Component\Scheduler\Bridge\EventBridge\EventBridgeScheduler;
 
 $scheduler = new EventBridgeScheduler(
     eventBridgeClient: $eventBridgeClient,

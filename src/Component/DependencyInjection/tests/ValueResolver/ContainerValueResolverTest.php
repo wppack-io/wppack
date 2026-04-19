@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\DependencyInjection\Tests\ValueResolver;
+namespace WPPack\Component\DependencyInjection\Tests\ValueResolver;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
-use WpPack\Component\DependencyInjection\ValueResolver\ContainerValueResolver;
+use WPPack\Component\DependencyInjection\ValueResolver\ContainerValueResolver;
 
 final class ContainerValueResolverTest extends TestCase
 {

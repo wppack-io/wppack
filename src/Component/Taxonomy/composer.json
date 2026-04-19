@@ -8,12 +8,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\Taxonomy\\": "src/"
+            "WPPack\\Component\\Taxonomy\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Component\\Taxonomy\\Tests\\": "tests/"
+            "WPPack\\Component\\Taxonomy\\Tests\\": "tests/"
         }
     }
 }

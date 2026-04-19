@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,26 +11,26 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Hook\Tests\Attribute\Plugin;
+namespace WPPack\Component\Hook\Tests\Attribute\Plugin;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Hook\Attribute\Action;
-use WpPack\Component\Hook\Attribute\Filter;
-use WpPack\Component\Hook\Hook;
-use WpPack\Component\Hook\HookType;
-use WpPack\Component\Hook\Attribute\Plugin\Action\ActivatedPluginAction;
-use WpPack\Component\Hook\Attribute\Plugin\Action\AfterPluginRowAction;
-use WpPack\Component\Hook\Attribute\Plugin\Action\DeactivatedPluginAction;
-use WpPack\Component\Hook\Attribute\Plugin\Action\MuPluginsLoadedAction;
-use WpPack\Component\Hook\Attribute\Plugin\Action\NetworkPluginsLoadedAction;
-use WpPack\Component\Hook\Attribute\Plugin\Action\PluginLoadedAction;
-use WpPack\Component\Hook\Attribute\Plugin\Action\UpgraderProcessCompleteAction;
-use WpPack\Component\Hook\Attribute\Plugin\Filter\NetworkPluginActionLinksFilter;
-use WpPack\Component\Hook\Attribute\Plugin\Filter\PluginActionLinksFilter;
-use WpPack\Component\Hook\Attribute\Plugin\Filter\PluginRowMetaFilter;
-use WpPack\Component\Hook\Attribute\Plugin\Filter\PluginsApiFilter;
-use WpPack\Component\Hook\Attribute\Plugin\Filter\PreSetSiteTransientUpdatePluginsFilter;
+use WPPack\Component\Hook\Attribute\Action;
+use WPPack\Component\Hook\Attribute\Filter;
+use WPPack\Component\Hook\Hook;
+use WPPack\Component\Hook\HookType;
+use WPPack\Component\Hook\Attribute\Plugin\Action\ActivatedPluginAction;
+use WPPack\Component\Hook\Attribute\Plugin\Action\AfterPluginRowAction;
+use WPPack\Component\Hook\Attribute\Plugin\Action\DeactivatedPluginAction;
+use WPPack\Component\Hook\Attribute\Plugin\Action\MuPluginsLoadedAction;
+use WPPack\Component\Hook\Attribute\Plugin\Action\NetworkPluginsLoadedAction;
+use WPPack\Component\Hook\Attribute\Plugin\Action\PluginLoadedAction;
+use WPPack\Component\Hook\Attribute\Plugin\Action\UpgraderProcessCompleteAction;
+use WPPack\Component\Hook\Attribute\Plugin\Filter\NetworkPluginActionLinksFilter;
+use WPPack\Component\Hook\Attribute\Plugin\Filter\PluginActionLinksFilter;
+use WPPack\Component\Hook\Attribute\Plugin\Filter\PluginRowMetaFilter;
+use WPPack\Component\Hook\Attribute\Plugin\Filter\PluginsApiFilter;
+use WPPack\Component\Hook\Attribute\Plugin\Filter\PreSetSiteTransientUpdatePluginsFilter;
 
 final class NamedHookTest extends TestCase
 {

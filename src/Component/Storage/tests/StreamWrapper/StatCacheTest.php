@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Storage\Tests\StreamWrapper;
+namespace WPPack\Component\Storage\Tests\StreamWrapper;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Storage\StreamWrapper\StatCache;
+use WPPack\Component\Storage\StreamWrapper\StatCache;
 
 #[CoversClass(StatCache::class)]
 final class StatCacheTest extends TestCase

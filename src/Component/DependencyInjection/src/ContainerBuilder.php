@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\DependencyInjection;
+namespace WPPack\Component\DependencyInjection;
 
 use Symfony\Component\DependencyInjection\ContainerBuilder as SymfonyContainerBuilder;
-use WpPack\Component\DependencyInjection\Compiler\CompilerPassAdapter;
-use WpPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
-use WpPack\Component\DependencyInjection\Configurator\ContainerConfigurator;
-use WpPack\Component\DependencyInjection\Exception\ParameterNotFoundException;
-use WpPack\Component\DependencyInjection\Exception\ServiceNotFoundException;
+use WPPack\Component\DependencyInjection\Compiler\CompilerPassAdapter;
+use WPPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
+use WPPack\Component\DependencyInjection\Configurator\ContainerConfigurator;
+use WPPack\Component\DependencyInjection\Exception\ParameterNotFoundException;
+use WPPack\Component\DependencyInjection\Exception\ServiceNotFoundException;
 
 class ContainerBuilder
 {

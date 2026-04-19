@@ -78,7 +78,7 @@ src/Plugin/RedisCachePlugin/
 ## 名前空間
 
 ```
-WpPack\Plugin\RedisCachePlugin\
+WPPack\Plugin\RedisCachePlugin\
 ```
 
 ## 設定
@@ -134,14 +134,14 @@ IAM 認証の仕組み:
 `PluginInterface` 実装。`Kernel::registerPlugin()` で登録される。
 
 ```php
-namespace WpPack\Plugin\RedisCachePlugin;
+namespace WPPack\Plugin\RedisCachePlugin;
 
 final class RedisCachePlugin extends AbstractPlugin
 {
     public function register(ContainerBuilder $builder): void;
     public function getCompilerPasses(): array;  // RegisterHookSubscribersPass
     public function onActivate(): void;          // object-cache.php をコピー
-    public function onDeactivate(): void;        // object-cache.php を削除（WpPack 製のみ）
+    public function onDeactivate(): void;        // object-cache.php を削除（WPPack 製のみ）
 }
 ```
 
@@ -150,7 +150,7 @@ final class RedisCachePlugin extends AbstractPlugin
 設定 VO。環境変数と PHP 定数の両方に対応。
 
 ```php
-namespace WpPack\Plugin\RedisCachePlugin\Configuration;
+namespace WPPack\Plugin\RedisCachePlugin\Configuration;
 
 final readonly class RedisCacheConfiguration
 {
@@ -201,8 +201,8 @@ cp vendor/wppack/cache/drop-in/object-cache.php wp-content/object-cache.php
 ### 無効化時（onDeactivate）
 
 1. `WP_CONTENT_DIR/object-cache.php` が存在し、書き込み可能か確認
-2. ファイル先頭 512 バイトに `WpPack Object Cache Drop-in` シグネチャがあるか確認
-3. WpPack 製のドロップインのみ削除（他のプラグインのドロップインは保護）
+2. ファイル先頭 512 バイトに `WPPack Object Cache Drop-in` シグネチャがあるか確認
+3. WPPack 製のドロップインのみ削除（他のプラグインのドロップインは保護）
 4. 読み取り専用ファイルシステムではスキップ
 
 ### キルスイッチ（WPPACK_CACHE_ENABLED）

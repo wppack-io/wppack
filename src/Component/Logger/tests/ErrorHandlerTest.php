@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Logger\Tests;
+namespace WPPack\Component\Logger\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Logger\ChannelResolver\DefaultChannelResolver;
-use WpPack\Component\Logger\ErrorHandler;
-use WpPack\Component\Logger\Handler\HandlerInterface;
-use WpPack\Component\Logger\LoggerFactory;
+use WPPack\Component\Logger\ChannelResolver\DefaultChannelResolver;
+use WPPack\Component\Logger\ErrorHandler;
+use WPPack\Component\Logger\Handler\HandlerInterface;
+use WPPack\Component\Logger\LoggerFactory;
 
 final class ErrorHandlerTest extends TestCase
 {

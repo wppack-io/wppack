@@ -11,12 +11,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\Media\\": "src/"
+            "WPPack\\Component\\Media\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Component\\Media\\Tests\\": "tests/"
+            "WPPack\\Component\\Media\\Tests\\": "tests/"
         }
     }
 }

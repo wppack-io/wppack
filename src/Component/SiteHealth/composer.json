@@ -8,12 +8,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\SiteHealth\\": "src/"
+            "WPPack\\Component\\SiteHealth\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Component\\SiteHealth\\Tests\\": "tests/"
+            "WPPack\\Component\\SiteHealth\\Tests\\": "tests/"
         }
     }
 }

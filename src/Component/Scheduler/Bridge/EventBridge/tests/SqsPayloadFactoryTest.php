@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,15 +11,15 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Scheduler\Bridge\EventBridge\Tests;
+namespace WPPack\Component\Scheduler\Bridge\EventBridge\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Messenger\Serializer\JsonSerializer;
-use WpPack\Component\Messenger\Stamp\MultisiteStamp;
-use WpPack\Component\Scheduler\Bridge\EventBridge\SqsPayloadFactory;
-use WpPack\Component\Scheduler\Message\ActionSchedulerMessage;
-use WpPack\Component\Scheduler\Message\WpCronMessage;
+use WPPack\Component\Messenger\Serializer\JsonSerializer;
+use WPPack\Component\Messenger\Stamp\MultisiteStamp;
+use WPPack\Component\Scheduler\Bridge\EventBridge\SqsPayloadFactory;
+use WPPack\Component\Scheduler\Message\ActionSchedulerMessage;
+use WPPack\Component\Scheduler\Message\WpCronMessage;
 
 final class SqsPayloadFactoryTest extends TestCase
 {

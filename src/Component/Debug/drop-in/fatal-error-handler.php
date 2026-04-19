@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -10,7 +10,7 @@
  */
 
 /**
- * WpPack Fatal Error Handler Drop-in
+ * WPPack Fatal Error Handler Drop-in
  *
  * Copy this file to wp-content/fatal-error-handler.php.
  *
@@ -40,13 +40,13 @@
 
 declare(strict_types=1);
 
-use WpPack\Component\Debug\DataCollector\WpErrorDataCollector;
-use WpPack\Component\Debug\DebugConfig;
-use WpPack\Component\Debug\ErrorHandler\ErrorRenderer;
-use WpPack\Component\Debug\ErrorHandler\ExceptionHandler;
-use WpPack\Component\Debug\ErrorHandler\FatalErrorHandler;
-use WpPack\Component\Debug\ErrorHandler\RedirectHandler;
-use WpPack\Component\Logger\ErrorLogInterceptor;
+use WPPack\Component\Debug\DataCollector\WpErrorDataCollector;
+use WPPack\Component\Debug\DebugConfig;
+use WPPack\Component\Debug\ErrorHandler\ErrorRenderer;
+use WPPack\Component\Debug\ErrorHandler\ExceptionHandler;
+use WPPack\Component\Debug\ErrorHandler\FatalErrorHandler;
+use WPPack\Component\Debug\ErrorHandler\RedirectHandler;
+use WPPack\Component\Logger\ErrorLogInterceptor;
 
 // Kill switch: define('WPPACK_DEBUG_ENABLED', false) to disable
 if (\defined('WPPACK_DEBUG_ENABLED') && !WPPACK_DEBUG_ENABLED) {

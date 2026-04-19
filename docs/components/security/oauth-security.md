@@ -7,11 +7,11 @@ OAuth 2.0 / OpenID Connect 認証ブリッジ
 | 項目 | 値 |
 |------|-----|
 | パッケージ名 | `wppack/oauth-security` |
-| 名前空間 | `WpPack\Component\Security\Bridge\OAuth\` |
+| 名前空間 | `WPPack\Component\Security\Bridge\OAuth\` |
 | レイヤー | Abstraction（Bridge） |
 | 依存 | `wppack/security`, `firebase/php-jwt` |
 
-外部 IdP による OAuth 2.0 / OpenID Connect SSO 認証を WpPack Security コンポーネントに統合する Bridge パッケージです。19 種の専用プロバイダーと Generic OIDC プロバイダーをサポートし、`firebase/php-jwt` を使用した ID トークン検証と自前の OAuth/OIDC フロー実装を組み合わせています。
+外部 IdP による OAuth 2.0 / OpenID Connect SSO 認証を WPPack Security コンポーネントに統合する Bridge パッケージです。19 種の専用プロバイダーと Generic OIDC プロバイダーをサポートし、`firebase/php-jwt` を使用した ID トークン検証と自前の OAuth/OIDC フロー実装を組み合わせています。
 
 ## インストール
 
@@ -26,7 +26,7 @@ composer require wppack/oauth-security
 OAuth / OIDC の設定を定義します:
 
 ```php
-use WpPack\Component\Security\Bridge\OAuth\Configuration\OAuthConfiguration;
+use WPPack\Component\Security\Bridge\OAuth\Configuration\OAuthConfiguration;
 
 $configuration = new OAuthConfiguration(
     clientId: 'your-client-id',
@@ -59,7 +59,7 @@ $configuration = new OAuthConfiguration(
 各 IdP の差異を吸収するインターフェースです:
 
 ```php
-use WpPack\Component\Security\Bridge\OAuth\Provider\ProviderInterface;
+use WPPack\Component\Security\Bridge\OAuth\Provider\ProviderInterface;
 ```
 
 ### GoogleProvider
@@ -67,7 +67,7 @@ use WpPack\Component\Security\Bridge\OAuth\Provider\ProviderInterface;
 Google アカウント（個人）および Google Workspace に対応:
 
 ```php
-use WpPack\Component\Security\Bridge\OAuth\Provider\GoogleProvider;
+use WPPack\Component\Security\Bridge\OAuth\Provider\GoogleProvider;
 
 $provider = new GoogleProvider(
     configuration: $configuration,
@@ -88,7 +88,7 @@ $provider = new GoogleProvider(
 Microsoft Entra ID（旧 Azure AD）に対応:
 
 ```php
-use WpPack\Component\Security\Bridge\OAuth\Provider\EntraIdProvider;
+use WPPack\Component\Security\Bridge\OAuth\Provider\EntraIdProvider;
 
 $provider = new EntraIdProvider(
     configuration: $configuration,
@@ -171,7 +171,7 @@ $provider = new LineProvider(configuration: $configuration);
 Okta, Auth0, OneLogin, Keycloak, Cognito は `domain` パラメータからエンドポイントを自動構築します。Discovery URL のユーザー指定は不要です:
 
 ```php
-use WpPack\Component\Security\Bridge\OAuth\Provider\OktaProvider;
+use WPPack\Component\Security\Bridge\OAuth\Provider\OktaProvider;
 
 $provider = new OktaProvider(
     configuration: $configuration,
@@ -260,8 +260,8 @@ $provider = new MicrosoftProvider(configuration: $configuration);
 各プロバイダーは `ProviderDefinition` を返す `definition()` メソッドを実装しています:
 
 ```php
-use WpPack\Component\Security\Bridge\OAuth\Provider\ProviderDefinition;
-use WpPack\Component\Security\Bridge\OAuth\Provider\ProviderRegistry;
+use WPPack\Component\Security\Bridge\OAuth\Provider\ProviderDefinition;
+use WPPack\Component\Security\Bridge\OAuth\Provider\ProviderRegistry;
 
 // 全プロバイダー定義を取得
 $definitions = ProviderRegistry::definitions();
@@ -348,7 +348,7 @@ OAuthAuthenticator（sub.example.com）
 OAuth 認証フローのエントリポイントです:
 
 ```php
-use WpPack\Component\Security\Bridge\OAuth\OAuthEntryPoint;
+use WPPack\Component\Security\Bridge\OAuth\OAuthEntryPoint;
 
 $entryPoint = new OAuthEntryPoint(
     provider: $provider,
@@ -387,7 +387,7 @@ $entryPoint->register();
 Security コンポーネントの `AuthenticatorInterface` を実装する中核クラスです:
 
 ```php
-use WpPack\Component\Security\Bridge\OAuth\OAuthAuthenticator;
+use WPPack\Component\Security\Bridge\OAuth\OAuthAuthenticator;
 
 $authenticator = new OAuthAuthenticator(
     provider: $provider,
@@ -416,7 +416,7 @@ $authenticator = new OAuthAuthenticator(
 OIDC RP-Initiated Logout（RFC）に対応:
 
 ```php
-use WpPack\Component\Security\Bridge\OAuth\OAuthLogoutHandler;
+use WPPack\Component\Security\Bridge\OAuth\OAuthLogoutHandler;
 
 $logoutHandler = new OAuthLogoutHandler(
     provider: $provider,
@@ -444,7 +444,7 @@ if ($logoutHandler->supportsRemoteLogout()) {
 OAuth トークン情報を保持する Badge です。Passport に自動追加されます:
 
 ```php
-use WpPack\Component\Security\Bridge\OAuth\Badge\OAuthTokenBadge;
+use WPPack\Component\Security\Bridge\OAuth\Badge\OAuthTokenBadge;
 
 $badge = $passport->getBadge(OAuthTokenBadge::class);
 $subject = $badge->getSubject();
@@ -457,7 +457,7 @@ $tokenSet = $badge->getTokenSet();
 トークン検証成功後、ユーザー解決前にディスパッチされるイベントです:
 
 ```php
-use WpPack\Component\Security\Bridge\OAuth\Event\OAuthResponseReceivedEvent;
+use WPPack\Component\Security\Bridge\OAuth\Event\OAuthResponseReceivedEvent;
 
 final class OAuthAuditListener
 {
@@ -479,7 +479,7 @@ final class OAuthAuditListener
 OAuth のサブジェクト ID とクレームから WordPress ユーザーを解決するインターフェースです:
 
 ```php
-use WpPack\Component\Security\Bridge\OAuth\UserResolution\OAuthUserResolverInterface;
+use WPPack\Component\Security\Bridge\OAuth\UserResolution\OAuthUserResolverInterface;
 
 interface OAuthUserResolverInterface
 {
@@ -493,7 +493,7 @@ interface OAuthUserResolverInterface
 ### OAuthUserResolver（デフォルト実装）
 
 ```php
-use WpPack\Component\Security\Bridge\OAuth\UserResolution\OAuthUserResolver;
+use WPPack\Component\Security\Bridge\OAuth\UserResolution\OAuthUserResolver;
 
 $userResolver = new OAuthUserResolver(
     providerName: 'google',               // プロバイダー名（meta key に使用）
@@ -533,7 +533,7 @@ $userResolver = new OAuthUserResolver(
 マルチサイトで複数のサブサイトが異なるドメインを持つ場合に使用します:
 
 ```php
-use WpPack\Component\Security\Bridge\OAuth\Multisite\CrossSiteRedirector;
+use WPPack\Component\Security\Bridge\OAuth\Multisite\CrossSiteRedirector;
 
 $redirector = new CrossSiteRedirector(
     allowedHosts: ['main.example.com', 'sub.example.com'],
@@ -560,7 +560,7 @@ SAML Bridge の `CrossSiteRedirector` と同じパターンですが、SAMLRespo
 OAuth 2.0 の認可コード横取り攻撃を防止する PKCE（RFC 7636）をデフォルトで有効化しています:
 
 ```php
-use WpPack\Component\Security\Bridge\OAuth\Pkce\PkceGenerator;
+use WPPack\Component\Security\Bridge\OAuth\Pkce\PkceGenerator;
 
 // 自動的に OAuthEntryPoint で使用される
 $pkce = PkceGenerator::generate();
@@ -576,7 +576,7 @@ $pkce = PkceGenerator::generate();
 認可コードをトークンに交換します:
 
 ```php
-use WpPack\Component\Security\Bridge\OAuth\Token\TokenExchanger;
+use WPPack\Component\Security\Bridge\OAuth\Token\TokenExchanger;
 
 $exchanger = new TokenExchanger($httpClient);
 $tokenSet = $exchanger->exchange(
@@ -594,7 +594,7 @@ $tokenSet = $exchanger->exchange(
 リフレッシュトークンで新しいアクセストークンを取得します:
 
 ```php
-use WpPack\Component\Security\Bridge\OAuth\Token\TokenRefresher;
+use WPPack\Component\Security\Bridge\OAuth\Token\TokenRefresher;
 
 $refresher = new TokenRefresher($httpClient);
 $newTokenSet = $refresher->refresh(
@@ -610,7 +610,7 @@ $newTokenSet = $refresher->refresh(
 `firebase/php-jwt` を使用して ID トークンの署名とクレームを検証します:
 
 ```php
-use WpPack\Component\Security\Bridge\OAuth\Token\IdTokenValidator;
+use WPPack\Component\Security\Bridge\OAuth\Token\IdTokenValidator;
 
 $validator = new IdTokenValidator();
 $claims = $validator->validate(
@@ -629,8 +629,8 @@ $claims = $validator->validate(
 OIDC Discovery ドキュメントと JWKS キーセットを取得・キャッシュします:
 
 ```php
-use WpPack\Component\Security\Bridge\OAuth\Token\OidcDiscovery;
-use WpPack\Component\Security\Bridge\OAuth\Token\JwksProvider;
+use WPPack\Component\Security\Bridge\OAuth\Token\OidcDiscovery;
+use WPPack\Component\Security\Bridge\OAuth\Token\JwksProvider;
 
 $discovery = new OidcDiscovery($httpClient);
 $document = $discovery->discover('https://accounts.google.com/.well-known/openid-configuration');

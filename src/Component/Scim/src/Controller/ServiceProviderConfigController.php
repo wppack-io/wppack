@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,15 +11,15 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Scim\Controller;
+namespace WPPack\Component\Scim\Controller;
 
-use WpPack\Component\HttpFoundation\JsonResponse;
-use WpPack\Component\Rest\AbstractRestController;
-use WpPack\Component\Rest\Attribute\RestRoute;
-use WpPack\Component\Rest\HttpMethod;
-use WpPack\Component\Role\Attribute\IsGranted;
-use WpPack\Component\Scim\Schema\ScimConstants;
-use WpPack\Component\Scim\Schema\ServiceProviderConfig;
+use WPPack\Component\HttpFoundation\JsonResponse;
+use WPPack\Component\Rest\AbstractRestController;
+use WPPack\Component\Rest\Attribute\RestRoute;
+use WPPack\Component\Rest\HttpMethod;
+use WPPack\Component\Role\Attribute\IsGranted;
+use WPPack\Component\Scim\Schema\ScimConstants;
+use WPPack\Component\Scim\Schema\ServiceProviderConfig;
 
 #[RestRoute(namespace: 'scim/v2', route: '/ServiceProviderConfig', methods: [HttpMethod::GET])]
 #[IsGranted(ScimConstants::CAPABILITY_PROVISION)]

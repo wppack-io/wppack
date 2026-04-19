@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Dsn;
+namespace WPPack\Component\Dsn;
 
-use WpPack\Component\Dsn\Exception\InvalidDsnException;
+use WPPack\Component\Dsn\Exception\InvalidDsnException;
 
 /**
  * Parses and represents a Data Source Name (DSN) string.

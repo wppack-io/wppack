@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Security\Tests\Authorization\Voter;
+namespace WPPack\Component\Security\Tests\Authorization\Voter;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Security\Authentication\Token\NullToken;
-use WpPack\Component\Security\Authentication\Token\ServiceToken;
-use WpPack\Component\Security\Authorization\Voter\CapabilityVoter;
-use WpPack\Component\Security\Authorization\Voter\VoterInterface;
+use WPPack\Component\Security\Authentication\Token\NullToken;
+use WPPack\Component\Security\Authentication\Token\ServiceToken;
+use WPPack\Component\Security\Authorization\Voter\CapabilityVoter;
+use WPPack\Component\Security\Authorization\Voter\VoterInterface;
 
 final class CapabilityVoterTest extends TestCase
 {
@@ -55,7 +55,7 @@ final class CapabilityVoterTest extends TestCase
             $user = new \WP_User($userId);
             $user->set_role('administrator');
 
-            $token = new \WpPack\Component\Security\Authentication\Token\PostAuthenticationToken($user, $user->roles);
+            $token = new \WPPack\Component\Security\Authentication\Token\PostAuthenticationToken($user, $user->roles);
 
             self::assertSame(VoterInterface::ACCESS_GRANTED, $this->voter->vote($token, 'manage_options'));
         } finally {
@@ -73,7 +73,7 @@ final class CapabilityVoterTest extends TestCase
             $user = new \WP_User($userId);
             $user->set_role('subscriber');
 
-            $token = new \WpPack\Component\Security\Authentication\Token\PostAuthenticationToken($user, $user->roles);
+            $token = new \WPPack\Component\Security\Authentication\Token\PostAuthenticationToken($user, $user->roles);
 
             self::assertSame(VoterInterface::ACCESS_DENIED, $this->voter->vote($token, 'manage_options'));
         } finally {
@@ -101,7 +101,7 @@ final class CapabilityVoterTest extends TestCase
 
             self::assertIsInt($postId);
 
-            $token = new \WpPack\Component\Security\Authentication\Token\PostAuthenticationToken($user, $user->roles);
+            $token = new \WPPack\Component\Security\Authentication\Token\PostAuthenticationToken($user, $user->roles);
 
             // Author should be able to edit their own post
             self::assertSame(VoterInterface::ACCESS_GRANTED, $this->voter->vote($token, 'edit_post', $postId));
@@ -158,7 +158,7 @@ final class CapabilityVoterTest extends TestCase
 
             self::assertIsInt($postId);
 
-            $token = new \WpPack\Component\Security\Authentication\Token\PostAuthenticationToken($subscriber, $subscriber->roles);
+            $token = new \WPPack\Component\Security\Authentication\Token\PostAuthenticationToken($subscriber, $subscriber->roles);
 
             // Subscriber should NOT be able to edit another user's post
             self::assertSame(VoterInterface::ACCESS_DENIED, $this->voter->vote($token, 'edit_post', $postId));

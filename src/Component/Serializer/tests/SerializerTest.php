@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,22 +11,22 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Serializer\Tests;
+namespace WPPack\Component\Serializer\Tests;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Serializer\Encoder\JsonEncoder;
-use WpPack\Component\Serializer\Exception\InvalidArgumentException;
-use WpPack\Component\Serializer\Exception\NotNormalizableValueException;
-use WpPack\Component\Serializer\Normalizer\BackedEnumNormalizer;
-use WpPack\Component\Serializer\Normalizer\DateTimeNormalizer;
-use WpPack\Component\Serializer\Normalizer\ObjectNormalizer;
-use WpPack\Component\Serializer\Serializer;
-use WpPack\Component\Serializer\Tests\Fixtures\DummyObject;
-use WpPack\Component\Serializer\Tests\Fixtures\DummyStatus;
-use WpPack\Component\Serializer\Tests\Fixtures\NestedObject;
-use WpPack\Component\Serializer\Tests\Fixtures\ObjectWithDatetime;
+use WPPack\Component\Serializer\Encoder\JsonEncoder;
+use WPPack\Component\Serializer\Exception\InvalidArgumentException;
+use WPPack\Component\Serializer\Exception\NotNormalizableValueException;
+use WPPack\Component\Serializer\Normalizer\BackedEnumNormalizer;
+use WPPack\Component\Serializer\Normalizer\DateTimeNormalizer;
+use WPPack\Component\Serializer\Normalizer\ObjectNormalizer;
+use WPPack\Component\Serializer\Serializer;
+use WPPack\Component\Serializer\Tests\Fixtures\DummyObject;
+use WPPack\Component\Serializer\Tests\Fixtures\DummyStatus;
+use WPPack\Component\Serializer\Tests\Fixtures\NestedObject;
+use WPPack\Component\Serializer\Tests\Fixtures\ObjectWithDatetime;
 
 #[CoversClass(Serializer::class)]
 final class SerializerTest extends TestCase

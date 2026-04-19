@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Debug\Tests\Adapter;
+namespace WPPack\Component\Debug\Tests\Adapter;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Debug\Adapter\DebugBarPanelAdapter;
+use WPPack\Component\Debug\Adapter\DebugBarPanelAdapter;
 
 final class DebugBarPanelAdapterTest extends TestCase
 {

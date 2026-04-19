@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,18 +11,18 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Wpress\Tests\Metadata;
+namespace WPPack\Component\Wpress\Tests\Metadata;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Wpress\Metadata\CompressionInfo;
-use WpPack\Component\Wpress\Metadata\DatabaseInfo;
-use WpPack\Component\Wpress\Metadata\PackageMetadata;
-use WpPack\Component\Wpress\Metadata\PhpInfo;
-use WpPack\Component\Wpress\Metadata\PluginInfo;
-use WpPack\Component\Wpress\Metadata\ReplaceInfo;
-use WpPack\Component\Wpress\Metadata\ServerInfo;
-use WpPack\Component\Wpress\Metadata\WordPressInfo;
+use WPPack\Component\Wpress\Metadata\CompressionInfo;
+use WPPack\Component\Wpress\Metadata\DatabaseInfo;
+use WPPack\Component\Wpress\Metadata\PackageMetadata;
+use WPPack\Component\Wpress\Metadata\PhpInfo;
+use WPPack\Component\Wpress\Metadata\PluginInfo;
+use WPPack\Component\Wpress\Metadata\ReplaceInfo;
+use WPPack\Component\Wpress\Metadata\ServerInfo;
+use WPPack\Component\Wpress\Metadata\WordPressInfo;
 
 final class PackageMetadataTest extends TestCase
 {

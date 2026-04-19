@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Messenger\Middleware;
+namespace WPPack\Component\Messenger\Middleware;
 
 use Psr\Log\LoggerInterface;
-use WpPack\Component\Messenger\Envelope;
-use WpPack\Component\Messenger\Exception\HandlerFailedException;
-use WpPack\Component\Messenger\Exception\NoHandlerForMessageException;
-use WpPack\Component\Messenger\Handler\HandlerLocatorInterface;
-use WpPack\Component\Messenger\Stamp\HandledStamp;
+use WPPack\Component\Messenger\Envelope;
+use WPPack\Component\Messenger\Exception\HandlerFailedException;
+use WPPack\Component\Messenger\Exception\NoHandlerForMessageException;
+use WPPack\Component\Messenger\Handler\HandlerLocatorInterface;
+use WPPack\Component\Messenger\Stamp\HandledStamp;
 
 final class HandleMessageMiddleware implements MiddlewareInterface
 {

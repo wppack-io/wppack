@@ -12,7 +12,7 @@
 ### 使用例：nonce の有効期間をカスタマイズ
 
 ```php
-use WpPack\Component\Hook\Attribute\Nonce\NonceLifeFilter;
+use WPPack\Component\Hook\Attribute\Nonce\NonceLifeFilter;
 
 class NonceLifetimeCustomizer
 {

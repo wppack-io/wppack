@@ -1,8 +1,8 @@
-# WpPack Memcached Cache
+# WPPack Memcached Cache
 
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=memcached_cache)](https://codecov.io/github/wppack-io/wppack)
 
-Memcached cache adapter for the WpPack Cache component.
+Memcached cache adapter for the WPPack Cache component.
 
 ## Installation
 

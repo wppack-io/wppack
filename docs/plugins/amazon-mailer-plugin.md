@@ -54,7 +54,7 @@ src/Plugin/AmazonMailerPlugin/
 ┌─ メール送信 ────────────────────────────────┐
 │                                              │
 │  wp_mail() / $mailer->send()                 │
-│    → WpPack\Component\Mailer\Mailer          │
+│    → WPPack\Component\Mailer\Mailer          │
 │    → Transport::fromDsn(MAILER_DSN)          │
 │      → SesTransportFactory::create()         │
 │        → SesApiTransport / SesTransport      │
@@ -63,7 +63,7 @@ src/Plugin/AmazonMailerPlugin/
 └──────────────────────────────────────────────┘
 ```
 
-`Mailer::boot()` が `wp_mail` フィルタを登録し、WordPress のグローバル `$phpmailer` を WpPack の `PhpMailer`（SES トランスポート付き）に差し替えます。以降の `wp_mail()` 呼び出しはすべて SES 経由で送信されます。
+`Mailer::boot()` が `wp_mail` フィルタを登録し、WordPress のグローバル `$phpmailer` を WPPack の `PhpMailer`（SES トランスポート付き）に差し替えます。以降の `wp_mail()` 呼び出しはすべて SES 経由で送信されます。
 
 ### バウンス/苦情通知フロー
 
@@ -73,7 +73,7 @@ src/Plugin/AmazonMailerPlugin/
 │  SES → SNS → SQS                            │
 │                                              │
 └──────────────────────────────────────────────┘
-            ↓ WpPack\Component\Messenger
+            ↓ WPPack\Component\Messenger
 ┌─ 通知処理 ──────────────────────────────────┐
 │ Lambda (Bref WordPress)                      │
 │                                              │
@@ -106,7 +106,7 @@ src/Plugin/AmazonMailerPlugin/
 ## 名前空間
 
 ```
-WpPack\Plugin\AmazonMailerPlugin\
+WPPack\Plugin\AmazonMailerPlugin\
 ```
 
 ## 設定
@@ -147,7 +147,7 @@ define('MAILER_DSN', 'ses+api://default?region=ap-northeast-1');
 `PluginInterface` 実装。`Kernel::registerPlugin()` で登録される。
 
 ```php
-namespace WpPack\Plugin\AmazonMailerPlugin;
+namespace WPPack\Plugin\AmazonMailerPlugin;
 
 final class AmazonMailerPlugin extends AbstractPlugin
 {
@@ -166,7 +166,7 @@ final class AmazonMailerPlugin extends AbstractPlugin
 設定 VO。`MAILER_DSN` を PHP 定数または環境変数から読み込みます。
 
 ```php
-namespace WpPack\Plugin\AmazonMailerPlugin\Configuration;
+namespace WPPack\Plugin\AmazonMailerPlugin\Configuration;
 
 final readonly class AmazonMailerConfiguration
 {
@@ -196,7 +196,7 @@ DI サービスプロバイダ。以下のサービスを登録します:
 SES から SNS → SQS 経由で配信されるバウンスおよび苦情通知メッセージ DTO。
 
 ```php
-namespace WpPack\Plugin\AmazonMailerPlugin\Message;
+namespace WPPack\Plugin\AmazonMailerPlugin\Message;
 
 final readonly class SesBounceMessage
 {
@@ -227,7 +227,7 @@ final readonly class SesComplaintMessage
 SES SNS 通知 JSON をメッセージオブジェクトに変換します。
 
 ```php
-namespace WpPack\Plugin\AmazonMailerPlugin\Message;
+namespace WPPack\Plugin\AmazonMailerPlugin\Message;
 
 final readonly class SesNotificationNormalizer
 {
@@ -256,7 +256,7 @@ final readonly class SesNotificationNormalizer
 バウンス通知を処理し、バウンスしたメールアドレスを記録します。Permanent バウンスの場合は `wp_options` テーブルの送信抑制リスト（`wppack_ses_suppression_list`）に追加します。
 
 ```php
-namespace WpPack\Plugin\AmazonMailerPlugin\Handler;
+namespace WPPack\Plugin\AmazonMailerPlugin\Handler;
 
 #[AsMessageHandler]
 final readonly class BounceHandler
@@ -274,7 +274,7 @@ final readonly class BounceHandler
 苦情通知を処理し、苦情を申し立てたメールアドレスを送信抑制リストに追加します。
 
 ```php
-namespace WpPack\Plugin\AmazonMailerPlugin\Handler;
+namespace WPPack\Plugin\AmazonMailerPlugin\Handler;
 
 #[AsMessageHandler]
 final readonly class ComplaintHandler
@@ -305,20 +305,20 @@ wp_mail('user@example.com', 'Subject', 'Message body');
 
 ### バウンス/苦情通知の処理
 
-SES の通知設定で SNS トピックを作成し、SQS キューにサブスクライブします。WpPack Messenger が SQS メッセージを受信し、対応するハンドラを自動的に実行します。
+SES の通知設定で SNS トピックを作成し、SQS キューにサブスクライブします。WPPack Messenger が SQS メッセージを受信し、対応するハンドラを自動的に実行します。
 
 #### SES SNS 通知の設定手順
 
 1. **SNS トピック作成**: AWS コンソールで SNS トピック（例: `ses-notifications`）を作成
 2. **SES 通知設定**: SES の Configuration Set または Identity 設定で、バウンスと苦情通知を SNS トピックに送信するよう設定
 3. **SQS キュー作成**: SQS キュー（例: `ses-notifications-queue`）を作成し、SNS トピックをサブスクライブ
-4. **Messenger 設定**: WpPack Messenger の SQS トランスポートでキューを設定
+4. **Messenger 設定**: WPPack Messenger の SQS トランスポートでキューを設定
 
 ```php
 // カスタムバウンスハンドラの例
 use Psr\Log\LoggerInterface;
-use WpPack\Component\Messenger\Attribute\AsMessageHandler;
-use WpPack\Plugin\AmazonMailerPlugin\Message\SesBounceMessage;
+use WPPack\Component\Messenger\Attribute\AsMessageHandler;
+use WPPack\Plugin\AmazonMailerPlugin\Message\SesBounceMessage;
 
 #[AsMessageHandler]
 final readonly class CustomBounceHandler

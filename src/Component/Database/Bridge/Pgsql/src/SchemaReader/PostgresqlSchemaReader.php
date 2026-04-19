@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database\Bridge\Pgsql\SchemaReader;
+namespace WPPack\Component\Database\Bridge\Pgsql\SchemaReader;
 
-use WpPack\Component\Database\DatabaseManager;
-use WpPack\Component\Database\Schema\ColumnSchema;
-use WpPack\Component\Database\Schema\TableSchema;
-use WpPack\Component\Database\SchemaReader\SchemaReaderInterface;
-use WpPack\Component\Database\Bridge\Pgsql\TypeMapper\PostgresqlTypeMapper;
+use WPPack\Component\Database\DatabaseManager;
+use WPPack\Component\Database\Schema\ColumnSchema;
+use WPPack\Component\Database\Schema\TableSchema;
+use WPPack\Component\Database\SchemaReader\SchemaReaderInterface;
+use WPPack\Component\Database\Bridge\Pgsql\TypeMapper\PostgresqlTypeMapper;
 
 /**
  * Schema reader for PostgreSQL databases.

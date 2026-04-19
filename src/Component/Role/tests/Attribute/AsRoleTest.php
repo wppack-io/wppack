@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Role\Tests\Attribute;
+namespace WPPack\Component\Role\Tests\Attribute;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Role\Attribute\AsRole;
+use WPPack\Component\Role\Attribute\AsRole;
 
 final class AsRoleTest extends TestCase
 {

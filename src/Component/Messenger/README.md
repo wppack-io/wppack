@@ -1,4 +1,4 @@
-# WpPack Messenger
+# WPPack Messenger
 
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=messenger)](https://codecov.io/github/wppack-io/wppack)
 
@@ -15,7 +15,7 @@ composer require wppack/messenger
 ### Define Messages
 
 ```php
-use WpPack\Component\Messenger\Attribute\AsMessage;
+use WPPack\Component\Messenger\Attribute\AsMessage;
 
 #[AsMessage]
 final readonly class SendEmailMessage
@@ -31,7 +31,7 @@ final readonly class SendEmailMessage
 ### Define Handlers
 
 ```php
-use WpPack\Component\Messenger\Attribute\AsMessageHandler;
+use WPPack\Component\Messenger\Attribute\AsMessageHandler;
 
 #[AsMessageHandler]
 final class SendEmailMessageHandler
@@ -56,8 +56,8 @@ $messageBus->dispatch(new SendEmailMessage(
 ### Envelope & Stamps
 
 ```php
-use WpPack\Component\Messenger\Envelope;
-use WpPack\Component\Messenger\Stamp\DelayStamp;
+use WPPack\Component\Messenger\Envelope;
+use WPPack\Component\Messenger\Stamp\DelayStamp;
 
 $messageBus->dispatch(new Envelope(
     new SendEmailMessage(userId: 123, subject: 'Reminder', body: '...'),
@@ -72,7 +72,7 @@ Messages are dispatched to SQS, then consumed by Lambda (Bref) workers that boot
 ## Testing
 
 ```php
-use WpPack\Component\Messenger\Test\TestMessageBus;
+use WPPack\Component\Messenger\Test\TestMessageBus;
 
 $testBus = new TestMessageBus();
 $testBus->dispatch(new SendEmailMessage(...));

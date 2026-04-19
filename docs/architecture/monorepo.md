@@ -2,7 +2,7 @@
 
 ## 概要
 
-WpPack はモノレポで管理され、splitsh-lite を使って各パッケージを個別リポジトリに分割公開します。開発はモノレポで行い、ユーザーは Composer で個別パッケージをインストールします。
+WPPack はモノレポで管理され、splitsh-lite を使って各パッケージを個別リポジトリに分割公開します。開発はモノレポで行い、ユーザーは Composer で個別パッケージをインストールします。
 
 ## ディレクトリ構成
 
@@ -93,9 +93,9 @@ jobs:
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\Messenger\\": "src/Component/Messenger/src/",
-            "WpPack\\Component\\Scheduler\\": "src/Component/Scheduler/src/",
-            "WpPack\\Plugin\\EventBridgeSchedulerPlugin\\": "src/Plugin/EventBridgeSchedulerPlugin/src/"
+            "WPPack\\Component\\Messenger\\": "src/Component/Messenger/src/",
+            "WPPack\\Component\\Scheduler\\": "src/Component/Scheduler/src/",
+            "WPPack\\Plugin\\EventBridgeSchedulerPlugin\\": "src/Plugin/EventBridgeSchedulerPlugin/src/"
         }
     },
     "replace": {
@@ -127,7 +127,7 @@ jobs:
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\Messenger\\": "src/"
+            "WPPack\\Component\\Messenger\\": "src/"
         }
     }
 }

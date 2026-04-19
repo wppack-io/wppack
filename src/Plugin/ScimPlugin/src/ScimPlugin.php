@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,23 +11,23 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\ScimPlugin;
+namespace WPPack\Plugin\ScimPlugin;
 
-use WpPack\Component\Admin\AdminPageRegistry;
-use WpPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
-use WpPack\Component\DependencyInjection\Container;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\EventDispatcher\DependencyInjection\RegisterEventListenersPass;
-use WpPack\Component\Kernel\AbstractPlugin;
-use WpPack\Component\Kernel\Attribute\TextDomain;
-use WpPack\Component\Rest\DependencyInjection\RegisterRestControllersPass;
-use WpPack\Component\Rest\RestRegistry;
-use WpPack\Component\Security\Authentication\AuthenticationManager;
-use WpPack\Component\Security\DependencyInjection\RegisterAuthenticatorsPass;
-use WpPack\Plugin\ScimPlugin\Admin\ScimSettingsController;
-use WpPack\Plugin\ScimPlugin\Admin\ScimSettingsPage;
-use WpPack\Plugin\ScimPlugin\Configuration\ScimConfiguration;
-use WpPack\Plugin\ScimPlugin\DependencyInjection\ScimPluginServiceProvider;
+use WPPack\Component\Admin\AdminPageRegistry;
+use WPPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
+use WPPack\Component\DependencyInjection\Container;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\EventDispatcher\DependencyInjection\RegisterEventListenersPass;
+use WPPack\Component\Kernel\AbstractPlugin;
+use WPPack\Component\Kernel\Attribute\TextDomain;
+use WPPack\Component\Rest\DependencyInjection\RegisterRestControllersPass;
+use WPPack\Component\Rest\RestRegistry;
+use WPPack\Component\Security\Authentication\AuthenticationManager;
+use WPPack\Component\Security\DependencyInjection\RegisterAuthenticatorsPass;
+use WPPack\Plugin\ScimPlugin\Admin\ScimSettingsController;
+use WPPack\Plugin\ScimPlugin\Admin\ScimSettingsPage;
+use WPPack\Plugin\ScimPlugin\Configuration\ScimConfiguration;
+use WPPack\Plugin\ScimPlugin\DependencyInjection\ScimPluginServiceProvider;
 
 #[TextDomain(domain: 'wppack-scim')]
 final class ScimPlugin extends AbstractPlugin

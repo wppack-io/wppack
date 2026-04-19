@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,33 +11,33 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\OAuthLoginPlugin\Tests;
+namespace WPPack\Plugin\OAuthLoginPlugin\Tests;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Admin\AdminPageRegistry;
-use WpPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
-use WpPack\Component\DependencyInjection\Container;
-use WpPack\Component\EventDispatcher\EventDispatcher;
-use WpPack\Component\EventDispatcher\DependencyInjection\RegisterEventListenersPass;
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\Option\OptionManager;
-use WpPack\Component\Rest\RestRegistry;
-use WpPack\Component\Role\RoleProvider;
-use WpPack\Component\Routing\RouteRegistry;
-use WpPack\Component\Sanitizer\Sanitizer;
-use WpPack\Component\Security\AuthenticationSession;
-use WpPack\Component\Security\Authentication\AuthenticationManager;
-use WpPack\Component\Security\Bridge\OAuth\OAuthCallbackController;
-use WpPack\Component\Security\Bridge\OAuth\OAuthVerifyController;
-use WpPack\Component\Security\DependencyInjection\RegisterAuthenticatorsPass;
-use WpPack\Plugin\OAuthLoginPlugin\Admin\OAuthLoginSettingsController;
-use WpPack\Plugin\OAuthLoginPlugin\Admin\OAuthLoginSettingsPage;
-use WpPack\Plugin\OAuthLoginPlugin\Configuration\OAuthLoginConfiguration;
-use WpPack\Plugin\OAuthLoginPlugin\Configuration\ProviderConfiguration;
-use WpPack\Plugin\OAuthLoginPlugin\OAuthLoginForm;
-use WpPack\Plugin\OAuthLoginPlugin\OAuthLoginPlugin;
+use WPPack\Component\Admin\AdminPageRegistry;
+use WPPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
+use WPPack\Component\DependencyInjection\Container;
+use WPPack\Component\EventDispatcher\EventDispatcher;
+use WPPack\Component\EventDispatcher\DependencyInjection\RegisterEventListenersPass;
+use WPPack\Component\HttpFoundation\Request;
+use WPPack\Component\Option\OptionManager;
+use WPPack\Component\Rest\RestRegistry;
+use WPPack\Component\Role\RoleProvider;
+use WPPack\Component\Routing\RouteRegistry;
+use WPPack\Component\Sanitizer\Sanitizer;
+use WPPack\Component\Security\AuthenticationSession;
+use WPPack\Component\Security\Authentication\AuthenticationManager;
+use WPPack\Component\Security\Bridge\OAuth\OAuthCallbackController;
+use WPPack\Component\Security\Bridge\OAuth\OAuthVerifyController;
+use WPPack\Component\Security\DependencyInjection\RegisterAuthenticatorsPass;
+use WPPack\Plugin\OAuthLoginPlugin\Admin\OAuthLoginSettingsController;
+use WPPack\Plugin\OAuthLoginPlugin\Admin\OAuthLoginSettingsPage;
+use WPPack\Plugin\OAuthLoginPlugin\Configuration\OAuthLoginConfiguration;
+use WPPack\Plugin\OAuthLoginPlugin\Configuration\ProviderConfiguration;
+use WPPack\Plugin\OAuthLoginPlugin\OAuthLoginForm;
+use WPPack\Plugin\OAuthLoginPlugin\OAuthLoginPlugin;
 
 #[CoversClass(OAuthLoginPlugin::class)]
 final class OAuthLoginPluginTest extends TestCase

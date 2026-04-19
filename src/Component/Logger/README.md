@@ -1,4 +1,4 @@
-# WpPack Logger
+# WPPack Logger
 
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=logger)](https://codecov.io/github/wppack-io/wppack)
 
@@ -13,8 +13,8 @@ composer require wppack/logger
 ## Usage
 
 ```php
-use WpPack\Component\Logger\Logger;
-use WpPack\Component\Logger\Handler\ErrorLogHandler;
+use WPPack\Component\Logger\Logger;
+use WPPack\Component\Logger\Handler\ErrorLogHandler;
 
 $logger = new Logger('app');
 $logger->pushHandler(new ErrorLogHandler());
@@ -29,8 +29,8 @@ $logger->info('User {username} logged in', [
 ## Channel-Based Logging
 
 ```php
-use WpPack\Component\Logger\LoggerFactory;
-use WpPack\Component\Logger\Handler\ErrorLogHandler;
+use WPPack\Component\Logger\LoggerFactory;
+use WPPack\Component\Logger\Handler\ErrorLogHandler;
 
 $factory = new LoggerFactory([new ErrorLogHandler()]);
 
@@ -46,10 +46,10 @@ $securityLogger->warning('Failed login attempt', ['username' => 'admin']);
 Capture PHP errors (warnings, deprecations, notices) as PSR-3 logs:
 
 ```php
-use WpPack\Component\Logger\ErrorHandler;
-use WpPack\Component\Logger\LoggerFactory;
-use WpPack\Component\Logger\ChannelResolver\DefaultChannelResolver;
-use WpPack\Component\Logger\Handler\ErrorLogHandler;
+use WPPack\Component\Logger\ErrorHandler;
+use WPPack\Component\Logger\LoggerFactory;
+use WPPack\Component\Logger\ChannelResolver\DefaultChannelResolver;
+use WPPack\Component\Logger\Handler\ErrorLogHandler;
 
 $factory = new LoggerFactory([new ErrorLogHandler()]);
 $resolver = new DefaultChannelResolver();
@@ -69,7 +69,7 @@ $handler->register();
 Resolve file paths to channel names via `ChannelResolverInterface`:
 
 ```php
-use WpPack\Component\Logger\ChannelResolver\DefaultChannelResolver;
+use WPPack\Component\Logger\ChannelResolver\DefaultChannelResolver;
 
 $resolver = new DefaultChannelResolver(); // always returns 'php'
 $resolver->resolve('/any/path'); // 'php'
@@ -80,8 +80,8 @@ The default `WordPressChannelResolver` resolves `plugin:slug`, `theme:slug`, `wo
 ## Testing
 
 ```php
-use WpPack\Component\Logger\Logger;
-use WpPack\Component\Logger\Test\TestHandler;
+use WPPack\Component\Logger\Logger;
+use WPPack\Component\Logger\Test\TestHandler;
 
 $logger = new Logger('test');
 $handler = new TestHandler();
@@ -98,7 +98,7 @@ $handler->hasInfoThatContains('Payment', ['amount' => 100]); // true
 `ErrorLogInterceptor` captures `error_log()` output from WordPress core and third-party plugins by redirecting to a per-request temporary file:
 
 ```php
-use WpPack\Component\Logger\ErrorLogInterceptor;
+use WPPack\Component\Logger\ErrorLogInterceptor;
 
 $interceptor = ErrorLogInterceptor::create(); // singleton
 $interceptor->register(); // redirects error_log to temp file

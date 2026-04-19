@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database\Tests;
+namespace WPPack\Component\Database\Tests;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Database\DatabaseManager;
-use WpPack\Component\Database\Exception\QueryException;
+use WPPack\Component\Database\DatabaseManager;
+use WPPack\Component\Database\Exception\QueryException;
 
 #[CoversClass(DatabaseManager::class)]
 final class DatabaseManagerTest extends TestCase
@@ -269,7 +269,7 @@ final class DatabaseManagerTest extends TestCase
 
         self::assertStringStartsWith('SELECT * FROM wp_posts WHERE ID = ', $sql);
         // Two valid shapes: legacy wpdb splices the bound value ("= 1"),
-        // WpPackWpdb emits a ?-placeholder tagged by /*WPP:<hex>*/.
+        // WPPackWpdb emits a ?-placeholder tagged by /*WPP:<hex>*/.
         self::assertMatchesRegularExpression(
             '/= (?:1|\?\s*\/\*WPP:[0-9a-f]{16}\*\/)$/',
             $sql,
@@ -884,7 +884,7 @@ final class DatabaseManagerTest extends TestCase
             "SELECT * FROM {$this->db->prefix()}wppack_test WHERE value = 'count'",
         );
 
-        self::assertInstanceOf(\WpPack\Component\Database\Result::class, $result);
+        self::assertInstanceOf(\WPPack\Component\Database\Result::class, $result);
     }
 
     // --- fetchAssociative with params returning a row ---
@@ -1027,9 +1027,9 @@ final class DatabaseManagerTest extends TestCase
     #[Test]
     public function constructorAcceptsInjectedConnection(): void
     {
-        $driver = new \WpPack\Component\Database\Bridge\Sqlite\SqliteDriver(':memory:');
+        $driver = new \WPPack\Component\Database\Bridge\Sqlite\SqliteDriver(':memory:');
         $driver->connect();
-        $connection = new \WpPack\Component\Database\Connection($driver);
+        $connection = new \WPPack\Component\Database\Connection($driver);
 
         $db = new DatabaseManager($connection);
 

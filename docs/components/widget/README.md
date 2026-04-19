@@ -1,7 +1,7 @@
 # Widget コンポーネント
 
 **パッケージ:** `wppack/widget`
-**名前空間:** `WpPack\Component\Widget\`
+**名前空間:** `WPPack\Component\Widget\`
 **レイヤー:** Application
 
 WordPress ウィジェット API のアクション・フィルターフックを Named Hook アトリビュートで型安全に登録するためのコンポーネントです。`AbstractWidget` と `#[AsWidget]` アトリビュートによるウィジェット登録も提供します。
@@ -43,11 +43,11 @@ add_action('widgets_init', function() {
 });
 ```
 
-### After（WpPack）
+### After（WPPack）
 
 ```php
-use WpPack\Component\Widget\AbstractWidget;
-use WpPack\Component\Widget\Attribute\AsWidget;
+use WPPack\Component\Widget\AbstractWidget;
+use WPPack\Component\Widget\Attribute\AsWidget;
 
 #[AsWidget(
     id: 'recent_posts',
@@ -84,8 +84,8 @@ class RecentPostsWidget extends AbstractWidget
 サブクラスは `__invoke(array $args, array $instance): string` を実装してウィジェット出力を返します。`widget()` メソッドが WordPress コールバックとして `__invoke()` を呼び出し、戻り値を echo します。
 
 ```php
-use WpPack\Component\Widget\AbstractWidget;
-use WpPack\Component\Widget\Attribute\AsWidget;
+use WPPack\Component\Widget\AbstractWidget;
+use WPPack\Component\Widget\Attribute\AsWidget;
 
 #[AsWidget(id: 'social_links', label: 'Social Links', description: 'Social media links')]
 class SocialLinksWidget extends AbstractWidget
@@ -160,8 +160,8 @@ class RecentPostsWidget extends AbstractWidget
 WordPress のウィジェット・サイドバー登録関数をラップするサービスクラスです。DI コンテナから注入できます。`register()` は `AbstractWidget` インスタンスを受け取り、`TemplateRendererInterface` を自動注入します。
 
 ```php
-use WpPack\Component\Templating\TemplateRendererInterface;
-use WpPack\Component\Widget\WidgetRegistry;
+use WPPack\Component\Templating\TemplateRendererInterface;
+use WPPack\Component\Widget\WidgetRegistry;
 
 $registry = new WidgetRegistry(
     renderer: $templateRenderer,      // optional

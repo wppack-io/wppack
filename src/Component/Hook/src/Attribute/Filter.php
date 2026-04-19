@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,10 +11,10 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Hook\Attribute;
+namespace WPPack\Component\Hook\Attribute;
 
-use WpPack\Component\Hook\Hook;
-use WpPack\Component\Hook\HookType;
+use WPPack\Component\Hook\Hook;
+use WPPack\Component\Hook\HookType;
 
 #[\Attribute(\Attribute::TARGET_METHOD | \Attribute::IS_REPEATABLE)]
 class Filter extends Hook

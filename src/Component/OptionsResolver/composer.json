@@ -9,12 +9,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\OptionsResolver\\": "src/"
+            "WPPack\\Component\\OptionsResolver\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Component\\OptionsResolver\\Tests\\": "tests/"
+            "WPPack\\Component\\OptionsResolver\\Tests\\": "tests/"
         }
     }
 }

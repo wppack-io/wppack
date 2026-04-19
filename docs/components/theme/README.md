@@ -1,7 +1,7 @@
 # Theme コンポーネント
 
 **パッケージ:** `wppack/theme`
-**名前空間:** `WpPack\Component\Theme\`
+**名前空間:** `WPPack\Component\Theme\`
 **レイヤー:** Application
 
 テーマ関連の WordPress フックを Named Hook アトリビュートとして提供するコンポーネントです。
@@ -24,10 +24,10 @@ composer require wppack/theme
 
 ```php
 // テーマのセットアップは AbstractTheme を継承（→ Kernel コンポーネント参照）
-use WpPack\Component\Kernel\Kernel;
-use WpPack\Component\Kernel\AbstractTheme;
-use WpPack\Component\DependencyInjection\Container;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\Kernel\Kernel;
+use WPPack\Component\Kernel\AbstractTheme;
+use WPPack\Component\DependencyInjection\Container;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
 
 class MyTheme extends AbstractTheme
 {
@@ -71,8 +71,8 @@ Kernel::registerTheme(new MyTheme(__FILE__));
 Theme コンポーネントの Named Hook Attributes を使って、テーマ関連フックを宣言的に扱います：
 
 ```php
-use WpPack\Component\Hook\Attribute\Theme\Action\WpEnqueueScriptsAction;
-use WpPack\Component\Hook\Attribute\Theme\Filter\BodyClassFilter;
+use WPPack\Component\Hook\Attribute\Theme\Action\WpEnqueueScriptsAction;
+use WPPack\Component\Hook\Attribute\Theme\Filter\BodyClassFilter;
 
 class ThemeAssets
 {

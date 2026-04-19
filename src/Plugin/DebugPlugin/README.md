@@ -45,7 +45,7 @@ On activation, the plugin copies `fatal-error-handler.php` to `wp-content/`. Thi
 
 Both use the Debug component's `ErrorRenderer` for detailed error pages.
 
-On deactivation, the drop-in is removed (only if it was installed by WpPack).
+On deactivation, the drop-in is removed (only if it was installed by WPPack).
 
 ### `WPPACK_DEBUG_ENABLED` Kill Switch
 

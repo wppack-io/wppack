@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Console\Tests\Exception;
+namespace WPPack\Component\Console\Tests\Exception;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Console\Exception\ExceptionInterface;
-use WpPack\Component\Console\Exception\InvalidArgumentException;
-use WpPack\Component\Console\Exception\LogicException;
+use WPPack\Component\Console\Exception\ExceptionInterface;
+use WPPack\Component\Console\Exception\InvalidArgumentException;
+use WPPack\Component\Console\Exception\LogicException;
 
 #[CoversClass(InvalidArgumentException::class)]
 #[CoversClass(LogicException::class)]

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Mailer\Tests\Transport;
+namespace WPPack\Component\Mailer\Tests\Transport;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Mailer\Exception\TransportException;
-use WpPack\Component\Mailer\PhpMailer;
-use WpPack\Component\Mailer\Transport\AbstractTransport;
+use WPPack\Component\Mailer\Exception\TransportException;
+use WPPack\Component\Mailer\PhpMailer;
+use WPPack\Component\Mailer\Transport\AbstractTransport;
 
 final class AbstractTransportTest extends TestCase
 {

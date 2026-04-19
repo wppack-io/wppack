@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,16 +11,16 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Security\Tests;
+namespace WPPack\Component\Security\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Security\Authentication\AuthenticationManagerInterface;
-use WpPack\Component\Security\Authentication\Token\NullToken;
-use WpPack\Component\Security\Authentication\Token\TokenInterface;
-use WpPack\Component\Security\Authorization\AuthorizationCheckerInterface;
-use WpPack\Component\Security\Exception\AccessDeniedException;
-use WpPack\Component\Security\Security;
+use WPPack\Component\Security\Authentication\AuthenticationManagerInterface;
+use WPPack\Component\Security\Authentication\Token\NullToken;
+use WPPack\Component\Security\Authentication\Token\TokenInterface;
+use WPPack\Component\Security\Authorization\AuthorizationCheckerInterface;
+use WPPack\Component\Security\Exception\AccessDeniedException;
+use WPPack\Component\Security\Security;
 
 final class SecurityTest extends TestCase
 {
@@ -68,7 +68,7 @@ final class SecurityTest extends TestCase
         $user->ID = 42;
         $user->user_login = 'testuser';
 
-        $token = new \WpPack\Component\Security\Authentication\Token\PostAuthenticationToken($user, ['subscriber']);
+        $token = new \WPPack\Component\Security\Authentication\Token\PostAuthenticationToken($user, ['subscriber']);
         $checker = $this->createStub(AuthorizationCheckerInterface::class);
         $authManager = $this->createAuthManager($token);
         $security = new Security($checker, $authManager);

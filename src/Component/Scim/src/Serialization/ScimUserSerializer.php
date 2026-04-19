@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Scim\Serialization;
+namespace WPPack\Component\Scim\Serialization;
 
-use WpPack\Component\Role\RoleProvider;
-use WpPack\Component\Scim\Mapping\UserAttributeMapperInterface;
-use WpPack\Component\Scim\Repository\ScimGroupRepository;
-use WpPack\Component\Scim\Schema\ScimConstants;
+use WPPack\Component\Role\RoleProvider;
+use WPPack\Component\Scim\Mapping\UserAttributeMapperInterface;
+use WPPack\Component\Scim\Repository\ScimGroupRepository;
+use WPPack\Component\Scim\Schema\ScimConstants;
 
 final readonly class ScimUserSerializer
 {

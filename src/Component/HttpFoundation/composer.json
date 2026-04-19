@@ -9,12 +9,12 @@
     },
 "autoload": {
         "psr-4": {
-            "WpPack\\Component\\HttpFoundation\\": "src/"
+            "WPPack\\Component\\HttpFoundation\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Component\\HttpFoundation\\Tests\\": "tests/"
+            "WPPack\\Component\\HttpFoundation\\Tests\\": "tests/"
         }
     }
 }

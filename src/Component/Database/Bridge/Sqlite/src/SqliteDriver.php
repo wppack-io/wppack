@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,15 +11,15 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database\Bridge\Sqlite;
+namespace WPPack\Component\Database\Bridge\Sqlite;
 
-use WpPack\Component\Database\Driver\AbstractDriver;
-use WpPack\Component\Database\Exception\ConnectionException;
-use WpPack\Component\Database\Exception\DriverException;
-use WpPack\Component\Database\Platform\PlatformInterface;
-use WpPack\Component\Database\Bridge\Sqlite\SqlitePlatform;
-use WpPack\Component\Database\Result;
-use WpPack\Component\Database\Statement;
+use WPPack\Component\Database\Driver\AbstractDriver;
+use WPPack\Component\Database\Exception\ConnectionException;
+use WPPack\Component\Database\Exception\DriverException;
+use WPPack\Component\Database\Platform\PlatformInterface;
+use WPPack\Component\Database\Bridge\Sqlite\SqlitePlatform;
+use WPPack\Component\Database\Result;
+use WPPack\Component\Database\Statement;
 
 final class SqliteDriver extends AbstractDriver
 {
@@ -67,9 +67,9 @@ final class SqliteDriver extends AbstractDriver
         return new SqlitePlatform();
     }
 
-    public function getQueryTranslator(): \WpPack\Component\Database\Translator\QueryTranslatorInterface
+    public function getQueryTranslator(): \WPPack\Component\Database\Translator\QueryTranslatorInterface
     {
-        return new \WpPack\Component\Database\Bridge\Sqlite\Translator\SqliteQueryTranslator();
+        return new \WPPack\Component\Database\Bridge\Sqlite\Translator\SqliteQueryTranslator();
     }
 
     public function getNativeConnection(): ?\PDO

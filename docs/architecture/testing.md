@@ -1,10 +1,10 @@
 # テスト
 
-WpPack のテスト戦略と実行方法。
+WPPack のテスト戦略と実行方法。
 
 ## 概要
 
-WpPack は **PHPUnit 11 + wp-phpunit + MySQL** による WordPress 統合テスト環境を採用しています。`tests/bootstrap.php` は常に WordPress をフルロードするため、すべてのテストで WordPress 関数が利用可能です。
+WPPack は **PHPUnit 11 + wp-phpunit + MySQL** による WordPress 統合テスト環境を採用しています。`tests/bootstrap.php` は常に WordPress をフルロードするため、すべてのテストで WordPress 関数が利用可能です。
 
 | 項目 | 内容 |
 |------|------|
@@ -167,12 +167,12 @@ PHPUnit 11 のアトリビュート（`#[Test]`, `#[CoversClass]`）を使用し
 
 declare(strict_types=1);
 
-namespace WpPack\Component\NavigationMenu\Tests;
+namespace WPPack\Component\NavigationMenu\Tests;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\NavigationMenu\MenuRegistry;
+use WPPack\Component\NavigationMenu\MenuRegistry;
 
 #[CoversClass(MenuRegistry::class)]
 final class MenuRegistryTest extends TestCase

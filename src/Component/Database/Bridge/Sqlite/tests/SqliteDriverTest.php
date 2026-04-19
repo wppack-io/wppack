@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database\Bridge\Sqlite\Tests;
+namespace WPPack\Component\Database\Bridge\Sqlite\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Database\Bridge\Sqlite\SqliteDriver;
-use WpPack\Component\Database\Bridge\Sqlite\SqliteDriverFactory;
-use WpPack\Component\Dsn\Dsn;
+use WPPack\Component\Database\Bridge\Sqlite\SqliteDriver;
+use WPPack\Component\Database\Bridge\Sqlite\SqliteDriverFactory;
+use WPPack\Component\Dsn\Dsn;
 
 final class SqliteDriverTest extends TestCase
 {
@@ -184,7 +184,7 @@ final class SqliteDriverTest extends TestCase
 
             self::assertStringStartsWith("'", $quoted);
             self::assertStringEndsWith("'", $quoted);
-        } catch (\WpPack\Component\Database\Exception\DriverException $e) {
+        } catch (\WPPack\Component\Database\Exception\DriverException $e) {
             self::assertStringContainsString('null byte', strtolower($e->getMessage()));
         }
     }

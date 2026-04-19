@@ -1,4 +1,4 @@
-# WpPack Admin
+# WPPack Admin
 
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=admin)](https://codecov.io/github/wppack-io/wppack)
 

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Storage\Adapter;
+namespace WPPack\Component\Storage\Adapter;
 
-use WpPack\Component\Storage\Exception\ObjectNotFoundException;
-use WpPack\Component\Storage\Exception\UnsupportedOperationException;
-use WpPack\Component\Storage\ObjectMetadata;
-use WpPack\Component\Storage\Visibility;
+use WPPack\Component\Storage\Exception\ObjectNotFoundException;
+use WPPack\Component\Storage\Exception\UnsupportedOperationException;
+use WPPack\Component\Storage\ObjectMetadata;
+use WPPack\Component\Storage\Visibility;
 
 interface StorageAdapterInterface
 {

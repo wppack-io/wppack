@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Query\Builder;
+namespace WPPack\Component\Query\Builder;
 
-use WpPack\Component\Query\Condition\ConditionGroup;
-use WpPack\Component\Query\Condition\OrderByGroup;
-use WpPack\Component\Query\Enum\Order;
-use WpPack\Component\Query\Result\PostQueryResult;
-use WpPack\Component\Query\Wql\ExpressionParser;
-use WpPack\Component\Query\Wql\WqlParser;
+use WPPack\Component\Query\Condition\ConditionGroup;
+use WPPack\Component\Query\Condition\OrderByGroup;
+use WPPack\Component\Query\Enum\Order;
+use WPPack\Component\Query\Result\PostQueryResult;
+use WPPack\Component\Query\Wql\ExpressionParser;
+use WPPack\Component\Query\Wql\WqlParser;
 
 final class PostQueryBuilder
 {

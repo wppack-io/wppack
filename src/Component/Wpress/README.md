@@ -1,4 +1,4 @@
-# WpPack Wpress
+# WPPack Wpress
 
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=wpress)](https://codecov.io/github/wppack-io/wppack)
 
@@ -11,7 +11,7 @@ Handles `.wpress` archive files used by All-in-One WP Migration. Provides a `Zip
 
 `.wpress` is an open source archive format created by ServMask Inc. for All-in-One WP Migration — the most widely used WordPress migration plugin with 5M+ active installs. ServMask describes it as "our open source archive format" on [servmask.com](https://www.servmask.com/), and the plugin is distributed under GPLv3.
 
-By implementing `.wpress` natively, WpPack enables reading, creating, and modifying WordPress backups without depending on the AI1WM plugin itself — making it possible to integrate `.wpress` operations into custom toolchains, CI/CD pipelines, and migration workflows.
+By implementing `.wpress` natively, WPPack enables reading, creating, and modifying WordPress backups without depending on the AI1WM plugin itself — making it possible to integrate `.wpress` operations into custom toolchains, CI/CD pipelines, and migration workflows.
 
 ## Installation
 
@@ -22,7 +22,7 @@ composer require wppack/wpress
 ## Usage
 
 ```php
-use WpPack\Component\Wpress\WpressArchive;
+use WPPack\Component\Wpress\WpressArchive;
 
 // Open an existing archive
 $archive = new WpressArchive('/path/to/backup.wpress');

@@ -1,7 +1,7 @@
 # OEmbed コンポーネント
 
 **パッケージ:** `wppack/oembed`
-**名前空間:** `WpPack\Component\OEmbed\`
+**名前空間:** `WPPack\Component\OEmbed\`
 **レイヤー:** Application
 
 WordPress oEmbed API をモダンな PHP でラップし、プロバイダー自動登録と oEmbed 関連の Named Hook アトリビュートを提供するコンポーネントです。
@@ -39,12 +39,12 @@ add_filter('oembed_result', function ($html, $url, $args) {
 }, 10, 3);
 ```
 
-### After（WpPack）
+### After（WPPack）
 
 ```php
-use WpPack\Component\OEmbed\OEmbedProviderDefinition;
-use WpPack\Component\OEmbed\OEmbedProviderInterface;
-use WpPack\Component\Hook\Attribute\OEmbed\Filter\OembedResultFilter;
+use WPPack\Component\OEmbed\OEmbedProviderDefinition;
+use WPPack\Component\OEmbed\OEmbedProviderInterface;
+use WPPack\Component\Hook\Attribute\OEmbed\Filter\OembedResultFilter;
 
 class MyOEmbedProviders implements OEmbedProviderInterface
 {
@@ -86,8 +86,8 @@ final class VideoEmbedCustomizer
 DI コンテナで auto-tag し、`OEmbedProviderRegistry` に自動収集されるパターンです。
 
 ```php
-use WpPack\Component\OEmbed\OEmbedProviderDefinition;
-use WpPack\Component\OEmbed\OEmbedProviderInterface;
+use WPPack\Component\OEmbed\OEmbedProviderDefinition;
+use WPPack\Component\OEmbed\OEmbedProviderInterface;
 
 class CustomProviders implements OEmbedProviderInterface
 {
@@ -110,7 +110,7 @@ class CustomProviders implements OEmbedProviderInterface
 `addProvider()` でプロバイダーを収集し、`register()` で `init` のタイミングに一括登録します。
 
 ```php
-use WpPack\Component\OEmbed\OEmbedProviderRegistry;
+use WPPack\Component\OEmbed\OEmbedProviderRegistry;
 
 $registry = new OEmbedProviderRegistry();
 $registry->addProvider(new CustomProviders());
@@ -120,8 +120,8 @@ $registry->register(); // wp_oembed_add_provider() が呼ばれる
 ### 直接登録
 
 ```php
-use WpPack\Component\Hook\Attribute\Action\InitAction;
-use WpPack\Component\OEmbed\OEmbedProviderRegistry;
+use WPPack\Component\Hook\Attribute\Action\InitAction;
+use WPPack\Component\OEmbed\OEmbedProviderRegistry;
 
 class OEmbedManager
 {
@@ -162,7 +162,7 @@ $registry->all(): array           // list<OEmbedProviderDefinition>
 oEmbed プロバイダーの定義を表す値オブジェクトです。
 
 ```php
-use WpPack\Component\OEmbed\OEmbedProviderDefinition;
+use WPPack\Component\OEmbed\OEmbedProviderDefinition;
 
 // ワイルドカードパターン
 $wildcard = new OEmbedProviderDefinition(

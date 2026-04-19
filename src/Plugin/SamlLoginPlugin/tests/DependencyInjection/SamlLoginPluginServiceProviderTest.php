@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,42 +11,42 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\SamlLoginPlugin\Tests\DependencyInjection;
+namespace WPPack\Plugin\SamlLoginPlugin\Tests\DependencyInjection;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\DependencyInjection\Reference;
-use WpPack\Component\DependencyInjection\ServiceProviderInterface;
-use WpPack\Component\EventDispatcher\EventDispatcher;
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\Routing\RouteRegistry;
-use WpPack\Component\Security\Authentication\AuthenticationManager;
-use WpPack\Component\Security\Authentication\AuthenticationManagerInterface;
-use WpPack\Component\Security\AuthenticationSession;
-use WpPack\Component\Security\Bridge\SAML\Configuration\IdpSettings;
-use WpPack\Component\Security\Bridge\SAML\Configuration\SamlConfiguration;
-use WpPack\Component\Security\Bridge\SAML\Configuration\SpMetadataExporter;
-use WpPack\Component\Security\Bridge\SAML\Configuration\SpSettings;
-use WpPack\Component\Security\Bridge\SAML\Factory\SamlAuthFactory;
-use WpPack\Component\Security\Bridge\SAML\SamlAcsController;
-use WpPack\Component\Security\Bridge\SAML\SamlAuthenticator;
-use WpPack\Component\Security\Bridge\SAML\SamlEntryPoint;
-use WpPack\Component\Security\Bridge\SAML\SamlLogoutHandler;
-use WpPack\Component\Security\Bridge\SAML\SamlLogoutListener;
-use WpPack\Component\Security\Bridge\SAML\SamlMetadataController;
-use WpPack\Component\Security\Bridge\SAML\SamlSloController;
-use WpPack\Component\Security\Bridge\SAML\Session\SamlSessionManager;
-use WpPack\Component\Security\Bridge\SAML\UserResolution\SamlUserResolver;
-use WpPack\Component\Sanitizer\Sanitizer;
-use WpPack\Component\Security\Bridge\SAML\UserResolution\SamlUserResolverInterface;
-use WpPack\Component\Site\BlogContext;
-use WpPack\Component\Transient\TransientManager;
-use WpPack\Component\User\UserRepository;
-use WpPack\Plugin\SamlLoginPlugin\Configuration\SamlLoginConfiguration;
-use WpPack\Plugin\SamlLoginPlugin\DependencyInjection\SamlLoginPluginServiceProvider;
-use WpPack\Plugin\SamlLoginPlugin\SamlLoginForm;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\DependencyInjection\Reference;
+use WPPack\Component\DependencyInjection\ServiceProviderInterface;
+use WPPack\Component\EventDispatcher\EventDispatcher;
+use WPPack\Component\HttpFoundation\Request;
+use WPPack\Component\Routing\RouteRegistry;
+use WPPack\Component\Security\Authentication\AuthenticationManager;
+use WPPack\Component\Security\Authentication\AuthenticationManagerInterface;
+use WPPack\Component\Security\AuthenticationSession;
+use WPPack\Component\Security\Bridge\SAML\Configuration\IdpSettings;
+use WPPack\Component\Security\Bridge\SAML\Configuration\SamlConfiguration;
+use WPPack\Component\Security\Bridge\SAML\Configuration\SpMetadataExporter;
+use WPPack\Component\Security\Bridge\SAML\Configuration\SpSettings;
+use WPPack\Component\Security\Bridge\SAML\Factory\SamlAuthFactory;
+use WPPack\Component\Security\Bridge\SAML\SamlAcsController;
+use WPPack\Component\Security\Bridge\SAML\SamlAuthenticator;
+use WPPack\Component\Security\Bridge\SAML\SamlEntryPoint;
+use WPPack\Component\Security\Bridge\SAML\SamlLogoutHandler;
+use WPPack\Component\Security\Bridge\SAML\SamlLogoutListener;
+use WPPack\Component\Security\Bridge\SAML\SamlMetadataController;
+use WPPack\Component\Security\Bridge\SAML\SamlSloController;
+use WPPack\Component\Security\Bridge\SAML\Session\SamlSessionManager;
+use WPPack\Component\Security\Bridge\SAML\UserResolution\SamlUserResolver;
+use WPPack\Component\Sanitizer\Sanitizer;
+use WPPack\Component\Security\Bridge\SAML\UserResolution\SamlUserResolverInterface;
+use WPPack\Component\Site\BlogContext;
+use WPPack\Component\Transient\TransientManager;
+use WPPack\Component\User\UserRepository;
+use WPPack\Plugin\SamlLoginPlugin\Configuration\SamlLoginConfiguration;
+use WPPack\Plugin\SamlLoginPlugin\DependencyInjection\SamlLoginPluginServiceProvider;
+use WPPack\Plugin\SamlLoginPlugin\SamlLoginForm;
 
 #[CoversClass(SamlLoginPluginServiceProvider::class)]
 final class SamlLoginPluginServiceProviderTest extends TestCase
@@ -269,7 +269,7 @@ final class SamlLoginPluginServiceProviderTest extends TestCase
         self::assertSame(SamlSessionManager::class, (string) $arguments[1]);
         self::assertSame(AuthenticationSession::class, (string) $arguments[2]);
         self::assertSame(Request::class, (string) $arguments[3]);
-        self::assertSame(\WpPack\Component\Site\BlogContextInterface::class, (string) $arguments[4]);
+        self::assertSame(\WPPack\Component\Site\BlogContextInterface::class, (string) $arguments[4]);
     }
 
     #[Test]

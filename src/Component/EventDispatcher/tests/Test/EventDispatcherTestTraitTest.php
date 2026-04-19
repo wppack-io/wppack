@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\EventDispatcher\Tests\Test;
+namespace WPPack\Component\EventDispatcher\Tests\Test;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\EventDispatcher\Event;
-use WpPack\Component\EventDispatcher\EventDispatcher;
-use WpPack\Component\EventDispatcher\Test\EventDispatcherTestTrait;
+use WPPack\Component\EventDispatcher\Event;
+use WPPack\Component\EventDispatcher\EventDispatcher;
+use WPPack\Component\EventDispatcher\Test\EventDispatcherTestTrait;
 
 final class EventDispatcherTestTraitTest extends TestCase
 {

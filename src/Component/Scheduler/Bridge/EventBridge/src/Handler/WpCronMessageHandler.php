@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Scheduler\Bridge\EventBridge\Handler;
+namespace WPPack\Component\Scheduler\Bridge\EventBridge\Handler;
 
 use Psr\Log\LoggerInterface;
-use WpPack\Component\Messenger\Attribute\AsMessageHandler;
-use WpPack\Component\Scheduler\Bridge\EventBridge\CronArrayHelper;
-use WpPack\Component\Scheduler\Message\WpCronMessage;
+use WPPack\Component\Messenger\Attribute\AsMessageHandler;
+use WPPack\Component\Scheduler\Bridge\EventBridge\CronArrayHelper;
+use WPPack\Component\Scheduler\Message\WpCronMessage;
 
 /**
  * Handles WP-Cron messages dispatched via EventBridge → SQS → Lambda.

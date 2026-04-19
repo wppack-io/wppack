@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Cache\Tests\Exception;
+namespace WPPack\Component\Cache\Tests\Exception;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Cache\Adapter\Dsn;
-use WpPack\Component\Cache\Exception\UnsupportedSchemeException;
+use WPPack\Component\Cache\Adapter\Dsn;
+use WPPack\Component\Cache\Exception\UnsupportedSchemeException;
 
 #[CoversClass(UnsupportedSchemeException::class)]
 final class UnsupportedSchemeExceptionTest extends TestCase

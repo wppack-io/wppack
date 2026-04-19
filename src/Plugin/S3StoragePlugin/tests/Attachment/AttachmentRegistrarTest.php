@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,21 +11,21 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\S3StoragePlugin\Tests\Attachment;
+namespace WPPack\Plugin\S3StoragePlugin\Tests\Attachment;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
-use WpPack\Component\Media\AttachmentManager;
-use WpPack\Component\PostType\PostRepository;
-use WpPack\Component\Messenger\Envelope;
-use WpPack\Component\Messenger\MessageBusInterface;
-use WpPack\Component\Mime\MimeTypesInterface;
-use WpPack\Component\Site\BlogSwitcher;
-use WpPack\Plugin\S3StoragePlugin\Attachment\AttachmentRegistrar;
-use WpPack\Plugin\S3StoragePlugin\Message\GenerateThumbnailsMessage;
+use WPPack\Component\Media\AttachmentManager;
+use WPPack\Component\PostType\PostRepository;
+use WPPack\Component\Messenger\Envelope;
+use WPPack\Component\Messenger\MessageBusInterface;
+use WPPack\Component\Mime\MimeTypesInterface;
+use WPPack\Component\Site\BlogSwitcher;
+use WPPack\Plugin\S3StoragePlugin\Attachment\AttachmentRegistrar;
+use WPPack\Plugin\S3StoragePlugin\Message\GenerateThumbnailsMessage;
 
 #[CoversClass(AttachmentRegistrar::class)]
 final class AttachmentRegistrarTest extends TestCase

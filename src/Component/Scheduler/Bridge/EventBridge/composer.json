@@ -1,6 +1,6 @@
 {
     "name": "wppack/eventbridge-scheduler",
-    "description": "Amazon EventBridge Scheduler backend for WpPack Scheduler",
+    "description": "Amazon EventBridge Scheduler backend for WPPack Scheduler",
     "type": "library",
     "license": "MIT",
     "require": {
@@ -16,12 +16,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\Scheduler\\Bridge\\EventBridge\\": "src/"
+            "WPPack\\Component\\Scheduler\\Bridge\\EventBridge\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Component\\Scheduler\\Bridge\\EventBridge\\Tests\\": "tests/"
+            "WPPack\\Component\\Scheduler\\Bridge\\EventBridge\\Tests\\": "tests/"
         }
     }
 }

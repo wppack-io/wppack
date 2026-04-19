@@ -4,7 +4,7 @@
  *
  * @var list<array>                                                $trace     Stack trace frames
  * @var bool                                                       $openFirst Whether to auto-expand the first frame
- * @var \WpPack\Component\Debug\ErrorHandler\ErrorRenderer         $renderer  Error renderer for path formatting
+ * @var \WPPack\Component\Debug\ErrorHandler\ErrorRenderer         $renderer  Error renderer for path formatting
  */
 if (empty($trace)): ?>
 <p class="empty-state">No stack trace available.</p>

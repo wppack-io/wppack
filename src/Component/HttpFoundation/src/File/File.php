@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\HttpFoundation\File;
+namespace WPPack\Component\HttpFoundation\File;
 
-use WpPack\Component\HttpFoundation\File\Exception\FileException;
-use WpPack\Component\HttpFoundation\File\Exception\FileNotFoundException;
-use WpPack\Component\Mime\MimeTypes;
+use WPPack\Component\HttpFoundation\File\Exception\FileException;
+use WPPack\Component\HttpFoundation\File\Exception\FileNotFoundException;
+use WPPack\Component\Mime\MimeTypes;
 
 class File extends \SplFileInfo
 {

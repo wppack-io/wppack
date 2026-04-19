@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Kernel;
+namespace WPPack\Component\Kernel;
 
-use WpPack\Component\DependencyInjection\Container;
+use WPPack\Component\DependencyInjection\Container;
 
 abstract class AbstractTheme implements ThemeInterface
 {

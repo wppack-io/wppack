@@ -8,12 +8,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\Cache\\": "src/"
+            "WPPack\\Component\\Cache\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Component\\Cache\\Tests\\": "tests/"
+            "WPPack\\Component\\Cache\\Tests\\": "tests/"
         }
     }
 }

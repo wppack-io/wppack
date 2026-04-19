@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\DashboardWidget;
+namespace WPPack\Component\DashboardWidget;
 
-use WpPack\Component\Templating\TemplateRendererInterface;
+use WPPack\Component\Templating\TemplateRendererInterface;
 
 final class DashboardWidgetRegistry
 {

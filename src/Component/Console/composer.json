@@ -9,12 +9,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\Console\\": "src/"
+            "WPPack\\Component\\Console\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Component\\Console\\Tests\\": "tests/"
+            "WPPack\\Component\\Console\\Tests\\": "tests/"
         }
     }
 }

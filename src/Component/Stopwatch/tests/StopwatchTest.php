@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Stopwatch\Tests;
+namespace WPPack\Component\Stopwatch\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Stopwatch\Stopwatch;
-use WpPack\Component\Stopwatch\StopwatchEvent;
+use WPPack\Component\Stopwatch\Stopwatch;
+use WPPack\Component\Stopwatch\StopwatchEvent;
 
 final class StopwatchTest extends TestCase
 {

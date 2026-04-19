@@ -3,8 +3,8 @@
 Templating コンポーネントは `the_content` / `the_title` フィルター用の Named Hook 属性も提供します:
 
 ```php
-use WpPack\Component\Hook\Attribute\Templating\Filter\TheContentFilter;
-use WpPack\Component\Hook\Attribute\Templating\Filter\TheTitleFilter;
+use WPPack\Component\Hook\Attribute\Templating\Filter\TheContentFilter;
+use WPPack\Component\Hook\Attribute\Templating\Filter\TheTitleFilter;
 
 final class ContentFormatter
 {

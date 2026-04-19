@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,17 +11,17 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Hook\Tests\DependencyInjection;
+namespace WPPack\Component\Hook\Tests\DependencyInjection;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\Hook\Attribute\Action\InitAction;
-use WpPack\Component\Hook\Attribute\AsHookSubscriber;
-use WpPack\Component\Hook\DependencyInjection\HookServiceProvider;
-use WpPack\Component\Hook\DependencyInjection\RegisterHookSubscribersPass;
-use WpPack\Component\Hook\HookDiscovery;
-use WpPack\Component\Hook\HookRegistry;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\Hook\Attribute\Action\InitAction;
+use WPPack\Component\Hook\Attribute\AsHookSubscriber;
+use WPPack\Component\Hook\DependencyInjection\HookServiceProvider;
+use WPPack\Component\Hook\DependencyInjection\RegisterHookSubscribersPass;
+use WPPack\Component\Hook\HookDiscovery;
+use WPPack\Component\Hook\HookRegistry;
 
 final class RegisterHookSubscribersPassTest extends TestCase
 {

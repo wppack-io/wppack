@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,19 +11,19 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\HttpFoundation\Tests\Exception;
+namespace WPPack\Component\HttpFoundation\Tests\Exception;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\HttpFoundation\Exception\BadRequestException;
-use WpPack\Component\HttpFoundation\Exception\ConflictException;
-use WpPack\Component\HttpFoundation\Exception\ExceptionInterface;
-use WpPack\Component\HttpFoundation\Exception\ForbiddenException;
-use WpPack\Component\HttpFoundation\Exception\HttpException;
-use WpPack\Component\HttpFoundation\Exception\MethodNotAllowedException;
-use WpPack\Component\HttpFoundation\Exception\NotFoundException;
-use WpPack\Component\HttpFoundation\Exception\UnauthorizedException;
-use WpPack\Component\HttpFoundation\Exception\UnprocessableEntityException;
+use WPPack\Component\HttpFoundation\Exception\BadRequestException;
+use WPPack\Component\HttpFoundation\Exception\ConflictException;
+use WPPack\Component\HttpFoundation\Exception\ExceptionInterface;
+use WPPack\Component\HttpFoundation\Exception\ForbiddenException;
+use WPPack\Component\HttpFoundation\Exception\HttpException;
+use WPPack\Component\HttpFoundation\Exception\MethodNotAllowedException;
+use WPPack\Component\HttpFoundation\Exception\NotFoundException;
+use WPPack\Component\HttpFoundation\Exception\UnauthorizedException;
+use WPPack\Component\HttpFoundation\Exception\UnprocessableEntityException;
 
 final class HttpExceptionTest extends TestCase
 {

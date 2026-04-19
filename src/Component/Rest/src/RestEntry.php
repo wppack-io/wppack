@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Rest;
+namespace WPPack\Component\Rest;
 
-use WpPack\Component\HttpFoundation\Exception\HttpException;
-use WpPack\Component\HttpFoundation\JsonResponse;
-use WpPack\Component\HttpFoundation\Response;
-use WpPack\Component\Rest\Attribute\Permission;
-use WpPack\Component\Role\Attribute\IsGranted;
-use WpPack\Component\Role\Authorization\IsGrantedChecker;
+use WPPack\Component\HttpFoundation\Exception\HttpException;
+use WPPack\Component\HttpFoundation\JsonResponse;
+use WPPack\Component\HttpFoundation\Response;
+use WPPack\Component\Rest\Attribute\Permission;
+use WPPack\Component\Role\Attribute\IsGranted;
+use WPPack\Component\Role\Authorization\IsGrantedChecker;
 
 final class RestEntry
 {

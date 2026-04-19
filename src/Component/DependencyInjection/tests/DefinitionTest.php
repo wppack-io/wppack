@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\DependencyInjection\Tests;
+namespace WPPack\Component\DependencyInjection\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\Definition as SymfonyDefinition;
-use WpPack\Component\DependencyInjection\Definition;
-use WpPack\Component\DependencyInjection\Reference;
+use WPPack\Component\DependencyInjection\Definition;
+use WPPack\Component\DependencyInjection\Reference;
 
 final class DefinitionTest extends TestCase
 {
@@ -54,7 +54,7 @@ final class DefinitionTest extends TestCase
     }
 
     #[Test]
-    public function convertsReferenceArgumentsToWpPack(): void
+    public function convertsReferenceArgumentsToWPPack(): void
     {
         $definition = new Definition('my.service');
         $definition->setArgument(0, new Reference('other.service'));

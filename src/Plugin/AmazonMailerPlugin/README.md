@@ -63,8 +63,8 @@ wp_mail('user@example.com', 'Subject', 'Message body');
 ### Direct Mailer API
 
 ```php
-use WpPack\Component\Mailer\Mailer;
-use WpPack\Component\Mailer\Email;
+use WPPack\Component\Mailer\Mailer;
+use WPPack\Component\Mailer\Email;
 
 $email = (new Email())
     ->from('noreply@example.com')
@@ -77,7 +77,7 @@ $mailer->send($email);
 
 ### Bounce/Complaint Handling
 
-SES bounce and complaint notifications are processed via SNS → SQS → WpPack Messenger:
+SES bounce and complaint notifications are processed via SNS → SQS → WPPack Messenger:
 
 - **Permanent bounces** are logged and added to the suppression list (`wp_options`)
 - **Transient bounces** are logged only

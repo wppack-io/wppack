@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Security\Bridge\SAML\Factory;
+namespace WPPack\Component\Security\Bridge\SAML\Factory;
 
 use LightSaml\Binding\BindingFactory;
 use LightSaml\Credential\X509Certificate;
 use LightSaml\Credential\X509Credential;
 use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\Security\Bridge\SAML\Configuration\SamlConfiguration;
+use WPPack\Component\HttpFoundation\Request;
+use WPPack\Component\Security\Bridge\SAML\Configuration\SamlConfiguration;
 
 class SamlAuthFactory
 {
@@ -45,7 +45,7 @@ class SamlAuthFactory
     }
 
     /**
-     * Convert a WpPack Request to a Symfony HttpFoundation Request.
+     * Convert a WPPack Request to a Symfony HttpFoundation Request.
      *
      * LightSAML bindings require Symfony Request objects. This helper
      * bridges the two request abstractions.

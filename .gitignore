@@ -6,3 +6,4 @@ package-lock.json
 .phpunit.cache/
 
 /docs/specifications/
+.claude/

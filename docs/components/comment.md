@@ -1,7 +1,7 @@
 # Comment コンポーネント
 
 **パッケージ:** `wppack/comment`
-**名前空間:** `WpPack\Component\Comment\`
+**名前空間:** `WPPack\Component\Comment\`
 **レイヤー:** Application
 
 WordPress コメント関連フックを Named Hook アトリビュートで型安全に利用するためのコンポーネントです。
@@ -39,12 +39,12 @@ function after_comment_post(int $comment_id, $approved, array $commentdata): voi
 }
 ```
 
-### After（WpPack）
+### After（WPPack）
 
 ```php
-use WpPack\Component\Comment\Attribute\CommentTextFilter;
-use WpPack\Component\Comment\Attribute\PreCommentApprovedFilter;
-use WpPack\Component\Comment\Attribute\CommentPostAction;
+use WPPack\Component\Comment\Attribute\CommentTextFilter;
+use WPPack\Component\Comment\Attribute\PreCommentApprovedFilter;
+use WPPack\Component\Comment\Attribute\CommentPostAction;
 
 class CommentHandler
 {

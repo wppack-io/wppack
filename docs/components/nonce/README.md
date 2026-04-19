@@ -1,7 +1,7 @@
 # Nonce コンポーネント
 
 **パッケージ:** `wppack/nonce`
-**名前空間:** `WpPack\Component\Nonce\`
+**名前空間:** `WPPack\Component\Nonce\`
 **レイヤー:** Feature
 
 WordPress の Nonce API（`wp_create_nonce()` / `wp_verify_nonce()` 等）をオブジェクト指向でラップするコンポーネントです。型安全な Nonce 操作と Attribute ベースの CSRF 保護を提供します。
@@ -29,11 +29,11 @@ wp_nonce_field('save-settings', 'settings_nonce');
 $url = wp_nonce_url(admin_url('admin-post.php?action=delete&id=' . $id), 'delete-item_' . $id);
 ```
 
-### After（WpPack）
+### After（WPPack）
 
 ```php
-use WpPack\Component\Nonce\NonceManager;
-use WpPack\Component\Nonce\Attribute\IsNonceValid;
+use WPPack\Component\Nonce\NonceManager;
+use WPPack\Component\Nonce\Attribute\IsNonceValid;
 
 class PostController
 {
@@ -66,7 +66,7 @@ class PostController
 WordPress の Nonce 関数を型安全にラップするサービスクラスです。
 
 ```php
-use WpPack\Component\Nonce\NonceManager;
+use WPPack\Component\Nonce\NonceManager;
 
 class MyService
 {
@@ -115,7 +115,7 @@ class MyService
 > この Attribute は Controller のみで有効です。Controller コンポーネント実装後に利用可能になります。
 
 ```php
-use WpPack\Component\Nonce\Attribute\IsNonceValid;
+use WPPack\Component\Nonce\Attribute\IsNonceValid;
 
 class SettingsController
 {
@@ -145,7 +145,7 @@ class SettingsController
 ### セキュアフォーム
 
 ```php
-use WpPack\Component\Nonce\NonceManager;
+use WPPack\Component\Nonce\NonceManager;
 
 class ContactForm
 {
@@ -174,8 +174,8 @@ class ContactForm
 ### フォーム送信ハンドラー
 
 ```php
-use WpPack\Component\Nonce\Attribute\IsNonceValid;
-use WpPack\Component\Hook\Attribute\Action;
+use WPPack\Component\Nonce\Attribute\IsNonceValid;
+use WPPack\Component\Hook\Attribute\Action;
 
 class ContactFormHandler
 {

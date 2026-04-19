@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,16 +11,16 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Hook\Tests\Attribute\PostType;
+namespace WPPack\Component\Hook\Tests\Attribute\PostType;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Hook\Attribute\Action;
-use WpPack\Component\Hook\Hook;
-use WpPack\Component\Hook\HookType;
-use WpPack\Component\Hook\Attribute\PostType\Action\DeletePostAction;
-use WpPack\Component\Hook\Attribute\PostType\Action\SavePostAction;
-use WpPack\Component\Hook\Attribute\PostType\Action\TransitionPostStatusAction;
+use WPPack\Component\Hook\Attribute\Action;
+use WPPack\Component\Hook\Hook;
+use WPPack\Component\Hook\HookType;
+use WPPack\Component\Hook\Attribute\PostType\Action\DeletePostAction;
+use WPPack\Component\Hook\Attribute\PostType\Action\SavePostAction;
+use WPPack\Component\Hook\Attribute\PostType\Action\TransitionPostStatusAction;
 
 final class NamedHookTest extends TestCase
 {

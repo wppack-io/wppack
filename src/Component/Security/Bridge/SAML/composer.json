@@ -1,6 +1,6 @@
 {
     "name": "wppack/saml-security",
-    "description": "SAML 2.0 SP authentication for WpPack Security",
+    "description": "SAML 2.0 SP authentication for WPPack Security",
     "type": "library",
     "license": "MIT",
     "require": {
@@ -12,12 +12,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\Security\\Bridge\\SAML\\": "src/"
+            "WPPack\\Component\\Security\\Bridge\\SAML\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Component\\Security\\Bridge\\SAML\\Tests\\": "tests/"
+            "WPPack\\Component\\Security\\Bridge\\SAML\\Tests\\": "tests/"
         }
     }
 }

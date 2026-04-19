@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Monitoring\Bridge\CloudWatch\Discovery;
+namespace WPPack\Component\Monitoring\Bridge\CloudWatch\Discovery;
 
-use WpPack\Component\Monitoring\MetricDefinition;
-use WpPack\Component\Monitoring\MonitoringProvider;
-use WpPack\Component\Monitoring\MonitoringProviderInterface;
-use WpPack\Component\Monitoring\Bridge\CloudWatch\AwsProviderSettings;
-use WpPack\Plugin\S3StoragePlugin\Configuration\S3StorageConfiguration;
+use WPPack\Component\Monitoring\MetricDefinition;
+use WPPack\Component\Monitoring\MonitoringProvider;
+use WPPack\Component\Monitoring\MonitoringProviderInterface;
+use WPPack\Component\Monitoring\Bridge\CloudWatch\AwsProviderSettings;
+use WPPack\Plugin\S3StoragePlugin\Configuration\S3StorageConfiguration;
 
 final class S3Discovery implements MonitoringProviderInterface
 {

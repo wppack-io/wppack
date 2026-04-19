@@ -1,4 +1,4 @@
-# WpPack Mime
+# WPPack Mime
 
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=mime)](https://codecov.io/github/wppack-io/wppack)
 
@@ -13,7 +13,7 @@ composer require wppack/mime
 ## Usage
 
 ```php
-use WpPack\Component\Mime\MimeTypes;
+use WPPack\Component\Mime\MimeTypes;
 
 $mimeTypes = MimeTypes::getDefault();
 

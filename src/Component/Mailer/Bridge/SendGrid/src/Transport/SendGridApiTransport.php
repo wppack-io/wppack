@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Mailer\Bridge\SendGrid\Transport;
+namespace WPPack\Component\Mailer\Bridge\SendGrid\Transport;
 
-use WpPack\Component\HttpClient\Exception\ConnectionException;
-use WpPack\Component\HttpClient\HttpClient;
-use WpPack\Component\Mailer\Exception\TransportException;
-use WpPack\Component\Mailer\Transport\AbstractApiTransport;
-use WpPack\Component\Mailer\PhpMailer;
-use WpPack\Component\Serializer\Encoder\JsonEncoder;
+use WPPack\Component\HttpClient\Exception\ConnectionException;
+use WPPack\Component\HttpClient\HttpClient;
+use WPPack\Component\Mailer\Exception\TransportException;
+use WPPack\Component\Mailer\Transport\AbstractApiTransport;
+use WPPack\Component\Mailer\PhpMailer;
+use WPPack\Component\Serializer\Encoder\JsonEncoder;
 
 final class SendGridApiTransport extends AbstractApiTransport
 {

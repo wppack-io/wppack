@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Security\Bridge\SAML\Session;
+namespace WPPack\Component\Security\Bridge\SAML\Session;
 
-use WpPack\Component\User\UserRepositoryInterface;
+use WPPack\Component\User\UserRepositoryInterface;
 
 /**
  * Persists SAML session data (nameId, sessionIndex) in WordPress user meta

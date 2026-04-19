@@ -22,10 +22,10 @@ composer require wppack/eventbridge-scheduler-plugin
 ### Define a Schedule
 
 ```php
-use WpPack\Component\Scheduler\Attribute\AsSchedule;
-use WpPack\Component\Scheduler\RecurringMessage;
-use WpPack\Component\Scheduler\Schedule;
-use WpPack\Component\Scheduler\ScheduleProviderInterface;
+use WPPack\Component\Scheduler\Attribute\AsSchedule;
+use WPPack\Component\Scheduler\RecurringMessage;
+use WPPack\Component\Scheduler\Schedule;
+use WPPack\Component\Scheduler\ScheduleProviderInterface;
 
 #[AsSchedule]
 final class MaintenanceScheduleProvider implements ScheduleProviderInterface
@@ -42,7 +42,7 @@ final class MaintenanceScheduleProvider implements ScheduleProviderInterface
 ### Define a Handler
 
 ```php
-use WpPack\Component\Messenger\Attribute\AsMessageHandler;
+use WPPack\Component\Messenger\Attribute\AsMessageHandler;
 
 #[AsMessageHandler]
 final class CleanupMessageHandler

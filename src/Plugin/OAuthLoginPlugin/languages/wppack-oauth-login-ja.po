@@ -1,4 +1,4 @@
-# Japanese translation for WpPack OAuth Login
+# Japanese translation for WPPack OAuth Login
 msgid ""
 msgstr ""
 "Project-Id-Version: @wppack/oauth-login-plugin 1.0.0\n"
@@ -7,16 +7,16 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 "PO-Revision-Date: 2026-03-30 00:00+0900\n"
-"Last-Translator: WpPack <dev@wppack.io>\n"
-"Language-Team: WpPack <dev@wppack.io>\n"
+"Last-Translator: WPPack <dev@wppack.io>\n"
+"Language-Team: WPPack <dev@wppack.io>\n"
 "Language: ja\n"
 "X-Domain: wppack-oauth-login\n"
 
 msgid "@wppack/oauth-login-plugin"
-msgstr "WpPack OAuth Login"
+msgstr "WPPack OAuth Login"
 
-msgid "WpPack"
-msgstr "WpPack"
+msgid "WPPack"
+msgstr "WPPack"
 
 msgid "Constant"
 msgstr "定数"

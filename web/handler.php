@@ -8,8 +8,8 @@ declare(strict_types=1);
  * Usage: php -S localhost:8080 -t web web/handler.php
  */
 
-use WpPack\Component\Handler\Configuration;
-use WpPack\Component\Handler\Handler;
+use WPPack\Component\Handler\Configuration;
+use WPPack\Component\Handler\Handler;
 
 require dirname(__DIR__) . '/vendor/autoload.php';
 

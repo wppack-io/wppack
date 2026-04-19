@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\S3StoragePlugin\Handler;
+namespace WPPack\Plugin\S3StoragePlugin\Handler;
 
 use Psr\Log\LoggerInterface;
-use WpPack\Component\Media\AttachmentManagerInterface;
-use WpPack\Component\Messenger\Attribute\AsMessageHandler;
-use WpPack\Component\Site\BlogSwitcherInterface;
-use WpPack\Plugin\S3StoragePlugin\Message\GenerateThumbnailsMessage;
+use WPPack\Component\Media\AttachmentManagerInterface;
+use WPPack\Component\Messenger\Attribute\AsMessageHandler;
+use WPPack\Component\Site\BlogSwitcherInterface;
+use WPPack\Plugin\S3StoragePlugin\Message\GenerateThumbnailsMessage;
 
 #[AsMessageHandler]
 final readonly class GenerateThumbnailsHandler

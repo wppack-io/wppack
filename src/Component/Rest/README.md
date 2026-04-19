@@ -1,4 +1,4 @@
-# WpPack Rest
+# WPPack Rest
 
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=rest)](https://codecov.io/github/wppack-io/wppack)
 
@@ -15,7 +15,7 @@ composer require wppack/rest
 ### RestUrlGenerator
 
 ```php
-use WpPack\Component\Rest\RestUrlGenerator;
+use WPPack\Component\Rest\RestUrlGenerator;
 
 $restUrl = new RestUrlGenerator($registry);
 

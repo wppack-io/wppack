@@ -2,7 +2,7 @@
 
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=gcs_storage)](https://codecov.io/github/wppack-io/wppack)
 
-Google Cloud Storage adapter for [WpPack Storage](../../README.md).
+Google Cloud Storage adapter for [WPPack Storage](../../README.md).
 
 ## Installation
 
@@ -15,7 +15,7 @@ composer require wppack/gcs-storage
 ### Via DSN
 
 ```php
-use WpPack\Component\Storage\Adapter\Storage;
+use WPPack\Component\Storage\Adapter\Storage;
 
 // Using default credentials (Application Default Credentials)
 $adapter = Storage::fromDsn('gcs://my-bucket.storage.googleapis.com/uploads');
@@ -34,7 +34,7 @@ $adapter = Storage::fromDsn('gcs://my-bucket?key_file=/path/to/service-account.j
 
 ```php
 use Google\Cloud\Storage\StorageClient;
-use WpPack\Component\Storage\Bridge\Gcs\GcsStorageAdapter;
+use WPPack\Component\Storage\Bridge\Gcs\GcsStorageAdapter;
 
 $storageClient = new StorageClient(['projectId' => 'my-project-id']);
 $bucket = $storageClient->bucket('my-bucket');

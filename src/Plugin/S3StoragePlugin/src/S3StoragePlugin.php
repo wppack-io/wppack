@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,22 +11,22 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\S3StoragePlugin;
+namespace WPPack\Plugin\S3StoragePlugin;
 
-use WpPack\Component\Admin\AdminPageRegistry;
-use WpPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
-use WpPack\Component\DependencyInjection\Container;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\Hook\DependencyInjection\RegisterHookSubscribersPass;
-use WpPack\Component\Kernel\AbstractPlugin;
-use WpPack\Component\Kernel\Attribute\TextDomain;
-use WpPack\Component\Messenger\DependencyInjection\RegisterMessageHandlersPass;
-use WpPack\Component\Rest\DependencyInjection\RegisterRestControllersPass;
-use WpPack\Component\Rest\RestRegistry;
-use WpPack\Plugin\S3StoragePlugin\Admin\S3StorageSettingsController;
-use WpPack\Plugin\S3StoragePlugin\Admin\S3StorageSettingsPage;
-use WpPack\Plugin\S3StoragePlugin\Configuration\S3StorageConfiguration;
-use WpPack\Plugin\S3StoragePlugin\DependencyInjection\S3StoragePluginServiceProvider;
+use WPPack\Component\Admin\AdminPageRegistry;
+use WPPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
+use WPPack\Component\DependencyInjection\Container;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\Hook\DependencyInjection\RegisterHookSubscribersPass;
+use WPPack\Component\Kernel\AbstractPlugin;
+use WPPack\Component\Kernel\Attribute\TextDomain;
+use WPPack\Component\Messenger\DependencyInjection\RegisterMessageHandlersPass;
+use WPPack\Component\Rest\DependencyInjection\RegisterRestControllersPass;
+use WPPack\Component\Rest\RestRegistry;
+use WPPack\Plugin\S3StoragePlugin\Admin\S3StorageSettingsController;
+use WPPack\Plugin\S3StoragePlugin\Admin\S3StorageSettingsPage;
+use WPPack\Plugin\S3StoragePlugin\Configuration\S3StorageConfiguration;
+use WPPack\Plugin\S3StoragePlugin\DependencyInjection\S3StoragePluginServiceProvider;
 
 #[TextDomain(domain: 'wppack-storage')]
 final class S3StoragePlugin extends AbstractPlugin

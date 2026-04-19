@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,16 +11,16 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Scheduler\Bridge\EventBridge\Tests\Interceptor;
+namespace WPPack\Component\Scheduler\Bridge\EventBridge\Tests\Interceptor;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
-use WpPack\Component\Scheduler\Bridge\EventBridge\EventBridgeScheduleFactory;
-use WpPack\Component\Scheduler\Bridge\EventBridge\Interceptor\WpCronInterceptor;
-use WpPack\Component\Scheduler\Bridge\EventBridge\SqsPayloadFactory;
-use WpPack\Component\Scheduler\Message\ScheduledMessage;
-use WpPack\Component\Scheduler\Scheduler\SchedulerInterface;
+use WPPack\Component\Scheduler\Bridge\EventBridge\EventBridgeScheduleFactory;
+use WPPack\Component\Scheduler\Bridge\EventBridge\Interceptor\WpCronInterceptor;
+use WPPack\Component\Scheduler\Bridge\EventBridge\SqsPayloadFactory;
+use WPPack\Component\Scheduler\Message\ScheduledMessage;
+use WPPack\Component\Scheduler\Scheduler\SchedulerInterface;
 
 final class WpCronInterceptorTest extends TestCase
 {

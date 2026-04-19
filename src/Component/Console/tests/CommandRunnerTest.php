@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,20 +11,20 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Console\Tests;
+namespace WPPack\Component\Console\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WP_CLI\ExitException;
-use WpPack\Component\Console\AbstractCommand;
-use WpPack\Component\Console\Attribute\AsCommand;
-use WpPack\Component\Console\CommandRunner;
-use WpPack\Component\Console\Input\InputArgument;
-use WpPack\Component\Console\Input\InputDefinition;
-use WpPack\Component\Console\Input\InputInterface;
-use WpPack\Component\Console\Input\InputOption;
-use WpPack\Component\Console\Output\OutputStyle;
-use WpPack\Component\Console\Tests\Output\StdoutCaptureFilter;
+use WPPack\Component\Console\AbstractCommand;
+use WPPack\Component\Console\Attribute\AsCommand;
+use WPPack\Component\Console\CommandRunner;
+use WPPack\Component\Console\Input\InputArgument;
+use WPPack\Component\Console\Input\InputDefinition;
+use WPPack\Component\Console\Input\InputInterface;
+use WPPack\Component\Console\Input\InputOption;
+use WPPack\Component\Console\Output\OutputStyle;
+use WPPack\Component\Console\Tests\Output\StdoutCaptureFilter;
 
 final class CommandRunnerTest extends TestCase
 {

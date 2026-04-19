@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database;
+namespace WPPack\Component\Database;
 
 /**
  * QueryLogger implementation that writes to WordPress `$wpdb->queries`
  * when the `SAVEQUERIES` constant is enabled.
  *
  * Enables tools such as Query Monitor / Debug Bar to capture queries
- * executed through the WpPack Driver abstraction.
+ * executed through the WPPack Driver abstraction.
  */
 final class WpSaveQueriesLogger implements QueryLoggerInterface
 {

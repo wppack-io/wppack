@@ -17,9 +17,9 @@
 ### 使用例
 
 ```php
-use WpPack\Component\Hook\Attribute\Shortcode\Filter\ShortcodeAttsFilter;
-use WpPack\Component\Hook\Attribute\Shortcode\Filter\DoShortcodeTagFilter;
-use WpPack\Component\Hook\Attribute\Shortcode\Filter\NoTexturizeShortcodesFilter;
+use WPPack\Component\Hook\Attribute\Shortcode\Filter\ShortcodeAttsFilter;
+use WPPack\Component\Hook\Attribute\Shortcode\Filter\DoShortcodeTagFilter;
+use WPPack\Component\Hook\Attribute\Shortcode\Filter\NoTexturizeShortcodesFilter;
 
 final class ShortcodeHooks
 {

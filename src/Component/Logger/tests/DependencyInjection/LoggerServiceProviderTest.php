@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,19 +11,19 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Logger\Tests\DependencyInjection;
+namespace WPPack\Component\Logger\Tests\DependencyInjection;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
-use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\DependencyInjection\Reference;
-use WpPack\Component\DependencyInjection\ServiceProviderInterface;
-use WpPack\Component\Logger\DependencyInjection\LoggerServiceProvider;
-use WpPack\Component\Logger\ChannelResolver\WordPressChannelResolver;
-use WpPack\Component\Logger\ErrorHandler;
-use WpPack\Component\Logger\Handler\ErrorLogHandler;
-use WpPack\Component\Logger\LoggerFactory;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
+use WPPack\Component\DependencyInjection\Reference;
+use WPPack\Component\DependencyInjection\ServiceProviderInterface;
+use WPPack\Component\Logger\DependencyInjection\LoggerServiceProvider;
+use WPPack\Component\Logger\ChannelResolver\WordPressChannelResolver;
+use WPPack\Component\Logger\ErrorHandler;
+use WPPack\Component\Logger\Handler\ErrorLogHandler;
+use WPPack\Component\Logger\LoggerFactory;
 
 final class LoggerServiceProviderTest extends TestCase
 {

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Console\Tests\Input;
+namespace WPPack\Component\Console\Tests\Input;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Console\Input\InputArgument;
-use WpPack\Component\Console\Input\InputDefinition;
-use WpPack\Component\Console\Input\InputOption;
+use WPPack\Component\Console\Input\InputArgument;
+use WPPack\Component\Console\Input\InputDefinition;
+use WPPack\Component\Console\Input\InputOption;
 
 #[CoversClass(InputDefinition::class)]
 final class InputDefinitionSynopsisTest extends TestCase

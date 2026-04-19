@@ -11,7 +11,7 @@
 `postType` パラメータを指定すると、特定の投稿タイプに限定したフック `save_post_{post_type}` が使用されます。
 
 ```php
-use WpPack\Component\Hook\Attribute\PostType\Action\SavePostAction;
+use WPPack\Component\Hook\Attribute\PostType\Action\SavePostAction;
 
 class PostSaveHandler
 {
@@ -48,7 +48,7 @@ class PostSaveHandler
 **WordPress Hook:** `delete_post`
 
 ```php
-use WpPack\Component\Hook\Attribute\PostType\Action\DeletePostAction;
+use WPPack\Component\Hook\Attribute\PostType\Action\DeletePostAction;
 
 class PostDeleteHandler
 {
@@ -68,7 +68,7 @@ class PostDeleteHandler
 **WordPress Hook:** `transition_post_status`
 
 ```php
-use WpPack\Component\Hook\Attribute\PostType\Action\TransitionPostStatusAction;
+use WPPack\Component\Hook\Attribute\PostType\Action\TransitionPostStatusAction;
 
 class PostStatusHandler
 {

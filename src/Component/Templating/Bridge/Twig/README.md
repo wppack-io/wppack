@@ -3,9 +3,9 @@
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=twig_templating)](https://codecov.io/github/wppack-io/wppack)
 
 **Package:** `wppack/twig-templating`
-**Namespace:** `WpPack\Component\Templating\Bridge\Twig\`
+**Namespace:** `WPPack\Component\Templating\Bridge\Twig\`
 
-A Twig bridge for WpPack Templating. Implements `TemplateRendererInterface` using Twig, enabling `.html.twig` templates alongside PHP templates via `ChainRenderer`.
+A Twig bridge for WPPack Templating. Implements `TemplateRendererInterface` using Twig, enabling `.html.twig` templates alongside PHP templates via `ChainRenderer`.
 
 ## Installation
 
@@ -16,9 +16,9 @@ composer require wppack/twig-templating
 ## Usage
 
 ```php
-use WpPack\Component\Templating\Bridge\Twig\TwigEnvironmentFactory;
-use WpPack\Component\Templating\Bridge\Twig\TwigRenderer;
-use WpPack\Component\Templating\Bridge\Twig\Extension\WordPressExtension;
+use WPPack\Component\Templating\Bridge\Twig\TwigEnvironmentFactory;
+use WPPack\Component\Templating\Bridge\Twig\TwigRenderer;
+use WPPack\Component\Templating\Bridge\Twig\Extension\WordPressExtension;
 
 $factory = new TwigEnvironmentFactory(
     paths: [get_template_directory() . '/templates'],

@@ -13,12 +13,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\Logger\\": "src/"
+            "WPPack\\Component\\Logger\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Component\\Logger\\Tests\\": "tests/"
+            "WPPack\\Component\\Logger\\Tests\\": "tests/"
         }
     }
 }

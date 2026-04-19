@@ -11,7 +11,7 @@
 SQL クエリの実行前にクエリを変更します。
 
 ```php
-use WpPack\Component\Hook\Attribute\Database\Filter\QueryFilter;
+use WPPack\Component\Hook\Attribute\Database\Filter\QueryFilter;
 
 class DatabaseQueryManager
 {
@@ -34,7 +34,7 @@ class DatabaseQueryManager
 `prepare()` 後、実行前のクエリをフィルタリングします。
 
 ```php
-use WpPack\Component\Hook\Attribute\Database\Filter\DbprepareFilter;
+use WPPack\Component\Hook\Attribute\Database\Filter\DbprepareFilter;
 
 class DatabasePrepareManager
 {
@@ -55,7 +55,7 @@ class DatabasePrepareManager
 WordPress アップグレード時にデータベーススキーマの更新を実行します。
 
 ```php
-use WpPack\Component\Hook\Attribute\Database\Action\WpUpgradeAction;
+use WPPack\Component\Hook\Attribute\Database\Action\WpUpgradeAction;
 
 class DatabaseSchemaManager
 {
@@ -74,7 +74,7 @@ class DatabaseSchemaManager
 `dbDelta()` 実行前にクエリを変更します。
 
 ```php
-use WpPack\Component\Hook\Attribute\Database\Filter\DbDeltaQueriesFilter;
+use WPPack\Component\Hook\Attribute\Database\Filter\DbDeltaQueriesFilter;
 
 class DatabaseTableManager
 {

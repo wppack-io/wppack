@@ -13,12 +13,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\Widget\\": "src/"
+            "WPPack\\Component\\Widget\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Component\\Widget\\Tests\\": "tests/"
+            "WPPack\\Component\\Widget\\Tests\\": "tests/"
         }
     }
 }

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database\Sql;
+namespace WPPack\Component\Database\Sql;
 
 /**
  * Quote-aware scanner for '?' placeholders in a SQL string.
@@ -24,7 +24,7 @@ namespace WpPack\Component\Database\Sql;
  *
  * Used by:
  *   - PgsqlDriver to rewrite '?' into PostgreSQL's '$1, $2, ...' form.
- *   - WpPackWpdb::interpolateForDisplay() to render a human-readable SQL
+ *   - WPPackWpdb::interpolateForDisplay() to render a human-readable SQL
  *     for SAVEQUERIES logs by substituting each '?' with its bound value.
  */
 final class PlaceholderScanner

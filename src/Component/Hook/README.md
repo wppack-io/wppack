@@ -1,4 +1,4 @@
-# WpPack Hook
+# WPPack Hook
 
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=hook)](https://codecov.io/github/wppack-io/wppack)
 
@@ -17,9 +17,9 @@ composer require wppack/hook
 ### Attribute-Based Hooks
 
 ```php
-use WpPack\Component\Hook\Attribute\Action;
-use WpPack\Component\Hook\Attribute\Filter;
-use WpPack\Component\Hook\Attribute\Action\InitAction;
+use WPPack\Component\Hook\Attribute\Action;
+use WPPack\Component\Hook\Attribute\Filter;
+use WPPack\Component\Hook\Attribute\Action\InitAction;
 
 final class ContentHooks
 {
@@ -55,8 +55,8 @@ Frequently used hooks have dedicated attributes for type safety:
 #### AJAX Actions
 
 ```php
-use WpPack\Component\Hook\Attribute\Action\WpAjaxAction;
-use WpPack\Component\Hook\Attribute\Action\WpAjaxNoprivAction;
+use WPPack\Component\Hook\Attribute\Action\WpAjaxAction;
+use WPPack\Component\Hook\Attribute\Action\WpAjaxNoprivAction;
 
 final class AjaxHandler
 {
@@ -80,13 +80,13 @@ final class AjaxHandler
 
 #### Component-Specific Named Hooks
 
-Each WpPack component provides its own named hook attributes. See [Named Hook Conventions](../../../docs/components/hook/named-hook-conventions.md) for details.
+Each WPPack component provides its own named hook attributes. See [Named Hook Conventions](../../../docs/components/hook/named-hook-conventions.md) for details.
 
 ### Auto-Discovery
 
 ```php
-use WpPack\Component\Hook\HookDiscovery;
-use WpPack\Component\Hook\HookRegistry;
+use WPPack\Component\Hook\HookDiscovery;
+use WPPack\Component\Hook\HookRegistry;
 
 $registry = new HookRegistry();
 $discovery = new HookDiscovery($registry);

@@ -1,4 +1,4 @@
-# WpPack Scheduler
+# WPPack Scheduler
 
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=scheduler)](https://codecov.io/github/wppack-io/wppack)
 
@@ -15,10 +15,10 @@ composer require wppack/scheduler
 ### Define Schedules
 
 ```php
-use WpPack\Component\Scheduler\Attribute\AsSchedule;
-use WpPack\Component\Scheduler\Schedule;
-use WpPack\Component\Scheduler\RecurringMessage;
-use WpPack\Component\Scheduler\ScheduleProviderInterface;
+use WPPack\Component\Scheduler\Attribute\AsSchedule;
+use WPPack\Component\Scheduler\Schedule;
+use WPPack\Component\Scheduler\RecurringMessage;
+use WPPack\Component\Scheduler\ScheduleProviderInterface;
 
 #[AsSchedule]
 final class MaintenanceScheduleProvider implements ScheduleProviderInterface

@@ -8,12 +8,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\Comment\\": "src/"
+            "WPPack\\Component\\Comment\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Component\\Comment\\Tests\\": "tests/"
+            "WPPack\\Component\\Comment\\Tests\\": "tests/"
         }
     }
 }

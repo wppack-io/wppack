@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Rest\Tests;
+namespace WPPack\Component\Rest\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Rest\Attribute\Param;
-use WpPack\Component\Rest\RestParamEntry;
+use WPPack\Component\Rest\Attribute\Param;
+use WPPack\Component\Rest\RestParamEntry;
 
 final class RestParamEntryTest extends TestCase
 {

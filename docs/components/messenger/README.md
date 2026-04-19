@@ -1,7 +1,7 @@
 # Messenger コンポーネント
 
 **パッケージ:** `wppack/messenger`
-**名前空間:** `WpPack\Component\Messenger\`
+**名前空間:** `WPPack\Component\Messenger\`
 **レイヤー:** Abstraction
 
 トランスポート非依存のメッセージバス。Symfony Messenger ライクなアーキテクチャで、メッセージの定義・ディスパッチ・ミドルウェアチェーン・ハンドラー解決・シリアライゼーションを提供します。トランスポート（SQS、同期処理など）は Bridge パッケージとして分離されています。
@@ -35,10 +35,10 @@ function myplugin_process_image() {
 }
 ```
 
-### After（WpPack Messenger）
+### After（WPPack Messenger）
 
 ```php
-use WpPack\Component\Messenger\Attribute\AsMessageHandler;
+use WPPack\Component\Messenger\Attribute\AsMessageHandler;
 
 // メッセージクラス（プレーン POPO）
 final readonly class ProcessImageMessage
@@ -127,7 +127,7 @@ final readonly class ProcessImageMessage
 クラスに `#[AsMessageHandler]` を付与し、`__invoke()` メソッドの引数型からメッセージ型が自動推論されます。
 
 ```php
-use WpPack\Component\Messenger\Attribute\AsMessageHandler;
+use WPPack\Component\Messenger\Attribute\AsMessageHandler;
 
 #[AsMessageHandler]
 final class SendEmailMessageHandler
@@ -158,7 +158,7 @@ final class SendEmailMessageHandler
 一つのハンドラークラスで複数のメッセージ型を処理する場合は、メソッドレベルに `#[AsMessageHandler]` を付与します。
 
 ```php
-use WpPack\Component\Messenger\Attribute\AsMessageHandler;
+use WPPack\Component\Messenger\Attribute\AsMessageHandler;
 
 final class NotificationHandler
 {
@@ -185,7 +185,7 @@ final class NotificationHandler
 `MessageBusInterface` がメッセージのディスパッチ API です。
 
 ```php
-namespace WpPack\Component\Messenger;
+namespace WPPack\Component\Messenger;
 
 interface MessageBusInterface
 {
@@ -199,10 +199,10 @@ interface MessageBusInterface
 `MessageBus` はミドルウェアチェーンを通してメッセージを処理する実装です。
 
 ```php
-use WpPack\Component\Messenger\MessageBus;
-use WpPack\Component\Messenger\Middleware\SendMessageMiddleware;
-use WpPack\Component\Messenger\Middleware\HandleMessageMiddleware;
-use WpPack\Component\Messenger\Middleware\AddBusNameStampMiddleware;
+use WPPack\Component\Messenger\MessageBus;
+use WPPack\Component\Messenger\Middleware\SendMessageMiddleware;
+use WPPack\Component\Messenger\Middleware\HandleMessageMiddleware;
+use WPPack\Component\Messenger\Middleware\AddBusNameStampMiddleware;
 
 $messageBus = new MessageBus([
     new AddBusNameStampMiddleware('default'),
@@ -227,8 +227,8 @@ $messageBus->dispatch(new SendEmailMessage(
 ### Envelope::wrap()
 
 ```php
-use WpPack\Component\Messenger\Envelope;
-use WpPack\Component\Messenger\Stamp\DelayStamp;
+use WPPack\Component\Messenger\Envelope;
+use WPPack\Component\Messenger\Stamp\DelayStamp;
 
 // メッセージから Envelope を生成
 $envelope = Envelope::wrap(new SendEmailMessage(userId: 123, subject: 'Hi', body: '...'));
@@ -289,8 +289,8 @@ $message = $envelope->getMessage();
 `dispatch()` の第二引数で Stamp を付与できます。
 
 ```php
-use WpPack\Component\Messenger\Stamp\DelayStamp;
-use WpPack\Component\Messenger\Stamp\TransportStamp;
+use WPPack\Component\Messenger\Stamp\DelayStamp;
+use WPPack\Component\Messenger\Stamp\TransportStamp;
 
 // 5分後に実行
 $messageBus->dispatch(
@@ -310,7 +310,7 @@ $messageBus->dispatch(
 `MiddlewareInterface` を実装してメッセージ処理パイプラインをカスタマイズできます。
 
 ```php
-namespace WpPack\Component\Messenger\Middleware;
+namespace WPPack\Component\Messenger\Middleware;
 
 interface MiddlewareInterface
 {
@@ -330,9 +330,9 @@ interface MiddlewareInterface
 ### カスタムミドルウェアの作成
 
 ```php
-use WpPack\Component\Messenger\Middleware\MiddlewareInterface;
-use WpPack\Component\Messenger\Middleware\StackInterface;
-use WpPack\Component\Messenger\Envelope;
+use WPPack\Component\Messenger\Middleware\MiddlewareInterface;
+use WPPack\Component\Messenger\Middleware\StackInterface;
+use WPPack\Component\Messenger\Envelope;
 
 final class LoggingMiddleware implements MiddlewareInterface
 {
@@ -362,7 +362,7 @@ final class LoggingMiddleware implements MiddlewareInterface
 `MiddlewareStack` はミドルウェアの実行スタックです。`next()` で次のミドルウェアを取得し、すべて消費されるとパススルーの匿名クラスを返します。
 
 ```php
-use WpPack\Component\Messenger\MessageBus;
+use WPPack\Component\Messenger\MessageBus;
 
 $messageBus = new MessageBus([
     new LoggingMiddleware($logger),
@@ -378,7 +378,7 @@ $messageBus = new MessageBus([
 `TransportInterface` はメッセージの送信先を抽象化します。
 
 ```php
-namespace WpPack\Component\Messenger\Transport;
+namespace WPPack\Component\Messenger\Transport;
 
 interface TransportInterface
 {
@@ -392,7 +392,7 @@ interface TransportInterface
 同期トランスポート。メッセージをそのまま返し、`HandleMessageMiddleware` で即座に処理されます。開発環境やテスト環境で非同期処理を無効化する場合に使用します。
 
 ```php
-use WpPack\Component\Messenger\Transport\SyncTransport;
+use WPPack\Component\Messenger\Transport\SyncTransport;
 
 $syncTransport = new SyncTransport(); // getName() → 'sync'
 ```
@@ -410,7 +410,7 @@ $syncTransport = new SyncTransport(); // getName() → 'sync'
 メッセージクラスからハンドラーを解決するインターフェースです。
 
 ```php
-namespace WpPack\Component\Messenger\Handler;
+namespace WPPack\Component\Messenger\Handler;
 
 interface HandlerLocatorInterface
 {
@@ -426,7 +426,7 @@ interface HandlerLocatorInterface
 デフォルトのハンドラーロケーター実装。コンストラクタで `メッセージクラス => callable のリスト` を渡すか、`addHandler()` で個別に登録します。
 
 ```php
-use WpPack\Component\Messenger\Handler\HandlerLocator;
+use WPPack\Component\Messenger\Handler\HandlerLocator;
 
 $handlerLocator = new HandlerLocator([
     SendEmailMessage::class => [
@@ -450,7 +450,7 @@ $handlerLocator->addHandler(
 ハンドラーの callable とその名前をカプセル化します。
 
 ```php
-use WpPack\Component\Messenger\Handler\HandlerDescriptor;
+use WPPack\Component\Messenger\Handler\HandlerDescriptor;
 
 $descriptor = new HandlerDescriptor(
     handler: [new MyHandler(), '__invoke'],
@@ -468,7 +468,7 @@ $name = $descriptor->getName();       // string
 メッセージのエンコード（送信時）とデコード（受信時）を行うインターフェースです。
 
 ```php
-namespace WpPack\Component\Messenger\Serializer;
+namespace WPPack\Component\Messenger\Serializer;
 
 interface SerializerInterface
 {
@@ -489,7 +489,7 @@ interface SerializerInterface
 リフレクションベースの JSON シリアライザー。メッセージとスタンプの public プロパティを読み書きします。
 
 ```php
-use WpPack\Component\Messenger\Serializer\JsonSerializer;
+use WPPack\Component\Messenger\Serializer\JsonSerializer;
 
 $serializer = new JsonSerializer();
 
@@ -517,7 +517,7 @@ $envelope = $serializer->decode($data);
 `TestMessageBus` はテスト用の `MessageBusInterface` 実装です。実際のトランスポートやミドルウェアを使わず、ディスパッチされたメッセージを記録します。
 
 ```php
-use WpPack\Component\Messenger\Test\TestMessageBus;
+use WPPack\Component\Messenger\Test\TestMessageBus;
 
 $testBus = new TestMessageBus();
 

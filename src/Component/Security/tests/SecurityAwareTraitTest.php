@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Security\Tests;
+namespace WPPack\Component\Security\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Security\Exception\AccessDeniedException;
-use WpPack\Component\Security\SecurityAwareTrait;
+use WPPack\Component\Security\Exception\AccessDeniedException;
+use WPPack\Component\Security\SecurityAwareTrait;
 
 final class SecurityAwareTraitTest extends TestCase
 {

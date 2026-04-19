@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database\Bridge\Sqlite\Tests;
+namespace WPPack\Component\Database\Bridge\Sqlite\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Database\Bridge\Sqlite\SqliteDriver;
-use WpPack\Component\Database\Connection;
+use WPPack\Component\Database\Bridge\Sqlite\SqliteDriver;
+use WPPack\Component\Database\Connection;
 
 /**
  * Integration tests for Connection + SqliteDriver with real prepared statements.
@@ -153,7 +153,7 @@ final class SqliteConnectionTest extends TestCase
         $translator = $this->connection->getDriver()->getQueryTranslator();
 
         self::assertInstanceOf(
-            \WpPack\Component\Database\Bridge\Sqlite\Translator\SqliteQueryTranslator::class,
+            \WPPack\Component\Database\Bridge\Sqlite\Translator\SqliteQueryTranslator::class,
             $translator,
         );
     }

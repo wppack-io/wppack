@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Scheduler\Bridge\EventBridge;
+namespace WPPack\Component\Scheduler\Bridge\EventBridge;
 
 use AsyncAws\Scheduler\Exception\ConflictException;
 use AsyncAws\Scheduler\Exception\ResourceNotFoundException;
@@ -20,9 +20,9 @@ use AsyncAws\Scheduler\Input\DeleteScheduleInput;
 use AsyncAws\Scheduler\Input\GetScheduleInput;
 use AsyncAws\Scheduler\Input\UpdateScheduleInput;
 use AsyncAws\Scheduler\SchedulerClient;
-use WpPack\Component\Scheduler\Bridge\EventBridge\Exception\EventBridgeException;
-use WpPack\Component\Scheduler\Message\ScheduledMessage;
-use WpPack\Component\Scheduler\Scheduler\SchedulerInterface;
+use WPPack\Component\Scheduler\Bridge\EventBridge\Exception\EventBridgeException;
+use WPPack\Component\Scheduler\Message\ScheduledMessage;
+use WPPack\Component\Scheduler\Scheduler\SchedulerInterface;
 
 final class EventBridgeScheduler implements SchedulerInterface
 {

@@ -11,7 +11,7 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 "POT-Creation-Date: 2026-03-31T04:20:38.821Z\n"
 "PO-Revision-Date: 2026-03-31 13:20+0900\n"
-"Last-Translator: WpPack <dev@wppack.io>\n"
+"Last-Translator: WPPack <dev@wppack.io>\n"
 "Language-Team: Japanese <dev@wppack.io>\n"
 "X-Generator: @wp-blocks/make-pot 1.6.6\n"
 "Language: ja\n"
@@ -24,7 +24,7 @@ msgstr ""
 
 #: wppack-storage.php
 #. Author of the plugin
-msgid "WpPack"
+msgid "WPPack"
 msgstr ""
 
 #: js/src/settings/App.js

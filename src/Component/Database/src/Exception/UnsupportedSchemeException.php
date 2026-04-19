@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database\Exception;
+namespace WPPack\Component\Database\Exception;
 
-use WpPack\Component\Dsn\Dsn;
+use WPPack\Component\Dsn\Dsn;
 
 class UnsupportedSchemeException extends \InvalidArgumentException implements ExceptionInterface
 {

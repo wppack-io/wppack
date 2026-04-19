@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,10 +11,10 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Scim\Serialization;
+namespace WPPack\Component\Scim\Serialization;
 
-use WpPack\Component\Scim\Exception\ScimException;
-use WpPack\Component\Scim\Schema\ScimConstants;
+use WPPack\Component\Scim\Exception\ScimException;
+use WPPack\Component\Scim\Schema\ScimConstants;
 
 final class ErrorSerializer
 {

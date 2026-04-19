@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Logger\Bridge\Monolog\Tests;
+namespace WPPack\Component\Logger\Bridge\Monolog\Tests;
 
 use Monolog\Handler\TestHandler;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Logger\Bridge\Monolog\MonologHandler;
-use WpPack\Component\Logger\Bridge\Monolog\MonologLoggerFactory;
-use WpPack\Component\Logger\Handler\HandlerInterface;
+use WPPack\Component\Logger\Bridge\Monolog\MonologHandler;
+use WPPack\Component\Logger\Bridge\Monolog\MonologLoggerFactory;
+use WPPack\Component\Logger\Handler\HandlerInterface;
 
 final class MonologHandlerTest extends TestCase
 {

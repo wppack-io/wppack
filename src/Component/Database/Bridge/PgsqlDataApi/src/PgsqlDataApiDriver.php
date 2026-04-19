@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database\Bridge\PgsqlDataApi;
+namespace WPPack\Component\Database\Bridge\PgsqlDataApi;
 
 use AsyncAws\RdsDataService\RdsDataServiceClient;
-use WpPack\Component\Database\Driver\DataApiDriverTrait;
-use WpPack\Component\Database\Bridge\Pgsql\PgsqlDriver;
-use WpPack\Component\Database\Bridge\Pgsql\Translator\PostgresqlQueryTranslator;
-use WpPack\Component\Database\Translator\QueryTranslatorInterface;
+use WPPack\Component\Database\Driver\DataApiDriverTrait;
+use WPPack\Component\Database\Bridge\Pgsql\PgsqlDriver;
+use WPPack\Component\Database\Bridge\Pgsql\Translator\PostgresqlQueryTranslator;
+use WPPack\Component\Database\Translator\QueryTranslatorInterface;
 
 /**
  * Aurora PostgreSQL Data API driver.
@@ -40,9 +40,9 @@ use WpPack\Component\Database\Translator\QueryTranslatorInterface;
  *     issue `SET search_path` once as the first statement —
  *     `DataApiDriverTrait::$transactionId` carries across calls within
  *     a single BEGIN / COMMIT boundary, so the SET persists there.
- * WpPack's `PgsqlDriver::$searchPath` accordingly has no effect here.
+ * WPPack's `PgsqlDriver::$searchPath` accordingly has no effect here.
  *
- * @see \WpPack\Component\Database\Driver\DataApiDriverTrait::$transactionId
+ * @see \WPPack\Component\Database\Driver\DataApiDriverTrait::$transactionId
  */
 class PgsqlDataApiDriver extends PgsqlDriver
 {

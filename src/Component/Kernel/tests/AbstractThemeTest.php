@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Kernel\Tests;
+namespace WPPack\Component\Kernel\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Kernel\AbstractTheme;
-use WpPack\Component\Kernel\ThemeInterface;
+use WPPack\Component\Kernel\AbstractTheme;
+use WPPack\Component\Kernel\ThemeInterface;
 
 final class AbstractThemeTest extends TestCase
 {
@@ -71,7 +71,7 @@ final class AbstractThemeTest extends TestCase
     public function bootDoesNotThrow(): void
     {
         $theme = $this->createTheme(__FILE__);
-        $container = new \WpPack\Component\DependencyInjection\Container(new \Symfony\Component\DependencyInjection\Container());
+        $container = new \WPPack\Component\DependencyInjection\Container(new \Symfony\Component\DependencyInjection\Container());
 
         $theme->boot($container);
 
@@ -81,7 +81,7 @@ final class AbstractThemeTest extends TestCase
     private function createTheme(string $themeFile): AbstractTheme
     {
         return new class ($themeFile) extends AbstractTheme {
-            public function register(\WpPack\Component\DependencyInjection\ContainerBuilder $builder): void {}
+            public function register(\WPPack\Component\DependencyInjection\ContainerBuilder $builder): void {}
         };
     }
 }

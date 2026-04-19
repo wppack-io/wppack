@@ -12,7 +12,7 @@
  * @var bool                                                         $cronDisabled  Whether WP-Cron is disabled
  * @var bool                                                         $alternateCron Whether alternate cron is enabled
  * @var list<array>                                                  $cronEvents    Cron event entries
- * @var \WpPack\Component\Debug\Toolbar\Panel\TemplateFormatters     $fmt           Template formatters
+ * @var \WPPack\Component\Debug\Toolbar\Panel\TemplateFormatters     $fmt           Template formatters
  */
 ?>
 <div class="wpd-section">

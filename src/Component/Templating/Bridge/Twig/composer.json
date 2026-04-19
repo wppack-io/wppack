@@ -1,6 +1,6 @@
 {
     "name": "wppack/twig-templating",
-    "description": "Twig bridge for WpPack Templating",
+    "description": "Twig bridge for WPPack Templating",
     "type": "library",
     "license": "MIT",
     "require": {
@@ -12,12 +12,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\Templating\\Bridge\\Twig\\": "src/"
+            "WPPack\\Component\\Templating\\Bridge\\Twig\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Component\\Templating\\Bridge\\Twig\\Tests\\": "tests/"
+            "WPPack\\Component\\Templating\\Bridge\\Twig\\Tests\\": "tests/"
         }
     }
 }

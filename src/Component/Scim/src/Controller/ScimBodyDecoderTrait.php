@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,10 +11,10 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Scim\Controller;
+namespace WPPack\Component\Scim\Controller;
 
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\Scim\Exception\InvalidValueException;
+use WPPack\Component\HttpFoundation\Request;
+use WPPack\Component\Scim\Exception\InvalidValueException;
 
 trait ScimBodyDecoderTrait
 {

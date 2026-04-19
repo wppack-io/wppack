@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Handler\Tests\Security;
+namespace WPPack\Component\Handler\Tests\Security;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Handler\Exception\SecurityException;
-use WpPack\Component\Handler\Security\PathValidator;
+use WPPack\Component\Handler\Exception\SecurityException;
+use WPPack\Component\Handler\Security\PathValidator;
 
 final class PathValidatorTest extends TestCase
 {

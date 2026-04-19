@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\S3StoragePlugin\Handler;
+namespace WPPack\Plugin\S3StoragePlugin\Handler;
 
 use Psr\Log\LoggerInterface;
-use WpPack\Component\Messenger\Attribute\AsMessageHandler;
-use WpPack\Plugin\S3StoragePlugin\Attachment\AttachmentRegistrar;
-use WpPack\Plugin\S3StoragePlugin\Configuration\S3StorageConfiguration;
-use WpPack\Plugin\S3StoragePlugin\Message\S3ObjectRemovedMessage;
+use WPPack\Component\Messenger\Attribute\AsMessageHandler;
+use WPPack\Plugin\S3StoragePlugin\Attachment\AttachmentRegistrar;
+use WPPack\Plugin\S3StoragePlugin\Configuration\S3StorageConfiguration;
+use WPPack\Plugin\S3StoragePlugin\Message\S3ObjectRemovedMessage;
 
 #[AsMessageHandler]
 final readonly class S3ObjectRemovedHandler

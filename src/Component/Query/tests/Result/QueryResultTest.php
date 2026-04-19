@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Query\Tests\Result;
+namespace WPPack\Component\Query\Tests\Result;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Query\Result\PostQueryResult;
-use WpPack\Component\Query\Result\TermQueryResult;
-use WpPack\Component\Query\Result\UserQueryResult;
+use WPPack\Component\Query\Result\PostQueryResult;
+use WPPack\Component\Query\Result\TermQueryResult;
+use WPPack\Component\Query\Result\UserQueryResult;
 
 final class QueryResultTest extends TestCase
 {
@@ -419,7 +419,7 @@ final class QueryResultTest extends TestCase
         self::assertIsInt($postId2);
 
         try {
-            $result = (new \WpPack\Component\Query\Builder\PostQueryBuilder())
+            $result = (new \WPPack\Component\Query\Builder\PostQueryBuilder())
                 ->where('p.id IN :ids')
                 ->setParameter('ids', [$postId1, $postId2])
                 ->get();
@@ -777,7 +777,7 @@ final class QueryResultTest extends TestCase
         $tid2 = $termId2['term_id'];
 
         try {
-            $result = (new \WpPack\Component\Query\Builder\TermQueryBuilder())
+            $result = (new \WPPack\Component\Query\Builder\TermQueryBuilder())
                 ->hideEmpty(false)
                 ->where('t.taxonomy = :tax')
                 ->andWhere('t.id IN :ids')
@@ -1185,7 +1185,7 @@ final class QueryResultTest extends TestCase
         self::assertIsInt($userId2);
 
         try {
-            $result = (new \WpPack\Component\Query\Builder\UserQueryBuilder())
+            $result = (new \WPPack\Component\Query\Builder\UserQueryBuilder())
                 ->where('u.id IN :ids')
                 ->setParameter('ids', [$userId1, $userId2])
                 ->get();

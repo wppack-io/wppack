@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Hook;
+namespace WPPack\Component\Hook;
 
-use WpPack\Component\Hook\Attribute\Condition\ConditionInterface;
+use WPPack\Component\Hook\Attribute\Condition\ConditionInterface;
 
 final class HookDiscovery
 {

@@ -11,8 +11,8 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n!=1);\n"
 "POT-Creation-Date: 2026-03-30T17:15:29.140Z\n"
 "PO-Revision-Date: 2026-MO-DA HO:MI+ZONE\n"
-"Last-Translator: WpPack <dev@wppack.io>\n"
-"Language-Team: WpPack <dev@wppack.io>\n"
+"Last-Translator: WPPack <dev@wppack.io>\n"
+"Language-Team: WPPack <dev@wppack.io>\n"
 "X-Generator: @wp-blocks/make-pot 1.6.6\n"
 "Language: en\n"
 "X-Domain: wppack-saml-login\n"
@@ -24,7 +24,7 @@ msgstr ""
 
 #: wppack-saml-login.php
 #. Author of the plugin
-msgid "WpPack"
+msgid "WPPack"
 msgstr ""
 
 #: src/SamlLoginForm.php:58

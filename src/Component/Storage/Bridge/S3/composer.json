@@ -1,6 +1,6 @@
 {
     "name": "wppack/s3-storage",
-    "description": "Amazon S3 adapter for WpPack Storage",
+    "description": "Amazon S3 adapter for WPPack Storage",
     "type": "library",
     "license": "MIT",
     "require": {
@@ -10,12 +10,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\Storage\\Bridge\\S3\\": "src/"
+            "WPPack\\Component\\Storage\\Bridge\\S3\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WpPack\\Component\\Storage\\Bridge\\S3\\Tests\\": "tests/"
+            "WPPack\\Component\\Storage\\Bridge\\S3\\Tests\\": "tests/"
         }
     }
 }

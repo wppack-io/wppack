@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the WpPack package.
+ * This file is part of the WPPack package.
  *
  * (c) Tsuyoshi Tsurushima
  *
@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Scim\Authentication;
+namespace WPPack\Component\Scim\Authentication;
 
-use WpPack\Component\EventDispatcher\Attribute\AsEventListener;
-use WpPack\Component\EventDispatcher\WordPressEvent;
-use WpPack\Component\Scim\Schema\ScimConstants;
-use WpPack\Component\User\UserRepositoryInterface;
+use WPPack\Component\EventDispatcher\Attribute\AsEventListener;
+use WPPack\Component\EventDispatcher\WordPressEvent;
+use WPPack\Component\Scim\Schema\ScimConstants;
+use WPPack\Component\User\UserRepositoryInterface;
 
 #[AsEventListener(event: 'wp_authenticate_user', priority: 30)]
 final readonly class ScimUserStatusChecker

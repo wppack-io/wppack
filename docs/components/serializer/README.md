@@ -1,7 +1,7 @@
 # Serializer コンポーネント
 
 **パッケージ:** `wppack/serializer`
-**名前空間:** `WpPack\Component\Serializer\`
+**名前空間:** `WPPack\Component\Serializer\`
 **レイヤー:** Abstraction
 
 Symfony Serializer に準じた Normalizer + Encoder チェーン方式のオブジェクト直列化コンポーネント。Messenger の `JsonSerializer` や Scheduler の `SqsPayloadFactory` が共通基盤として利用します。
@@ -43,11 +43,11 @@ private function normalizeMessage(object $message): array
 ### After（Serializer コンポーネントに委譲）
 
 ```php
-use WpPack\Component\Serializer\Encoder\JsonEncoder;
-use WpPack\Component\Serializer\Normalizer\BackedEnumNormalizer;
-use WpPack\Component\Serializer\Normalizer\DateTimeNormalizer;
-use WpPack\Component\Serializer\Normalizer\ObjectNormalizer;
-use WpPack\Component\Serializer\Serializer;
+use WPPack\Component\Serializer\Encoder\JsonEncoder;
+use WPPack\Component\Serializer\Normalizer\BackedEnumNormalizer;
+use WPPack\Component\Serializer\Normalizer\DateTimeNormalizer;
+use WPPack\Component\Serializer\Normalizer\ObjectNormalizer;
+use WPPack\Component\Serializer\Serializer;
 
 $serializer = new Serializer(
     normalizers: [
@@ -93,7 +93,7 @@ deserialize()  =  decode()  →  denormalize()
 トップレベルの facade インターフェースです。
 
 ```php
-namespace WpPack\Component\Serializer;
+namespace WPPack\Component\Serializer;
 
 interface SerializerInterface
 {
@@ -111,7 +111,7 @@ interface SerializerInterface
 個別の正規化戦略を定義するインターフェースです。
 
 ```php
-namespace WpPack\Component\Serializer\Normalizer;
+namespace WPPack\Component\Serializer\Normalizer;
 
 interface NormalizerInterface
 {
@@ -133,7 +133,7 @@ interface DenormalizerInterface
 Reflection ベースのオブジェクト正規化。パブリックプロパティを抽出し、コンストラクタ引数名で復元します。`NormalizerAwareInterface` / `DenormalizerAwareInterface` を実装し、ネストされたオブジェクトも再帰的に処理します。
 
 ```php
-use WpPack\Component\Serializer\Normalizer\ObjectNormalizer;
+use WPPack\Component\Serializer\Normalizer\ObjectNormalizer;
 
 $normalizer = new ObjectNormalizer();
 
@@ -150,7 +150,7 @@ $message = $normalizer->denormalize(['content' => 'hello', 'userId' => 42], MyMe
 `DateTimeInterface` と ISO 8601 文字列の相互変換。`context` でフォーマットをカスタマイズ可能。
 
 ```php
-use WpPack\Component\Serializer\Normalizer\DateTimeNormalizer;
+use WPPack\Component\Serializer\Normalizer\DateTimeNormalizer;
 
 $normalizer = new DateTimeNormalizer();
 
@@ -169,7 +169,7 @@ $normalizer->normalize($date, context: [DateTimeNormalizer::FORMAT_KEY => 'Y-m-d
 `BackedEnum` と scalar value の相互変換。
 
 ```php
-use WpPack\Component\Serializer\Normalizer\BackedEnumNormalizer;
+use WPPack\Component\Serializer\Normalizer\BackedEnumNormalizer;
 
 enum Status: string {
     case Active = 'active';
@@ -202,8 +202,8 @@ $serializer = new Serializer(
 ネストされたオブジェクトの処理には、`NormalizerAwareInterface` / `DenormalizerAwareInterface` を実装します。`Serializer` が自動的に `setNormalizer()` / `setDenormalizer()` を呼び出します。
 
 ```php
-use WpPack\Component\Serializer\Normalizer\NormalizerAwareInterface;
-use WpPack\Component\Serializer\Normalizer\NormalizerAwareTrait;
+use WPPack\Component\Serializer\Normalizer\NormalizerAwareInterface;
+use WPPack\Component\Serializer\Normalizer\NormalizerAwareTrait;
 
 final class MyNormalizer implements NormalizerInterface, NormalizerAwareInterface
 {
@@ -226,7 +226,7 @@ final class MyNormalizer implements NormalizerInterface, NormalizerAwareInterfac
 フォーマット変換を行うインターフェースです。
 
 ```php
-namespace WpPack\Component\Serializer\Encoder;
+namespace WPPack\Component\Serializer\Encoder;
 
 interface EncoderInterface
 {
@@ -246,7 +246,7 @@ interface DecoderInterface
 `json_encode` / `json_decode` ラッパー。`JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE` を使用。
 
 ```php
-use WpPack\Component\Serializer\Encoder\JsonEncoder;
+use WPPack\Component\Serializer\Encoder\JsonEncoder;
 
 $encoder = new JsonEncoder();
 
@@ -289,7 +289,7 @@ $message = $serializer->denormalize($data, MyMessage::class);
 ### Messenger JsonSerializer
 
 ```php
-use WpPack\Component\Messenger\Serializer\JsonSerializer;
+use WPPack\Component\Messenger\Serializer\JsonSerializer;
 
 // デフォルトで Serializer を内部生成（ObjectNormalizer + JsonEncoder）
 $jsonSerializer = new JsonSerializer();
@@ -301,7 +301,7 @@ $jsonSerializer = new JsonSerializer($customSerializer);
 ### Scheduler SqsPayloadFactory
 
 ```php
-use WpPack\Component\Scheduler\Bridge\EventBridge\SqsPayloadFactory;
+use WPPack\Component\Scheduler\Bridge\EventBridge\SqsPayloadFactory;
 
 // デフォルトで Serializer を内部生成
 $factory = new SqsPayloadFactory();
