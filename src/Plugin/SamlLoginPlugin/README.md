@@ -13,7 +13,7 @@ composer require wppack/saml-login-plugin
 ## Requirements
 
 - PHP 8.2+
-- WordPress 6.x
+- WordPress 6.3 or higher
 - SAML 2.0 compatible Identity Provider (Keycloak, Okta, Azure AD, Google Workspace, etc.)
 
 ## Architecture

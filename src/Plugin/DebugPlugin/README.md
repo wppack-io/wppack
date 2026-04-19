@@ -26,7 +26,7 @@ composer require wppack/debug-plugin
 ## Requirements
 
 - PHP 8.2+
-- WordPress 6.x
+- WordPress 6.3 or higher
 - `WP_DEBUG` must be `true`
 
 ## Configuration

@@ -13,7 +13,7 @@ composer require wppack/scim-plugin
 ## Requirements
 
 - PHP 8.2+
-- WordPress 6.x
+- WordPress 6.3 or higher
 - SCIM 2.0 compatible Identity Provider (Azure AD, Okta, OneLogin, etc.)
 
 ## Architecture

@@ -11,7 +11,7 @@ composer require wppack/oauth-login-plugin
 ## Requirements
 
 - PHP 8.2+
-- WordPress 6.x
+- WordPress 6.3 or higher
 - OAuth 2.0 / OpenID Connect provider
 
 ## Architecture

@@ -22,7 +22,7 @@ composer require wppack/monitoring-plugin
 ## Requirements
 
 - PHP 8.2+
-- WordPress 6.x
+- WordPress 6.3 or higher
 - AWS account with CloudWatch (for AWS metrics)
 - Cloudflare account (for Cloudflare analytics)
 

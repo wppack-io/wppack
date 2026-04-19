@@ -22,7 +22,7 @@ composer require wppack/s3-storage-plugin
 ## Requirements
 
 - PHP 8.2+
-- WordPress 6.x
+- WordPress 6.3 or higher
 - AWS account with S3 and SQS
 
 ## Features
