@@ -12,10 +12,10 @@ whole stack or just the components you need.
 
 ## Why WPPack?
 
-- **Cloud-first, serverless-native.** Built for Lambda, Cloud Functions, Fargate,
-  and Aurora Serverless. Stateless by default, with transparent reconnects
-  (Database gone-away handling, Aurora DSQL OCC retry), graceful fallbacks
-  (SQS messenger → synchronous, EventBridge scheduler → WP-Cron), and lazy DI
+- **Cloud-first.** Built for Lambda, Cloud Functions, Fargate, and Aurora
+  Serverless. Stateless by default, with transparent reconnects (Database
+  gone-away handling, Aurora DSQL OCC retry), graceful fallbacks (SQS
+  messenger → synchronous, EventBridge scheduler → WP-Cron), and lazy DI
   for fast cold starts.
 - **Component-level composability.** 58 components and 25 bridges, each an
   independent Composer package with its own tests and docs. Plugin and theme
