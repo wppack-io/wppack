@@ -18,7 +18,7 @@ use PHPUnit\Framework\TestCase;
 use WPPack\Component\Cache\Adapter\Adapter;
 use WPPack\Component\Cache\Adapter\AdapterFactoryInterface;
 use WPPack\Component\Cache\Adapter\AdapterInterface;
-use WPPack\Component\Cache\Adapter\Dsn;
+use WPPack\Component\Dsn\Dsn;
 use WPPack\Component\Cache\Exception\UnsupportedSchemeException;
 
 final class AdapterTest extends TestCase

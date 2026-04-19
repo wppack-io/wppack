@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace WPPack\Component\Mailer\Transport;
 
+use WPPack\Component\Dsn\Dsn;
 use WPPack\Component\Mailer\Exception\UnsupportedSchemeException;
 
 final class NativeTransportFactory implements TransportFactoryInterface

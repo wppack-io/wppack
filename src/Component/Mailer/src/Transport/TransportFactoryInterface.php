@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace WPPack\Component\Mailer\Transport;
 
+use WPPack\Component\Dsn\Dsn;
+
 interface TransportFactoryInterface
 {
     /**

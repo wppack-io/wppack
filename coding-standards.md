@@ -167,6 +167,56 @@ WPPack\Plugin\{Name}\     – Plugins     → src/Plugin/{Name}/
 All packages are managed by the monorepo root `composer.json` and published
 as individual repositories via `splitsh-lite`.
 
+## Component Documentation Layout
+
+- `src/Component/{Name}/README.md` — concise package overview only: a
+  one-paragraph description, install command, one or two minimal usage
+  snippets, and a pointer to the full docs. Keep under ~60 lines.
+- `docs/components/{name}.md` (or `docs/components/{name}/`) —
+  authoritative reference: scope, grammar / API detail, corner cases,
+  integration examples, design notes.
+
+The package README is the first thing a user sees on Packagist. Keep it
+scannable. Everything that someone might want to look up twice belongs in
+`docs/`.
+
+## Parsing DSN Strings
+
+WPPack uses **`WPPack\Component\Dsn\Dsn`** as the canonical DSN parser.
+Anywhere you need to turn a DSN-like string (database / cache / storage /
+mailer / messenger / monitoring connection string) into structured fields,
+use this class.
+
+```php
+use WPPack\Component\Dsn\Dsn;
+use WPPack\Component\Dsn\Exception\InvalidDsnException;
+
+try {
+    $dsn = Dsn::fromString($dsnString);
+} catch (InvalidDsnException) {
+    // handle invalid input
+}
+
+$dsn->getScheme();
+$dsn->getHost();
+$dsn->getOption('region');
+```
+
+**Do not** use `parse_url($dsn)`, `parse_str(...)`, or ad-hoc regex /
+string splitting on DSN values. The canonical parser handles IPv6,
+URL-encoded credentials, `scheme:?query` forms, Unix socket paths
+(`scheme:///path`), and repeated array parameters uniformly — rolling
+your own will drift.
+
+Every package whose `src/` calls the canonical parser must declare the
+dependency in its `composer.json`:
+
+```json
+"require": {
+  "wppack/dsn": "^1.0"
+}
+```
+
 ## Commit Messages
 
 Based on [Conventional Commits](https://www.conventionalcommits.org/).

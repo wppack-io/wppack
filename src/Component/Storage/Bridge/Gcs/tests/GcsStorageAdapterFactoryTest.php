@@ -17,7 +17,7 @@ use Google\Cloud\Storage\Bucket;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WPPack\Component\Storage\Adapter\Dsn;
+use WPPack\Component\Dsn\Dsn;
 use WPPack\Component\Storage\Bridge\Gcs\GcsStorageAdapter;
 use WPPack\Component\Storage\Bridge\Gcs\GcsStorageAdapterFactory;
 use WPPack\Component\Storage\Exception\InvalidArgumentException;

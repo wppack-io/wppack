@@ -1,17 +1,12 @@
-# WPPack DSN
+# wppack/dsn
 
-Shared Data Source Name (DSN) parser for WPPack components.
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=dsn)](https://codecov.io/github/wppack-io/wppack)
 
-## Features
+Data Source Name (DSN) parser. Canonical DSN parsing implementation used
+across the WPPack monorepo by Database, Cache, Mailer, Storage, and
+Monitoring components.
 
-- Standard URI parsing: `scheme://[user:pass@]host[:port][/path][?query]`
-- Unix socket paths: `scheme:///path/to/socket`
-- No-host URIs: `scheme:?query`
-- Array query parameters: `key[]=value1&key[]=value2`
-- URL-encoded credentials
-- Sensitive parameter protection via `#[\SensitiveParameter]`
-
-## Installation
+## Install
 
 ```bash
 composer require wppack/dsn
@@ -24,26 +19,19 @@ use WPPack\Component\Dsn\Dsn;
 
 $dsn = Dsn::fromString('mysql://user:pass@host:3306/dbname?charset=utf8mb4');
 
-$dsn->getScheme();   // 'mysql'
-$dsn->getHost();     // 'host'
-$dsn->getUser();     // 'user'
-$dsn->getPassword(); // 'pass'
-$dsn->getPort();     // 3306
-$dsn->getPath();     // '/dbname'
-$dsn->getOption('charset'); // 'utf8mb4'
+$dsn->getScheme();           // 'mysql'
+$dsn->getHost();             // 'host'
+$dsn->getPort();             // 3306
+$dsn->getOption('charset');  // 'utf8mb4'
 ```
 
-## Supported Formats
+Parse failures raise `WPPack\Component\Dsn\Exception\InvalidDsnException`.
 
-```
-mysql://user:pass@host:3306/dbname
-sqlite:///path/to/database.db
-redis://localhost:6379?dbindex=2
-redis:?host[]=node1:6379&host[]=node2:6379
-ses+https://default
-s3://bucket?region=us-east-1
-```
+## Documentation
+
+Grammar, full API reference, supported formats, and integration examples
+live at [`docs/components/dsn.md`](../../../docs/components/dsn.md).
 
 ## License
 
-MIT
+MIT — see [LICENSE](LICENSE).

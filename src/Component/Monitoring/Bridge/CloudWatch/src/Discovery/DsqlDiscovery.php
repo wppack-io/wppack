@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace WPPack\Component\Monitoring\Bridge\CloudWatch\Discovery;
 
+use WPPack\Component\Dsn\Dsn;
+use WPPack\Component\Dsn\Exception\InvalidDsnException;
 use WPPack\Component\Monitoring\Bridge\CloudWatch\AwsProviderSettings;
 use WPPack\Component\Monitoring\MetricDefinition;
 use WPPack\Component\Monitoring\MonitoringProvider;
@@ -58,10 +60,20 @@ class DsqlDiscovery implements MonitoringProviderInterface
     {
         // Check DATABASE_DSN first (dsql:// scheme)
         if (\defined('DATABASE_DSN')) {
-            $dsn = (string) \constant('DATABASE_DSN');
+            $dsnString = (string) \constant('DATABASE_DSN');
 
-            if (str_starts_with($dsn, 'dsql://')) {
-                return $this->parseDsqlDsn($dsn);
+            try {
+                $dsn = Dsn::fromString($dsnString);
+            } catch (InvalidDsnException) {
+                $dsn = null;
+            }
+
+            if ($dsn !== null && $dsn->getScheme() === 'dsql') {
+                $host = $dsn->getHost();
+
+                if ($host !== null) {
+                    return $this->parseDsqlHost($host);
+                }
             }
         }
 
@@ -78,20 +90,6 @@ class DsqlDiscovery implements MonitoringProviderInterface
         }
 
         return null;
-    }
-
-    /**
-     * @return array{region: string, dimensions: array<string, string>}|null
-     */
-    private function parseDsqlDsn(string $dsn): ?array
-    {
-        $parts = parse_url($dsn);
-
-        if ($parts === false || !isset($parts['host'])) {
-            return null;
-        }
-
-        return $this->parseDsqlHost($parts['host']);
     }
 
     /**

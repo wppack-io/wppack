@@ -16,7 +16,7 @@ namespace WPPack\Component\Storage\Tests\Adapter;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WPPack\Component\Storage\Adapter\Dsn;
+use WPPack\Component\Dsn\Dsn;
 use WPPack\Component\Storage\Adapter\LocalStorageAdapter;
 use WPPack\Component\Storage\Adapter\LocalStorageAdapterFactory;
 use WPPack\Component\Storage\Exception\InvalidArgumentException;

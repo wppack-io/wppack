@@ -20,7 +20,7 @@ use WPPack\Component\Mailer\Bridge\Amazon\Transport\SesApiTransport;
 use WPPack\Component\Mailer\Bridge\Amazon\Transport\SesHttpTransport;
 use WPPack\Component\Mailer\Bridge\Amazon\Transport\SesSmtpTransport;
 use WPPack\Component\Mailer\Bridge\Amazon\Transport\SesTransportFactory;
-use WPPack\Component\Mailer\Transport\Dsn;
+use WPPack\Component\Dsn\Dsn;
 
 final class SesTransportFactoryTest extends TestCase
 {

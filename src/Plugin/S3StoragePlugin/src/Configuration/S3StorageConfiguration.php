@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace WPPack\Plugin\S3StoragePlugin\Configuration;
 
+use WPPack\Component\Dsn\Dsn;
+use WPPack\Component\Dsn\Exception\InvalidDsnException;
 use WPPack\Component\Media\Storage\StorageConfiguration;
 
 final readonly class S3StorageConfiguration
@@ -43,23 +45,23 @@ final readonly class S3StorageConfiguration
      */
     public static function parseDsn(#[\SensitiveParameter] string $dsn): array
     {
-        $parsed = parse_url($dsn);
-
-        if ($parsed === false || !isset($parsed['scheme'], $parsed['host'])) {
+        try {
+            $parsed = Dsn::fromString($dsn);
+        } catch (InvalidDsnException) {
             throw new \InvalidArgumentException('Invalid DSN format. Expected: s3://[accessKey:secretKey@]bucket?region=...');
         }
 
-        $query = [];
-        if (isset($parsed['query'])) {
-            parse_str($parsed['query'], $query);
+        $bucket = $parsed->getHost();
+        if ($bucket === null) {
+            throw new \InvalidArgumentException('Invalid DSN format. Expected: s3://[accessKey:secretKey@]bucket?region=...');
         }
 
         return [
-            'scheme' => $parsed['scheme'],
-            'bucket' => $parsed['host'],
-            'region' => isset($query['region']) && $query['region'] !== '' ? (string) $query['region'] : 'us-east-1',
-            'accessKeyId' => isset($parsed['user']) ? urldecode($parsed['user']) : '',
-            'secretAccessKey' => isset($parsed['pass']) ? urldecode($parsed['pass']) : '',
+            'scheme' => $parsed->getScheme(),
+            'bucket' => $bucket,
+            'region' => $parsed->getOption('region', 'us-east-1') ?? 'us-east-1',
+            'accessKeyId' => $parsed->getUser() ?? '',
+            'secretAccessKey' => $parsed->getPassword() ?? '',
         ];
     }
 
@@ -165,26 +167,44 @@ final readonly class S3StorageConfiguration
      */
     public static function maskDsn(#[\SensitiveParameter] string $dsn): string
     {
-        $parsed = parse_url($dsn);
-
-        if ($parsed === false || !isset($parsed['scheme'], $parsed['host'])) {
+        try {
+            $parsed = Dsn::fromString($dsn);
+        } catch (InvalidDsnException) {
             return $dsn;
         }
 
-        $masked = $parsed['scheme'] . '://';
+        $host = $parsed->getHost();
+        if ($host === null) {
+            return $dsn;
+        }
 
-        if (isset($parsed['user']) && $parsed['user'] !== '') {
+        $masked = $parsed->getScheme() . '://';
+
+        $user = $parsed->getUser();
+        if ($user !== null && $user !== '') {
             $masked .= self::MASKED_VALUE;
-            if (isset($parsed['pass']) && $parsed['pass'] !== '') {
+            $password = $parsed->getPassword();
+            if ($password !== null && $password !== '') {
                 $masked .= ':' . self::MASKED_VALUE;
             }
             $masked .= '@';
         }
 
-        $masked .= $parsed['host'];
+        $masked .= $host;
 
-        if (isset($parsed['query']) && $parsed['query'] !== '') {
-            $masked .= '?' . $parsed['query'];
+        $options = $parsed->getOptions();
+        if ($options !== []) {
+            $pairs = [];
+            foreach ($options as $key => $value) {
+                if (\is_array($value)) {
+                    foreach ($value as $v) {
+                        $pairs[] = rawurlencode((string) $key) . '[]=' . rawurlencode($v);
+                    }
+                } else {
+                    $pairs[] = rawurlencode((string) $key) . '=' . rawurlencode($value);
+                }
+            }
+            $masked .= '?' . implode('&', $pairs);
         }
 
         return $masked;

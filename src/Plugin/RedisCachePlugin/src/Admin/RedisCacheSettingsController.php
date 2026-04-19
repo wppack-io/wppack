@@ -17,6 +17,8 @@ use WPPack\Component\Cache\Adapter\AdapterDefinition;
 use WPPack\Component\Cache\Adapter\AdapterFactoryInterface;
 use WPPack\Component\Cache\Bridge\Apcu\ApcuAdapterFactory;
 use WPPack\Component\Cache\Bridge\DynamoDb\DynamoDbAdapterFactory;
+use WPPack\Component\Dsn\Dsn;
+use WPPack\Component\Dsn\Exception\InvalidDsnException;
 use WPPack\Component\Cache\Bridge\Memcached\MemcachedAdapterFactory;
 use WPPack\Component\Cache\Bridge\Redis\Adapter\RedisAdapterFactory;
 use WPPack\Component\HttpFoundation\JsonResponse;
@@ -264,8 +266,12 @@ final class RedisCacheSettingsController extends AbstractRestController
         $fields = isset($input['fields']) && \is_array($input['fields']) ? $input['fields'] : [];
         $dsn = isset($fields['dsn']) && \is_string($fields['dsn']) ? $fields['dsn'] : '';
 
-        if ($dsn !== '' && $dsn !== RedisCacheConfiguration::MASKED_VALUE && parse_url($dsn, \PHP_URL_SCHEME) === null) {
-            return 'Invalid DSN format.';
+        if ($dsn !== '' && $dsn !== RedisCacheConfiguration::MASKED_VALUE) {
+            try {
+                Dsn::fromString($dsn);
+            } catch (InvalidDsnException) {
+                return 'Invalid DSN format.';
+            }
         }
 
         return null;
@@ -356,12 +362,13 @@ final class RedisCacheSettingsController extends AbstractRestController
      */
     private function parseDsnToFields(string $dsn, array $definitions): array
     {
-        $colonPos = strpos($dsn, ':');
-        if ($colonPos === false) {
+        try {
+            $parsed = Dsn::fromString($dsn);
+        } catch (InvalidDsnException) {
             return ['provider' => 'dsn', 'fields' => ['dsn' => $dsn]];
         }
 
-        $scheme = substr($dsn, 0, $colonPos);
+        $scheme = $parsed->getScheme();
         $fields = [];
 
         // Try to match a definition
@@ -384,63 +391,35 @@ final class RedisCacheSettingsController extends AbstractRestController
             }
         }
 
-        // Parse using parse_url-like extraction
-        $rest = substr($dsn, $colonPos + 1);
-        $query = '';
-
-        if (str_starts_with($rest, '//')) {
-            $authority = substr($rest, 2);
-            $qPos = strpos($authority, '?');
-            if ($qPos !== false) {
-                $query = substr($authority, $qPos + 1);
-                $authority = substr($authority, 0, $qPos);
-            }
-
-            $atPos = strpos($authority, '@');
-            if ($atPos !== false) {
-                $userinfo = substr($authority, 0, $atPos);
-                $authority = substr($authority, $atPos + 1);
-                $colonInUser = strpos($userinfo, ':');
-                if ($colonInUser !== false) {
-                    $fields['password'] = RedisCacheConfiguration::MASKED_VALUE;
-                    $user = substr($userinfo, 0, $colonInUser);
-                    if ($user !== '') {
-                        $fields['user'] = urldecode($user);
-                    }
-                } elseif ($userinfo !== '') {
-                    $fields['user'] = urldecode($userinfo);
-                }
-            }
-
-            // host:port/path
-            $slashPos = strpos($authority, '/');
-            if ($slashPos !== false) {
-                $fields['path'] = substr($authority, $slashPos + 1);
-                $authority = substr($authority, 0, $slashPos);
-            }
-
-            $bracketPos = strpos($authority, ':');
-            if ($bracketPos !== false) {
-                $fields['host'] = substr($authority, 0, $bracketPos);
-                $fields['port'] = substr($authority, $bracketPos + 1);
-            } else {
-                $fields['host'] = $authority;
-            }
-        } elseif (str_starts_with($rest, '?')) {
-            $query = substr($rest, 1);
+        $user = $parsed->getUser();
+        if ($user !== null && $user !== '') {
+            $fields['user'] = $user;
+        }
+        if ($parsed->getPassword() !== null) {
+            $fields['password'] = RedisCacheConfiguration::MASKED_VALUE;
         }
 
-        // Parse query string options
-        if ($query !== '') {
-            parse_str($query, $parsed);
-            foreach ($parsed as $key => $value) {
-                if ($key === 'host' && \is_array($value)) {
-                    $fields['nodes'] = implode("\n", $value);
-                } elseif ($key === 'redis_sentinel' && \is_string($value)) {
-                    $fields['masterName'] = $value;
-                } elseif (\is_string($value)) {
-                    $fields[$key] = $value;
-                }
+        $host = $parsed->getHost();
+        if ($host !== null) {
+            $fields['host'] = $host;
+        }
+        $port = $parsed->getPort();
+        if ($port !== null) {
+            $fields['port'] = (string) $port;
+        }
+        $path = $parsed->getPath();
+        if ($path !== null && $path !== '') {
+            $fields['path'] = ltrim($path, '/');
+        }
+
+        // Process query-string options
+        foreach ($parsed->getOptions() as $key => $value) {
+            if ($key === 'host' && \is_array($value)) {
+                $fields['nodes'] = implode("\n", $value);
+            } elseif ($key === 'redis_sentinel' && \is_string($value)) {
+                $fields['masterName'] = $value;
+            } elseif (\is_string($value)) {
+                $fields[$key] = $value;
             }
         }
 

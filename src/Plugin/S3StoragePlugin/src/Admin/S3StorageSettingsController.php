@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace WPPack\Plugin\S3StoragePlugin\Admin;
 
+use WPPack\Component\Dsn\Dsn;
+use WPPack\Component\Dsn\Exception\InvalidDsnException;
 use WPPack\Component\HttpFoundation\JsonResponse;
 use WPPack\Component\Rest\AbstractRestController;
 use WPPack\Component\Rest\Attribute\RestRoute;
@@ -244,8 +246,12 @@ final class S3StorageSettingsController extends AbstractRestController
 
             $dsn = isset($storage['dsn']) && \is_string($storage['dsn']) ? $storage['dsn'] : '';
 
-            if ($dsn !== '' && !$this->isMaskedDsn($dsn) && parse_url($dsn, \PHP_URL_SCHEME) === null) {
-                return 'Invalid DSN format.';
+            if ($dsn !== '' && !$this->isMaskedDsn($dsn)) {
+                try {
+                    Dsn::fromString($dsn);
+                } catch (InvalidDsnException) {
+                    return 'Invalid DSN format.';
+                }
             }
         }
 

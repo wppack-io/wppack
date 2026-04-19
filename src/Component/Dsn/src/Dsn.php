@@ -51,10 +51,14 @@ final class Dsn
         $colonPos = strpos($dsn, ':');
 
         if ($colonPos === false) {
-            throw InvalidDsnException::missingScheme($dsn);
+            throw new InvalidDsnException(sprintf("The DSN \"%s\" must contain a scheme.", $dsn));
         }
 
         $scheme = substr($dsn, 0, $colonPos);
+        if ($scheme === '') {
+            throw new InvalidDsnException(sprintf("The DSN \"%s\" must contain a scheme.", $dsn));
+        }
+
         $rest = substr($dsn, $colonPos + 1);
 
         if (str_starts_with($rest, '//')) {
@@ -124,7 +128,7 @@ final class Dsn
             // No-host URI: scheme:?query (e.g., cluster/sentinel configs)
             $query = substr($rest, 1);
         } else {
-            throw InvalidDsnException::invalidFormat($dsn);
+            throw new InvalidDsnException(sprintf("The DSN \"%s\" is invalid.", $dsn));
         }
 
         $options = [];

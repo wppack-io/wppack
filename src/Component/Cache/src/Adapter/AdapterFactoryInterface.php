@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace WPPack\Component\Cache\Adapter;
 
+use WPPack\Component\Dsn\Dsn;
+
 interface AdapterFactoryInterface
 {
     /** @return list<AdapterDefinition> */

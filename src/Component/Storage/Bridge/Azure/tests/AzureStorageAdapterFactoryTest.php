@@ -16,7 +16,7 @@ namespace WPPack\Component\Storage\Bridge\Azure\Tests;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WPPack\Component\Storage\Adapter\Dsn;
+use WPPack\Component\Dsn\Dsn;
 use WPPack\Component\Storage\Bridge\Azure\AzureBlobClientInterface;
 use WPPack\Component\Storage\Bridge\Azure\AzureStorageAdapter;
 use WPPack\Component\Storage\Bridge\Azure\AzureStorageAdapterFactory;

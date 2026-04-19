@@ -5,7 +5,8 @@
   "license": "MIT",
   "require": {
     "php": "^8.2",
-    "wordpress/core-implementation": "^6.3"
+    "wordpress/core-implementation": "^6.3",
+    "wppack/dsn": "^1.0"
   },
   "suggest": {
     "wppack/transient": "Required for metric caching",

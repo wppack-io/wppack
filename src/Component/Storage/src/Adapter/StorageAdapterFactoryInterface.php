@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace WPPack\Component\Storage\Adapter;
 
+use WPPack\Component\Dsn\Dsn;
+
 interface StorageAdapterFactoryInterface
 {
     /** @return list<StorageAdapterDefinition> */

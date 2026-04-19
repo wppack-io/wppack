@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace WPPack\Component\Monitoring\Bridge\CloudWatch\Discovery;
 
+use WPPack\Component\Dsn\Dsn;
+use WPPack\Component\Dsn\Exception\InvalidDsnException;
 use WPPack\Component\Monitoring\Bridge\CloudWatch\AwsProviderSettings;
 use WPPack\Component\Monitoring\MetricDefinition;
 use WPPack\Component\Monitoring\MonitoringProvider;
@@ -22,21 +24,25 @@ final class DynamoDbDiscovery implements MonitoringProviderInterface
 {
     public function getProviders(): array
     {
-        $dsn = \defined('CACHE_DSN') ? (string) \constant('CACHE_DSN') : ($_ENV['CACHE_DSN'] ?? '');
+        $dsnString = \defined('CACHE_DSN') ? (string) \constant('CACHE_DSN') : ($_ENV['CACHE_DSN'] ?? '');
 
-        if ($dsn === '') {
+        if ($dsnString === '') {
             return [];
         }
 
-        $scheme = parse_url($dsn, \PHP_URL_SCHEME);
-
-        if ($scheme !== 'dynamodb') {
+        try {
+            $dsn = Dsn::fromString($dsnString);
+        } catch (InvalidDsnException) {
             return [];
         }
 
-        $host = parse_url($dsn, \PHP_URL_HOST);
+        if ($dsn->getScheme() !== 'dynamodb') {
+            return [];
+        }
 
-        if (!\is_string($host)) {
+        $host = $dsn->getHost();
+
+        if ($host === null) {
             return [];
         }
 
@@ -47,8 +53,8 @@ final class DynamoDbDiscovery implements MonitoringProviderInterface
             return [];
         }
 
-        $path = parse_url($dsn, \PHP_URL_PATH);
-        $tableName = \is_string($path) ? ltrim($path, '/') : 'cache';
+        $path = $dsn->getPath();
+        $tableName = $path !== null ? ltrim($path, '/') : 'cache';
 
         if ($tableName === '') {
             $tableName = 'cache';

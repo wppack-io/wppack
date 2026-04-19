@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace WPPack\Component\Storage\Bridge\Azure;
 
 use AzureOss\Storage\Blob\BlobServiceClient;
-use WPPack\Component\Storage\Adapter\Dsn;
+use WPPack\Component\Dsn\Dsn;
 use WPPack\Component\Storage\Adapter\StorageAdapterDefinition;
 use WPPack\Component\Storage\Adapter\StorageAdapterFactoryInterface;
 use WPPack\Component\Storage\Adapter\StorageAdapterField;

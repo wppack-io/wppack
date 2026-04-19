@@ -13,10 +13,12 @@ declare(strict_types=1);
 
 namespace WPPack\Component\Monitoring\Bridge\CloudWatch\Discovery;
 
+use WPPack\Component\Dsn\Dsn;
+use WPPack\Component\Dsn\Exception\InvalidDsnException;
+use WPPack\Component\Monitoring\Bridge\CloudWatch\AwsProviderSettings;
 use WPPack\Component\Monitoring\MetricDefinition;
 use WPPack\Component\Monitoring\MonitoringProvider;
 use WPPack\Component\Monitoring\MonitoringProviderInterface;
-use WPPack\Component\Monitoring\Bridge\CloudWatch\AwsProviderSettings;
 
 final class RdsDiscovery implements MonitoringProviderInterface
 {
@@ -110,10 +112,15 @@ final class RdsDiscovery implements MonitoringProviderInterface
     private function detectEngine(): string
     {
         if (\defined('DATABASE_DSN')) {
-            $dsn = (string) \constant('DATABASE_DSN');
+            try {
+                $dsn = Dsn::fromString((string) \constant('DATABASE_DSN'));
+                $scheme = $dsn->getScheme();
 
-            if (str_starts_with($dsn, 'pgsql://') || str_starts_with($dsn, 'pgsql+dataapi://')) {
-                return 'postgres';
+                if ($scheme === 'pgsql' || $scheme === 'pgsql+dataapi') {
+                    return 'postgres';
+                }
+            } catch (InvalidDsnException) {
+                // fall through to mysql default
             }
         }
 

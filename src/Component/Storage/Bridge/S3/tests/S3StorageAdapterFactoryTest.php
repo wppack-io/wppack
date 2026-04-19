@@ -17,7 +17,7 @@ use AsyncAws\S3\S3Client;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WPPack\Component\Storage\Adapter\Dsn;
+use WPPack\Component\Dsn\Dsn;
 use WPPack\Component\Storage\Bridge\S3\S3StorageAdapter;
 use WPPack\Component\Storage\Bridge\S3\S3StorageAdapterFactory;
 use WPPack\Component\Storage\Exception\InvalidArgumentException;

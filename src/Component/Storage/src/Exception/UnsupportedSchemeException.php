@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace WPPack\Component\Storage\Exception;
 
-use WPPack\Component\Storage\Adapter\Dsn;
+use WPPack\Component\Dsn\Dsn;
 
 final class UnsupportedSchemeException extends \LogicException implements ExceptionInterface
 {

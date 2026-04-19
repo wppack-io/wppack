@@ -15,9 +15,9 @@ namespace WPPack\Component\Mailer\Tests\Transport;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WPPack\Component\Mailer\Exception\InvalidArgumentException;
+use WPPack\Component\Dsn\Dsn;
+use WPPack\Component\Dsn\Exception\InvalidDsnException;
 use WPPack\Component\Mailer\Exception\UnsupportedSchemeException;
-use WPPack\Component\Mailer\Transport\Dsn;
 use WPPack\Component\Mailer\Transport\NativeTransport;
 use WPPack\Component\Mailer\Transport\NativeTransportFactory;
 use WPPack\Component\Mailer\Transport\NullTransport;
@@ -114,17 +114,22 @@ final class TransportTest extends TestCase
     }
 
     #[Test]
-    public function dsnFromStringThrowsOnMissingHost(): void
+    public function dsnFromStringParsesHostlessScheme(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        // Canonical Dsn does not require a host; host validation belongs in
+        // the Transport layer where it matters. A DSN like smtp:// parses
+        // at the Dsn layer with host = null; transport factories that need
+        // a host should validate post-parse themselves.
+        $dsn = Dsn::fromString('smtp://');
 
-        Dsn::fromString('smtp://');
+        self::assertSame('smtp', $dsn->getScheme());
+        self::assertNull($dsn->getHost());
     }
 
     #[Test]
     public function dsnFromStringThrowsOnInvalidUrl(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(InvalidDsnException::class);
 
         Dsn::fromString('://');
     }

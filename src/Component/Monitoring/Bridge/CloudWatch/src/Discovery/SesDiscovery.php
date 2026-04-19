@@ -13,24 +13,32 @@ declare(strict_types=1);
 
 namespace WPPack\Component\Monitoring\Bridge\CloudWatch\Discovery;
 
+use WPPack\Component\Dsn\Dsn;
+use WPPack\Component\Dsn\Exception\InvalidDsnException;
+use WPPack\Component\Monitoring\Bridge\CloudWatch\AwsProviderSettings;
 use WPPack\Component\Monitoring\MetricDefinition;
 use WPPack\Component\Monitoring\MonitoringProvider;
 use WPPack\Component\Monitoring\MonitoringProviderInterface;
-use WPPack\Component\Monitoring\Bridge\CloudWatch\AwsProviderSettings;
 
 final class SesDiscovery implements MonitoringProviderInterface
 {
     public function getProviders(): array
     {
-        $dsn = $this->resolveMailerDsn();
+        $dsnString = $this->resolveMailerDsn();
 
-        if ($dsn === '') {
+        if ($dsnString === '') {
             return [];
         }
 
-        $scheme = parse_url($dsn, \PHP_URL_SCHEME);
+        try {
+            $dsn = Dsn::fromString($dsnString);
+        } catch (InvalidDsnException) {
+            return [];
+        }
 
-        if (!\is_string($scheme) || ($scheme !== 'ses' && !str_starts_with($scheme, 'ses+'))) {
+        $scheme = $dsn->getScheme();
+
+        if ($scheme !== 'ses' && !str_starts_with($scheme, 'ses+')) {
             return [];
         }
 
@@ -113,11 +121,11 @@ final class SesDiscovery implements MonitoringProviderInterface
      *
      * Falls back to AWS_DEFAULT_REGION or us-east-1.
      */
-    private function extractRegionFromDsn(string $dsn): string
+    private function extractRegionFromDsn(Dsn $dsn): string
     {
-        $host = parse_url($dsn, \PHP_URL_HOST);
+        $host = $dsn->getHost();
 
-        if (\is_string($host) && preg_match('/^email\.([a-z0-9-]+)\.amazonaws\.com$/', $host, $matches) === 1) {
+        if ($host !== null && preg_match('/^email\.([a-z0-9-]+)\.amazonaws\.com$/', $host, $matches) === 1) {
             return $matches[1];
         }
 

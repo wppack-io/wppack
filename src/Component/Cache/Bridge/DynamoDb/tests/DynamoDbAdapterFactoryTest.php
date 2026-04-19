@@ -15,7 +15,7 @@ namespace WPPack\Component\Cache\Bridge\DynamoDb\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WPPack\Component\Cache\Adapter\Dsn;
+use WPPack\Component\Dsn\Dsn;
 use WPPack\Component\Cache\Bridge\DynamoDb\DynamoDbAdapter;
 use WPPack\Component\Cache\Bridge\DynamoDb\DynamoDbAdapterFactory;
 use WPPack\Component\Cache\Exception\AdapterException;

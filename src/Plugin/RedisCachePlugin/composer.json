@@ -1,28 +1,29 @@
 {
-    "name": "wppack/redis-cache-plugin",
-    "description": "WordPress plugin for Redis-based object cache with ElastiCache IAM auth support",
-    "type": "wordpress-plugin",
-    "license": "MIT",
-    "require": {
-        "php": "^8.2",
-        "wppack/cache": "^1.0",
-        "wppack/redis-cache": "^1.0",
-        "wppack/elasticache-auth": "^1.0",
-        "wppack/dependency-injection": "^1.0",
-        "wppack/hook": "^1.0",
-        "wppack/kernel": "^1.0"
-    },
-    "autoload": {
-        "psr-4": {
-            "WPPack\\Plugin\\RedisCachePlugin\\": "src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "WPPack\\Plugin\\RedisCachePlugin\\Tests\\": "tests/"
-        }
-    },
-    "extra": {
-        "installer-name": "wppack-redis-cache"
+  "name": "wppack/redis-cache-plugin",
+  "description": "WordPress plugin for Redis-based object cache with ElastiCache IAM auth support",
+  "type": "wordpress-plugin",
+  "license": "MIT",
+  "require": {
+    "php": "^8.2",
+    "wppack/cache": "^1.0",
+    "wppack/dependency-injection": "^1.0",
+    "wppack/dsn": "^1.0",
+    "wppack/elasticache-auth": "^1.0",
+    "wppack/hook": "^1.0",
+    "wppack/kernel": "^1.0",
+    "wppack/redis-cache": "^1.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "WPPack\\Plugin\\RedisCachePlugin\\": "src/"
     }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "WPPack\\Plugin\\RedisCachePlugin\\Tests\\": "tests/"
+    }
+  },
+  "extra": {
+    "installer-name": "wppack-redis-cache"
+  }
 }

@@ -15,7 +15,7 @@ namespace WPPack\Component\Mailer\Bridge\SendGrid\Transport;
 
 use WPPack\Component\Mailer\Exception\InvalidArgumentException;
 use WPPack\Component\Mailer\Exception\UnsupportedSchemeException;
-use WPPack\Component\Mailer\Transport\Dsn;
+use WPPack\Component\Dsn\Dsn;
 use WPPack\Component\Mailer\Transport\TransportDefinition;
 use WPPack\Component\Mailer\Transport\TransportFactoryInterface;
 use WPPack\Component\Mailer\Transport\TransportField;

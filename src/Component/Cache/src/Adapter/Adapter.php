@@ -18,6 +18,7 @@ use WPPack\Component\Cache\Bridge\DynamoDb\DynamoDbAdapterFactory;
 use WPPack\Component\Cache\Bridge\Memcached\MemcachedAdapterFactory;
 use WPPack\Component\Cache\Bridge\Redis\Adapter\RedisAdapterFactory;
 use WPPack\Component\Cache\Exception\UnsupportedSchemeException;
+use WPPack\Component\Dsn\Dsn;
 
 final class Adapter
 {

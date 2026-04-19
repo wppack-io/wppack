@@ -16,7 +16,7 @@ namespace WPPack\Component\Cache\Bridge\Apcu;
 use WPPack\Component\Cache\Adapter\AdapterDefinition;
 use WPPack\Component\Cache\Adapter\AdapterFactoryInterface;
 use WPPack\Component\Cache\Adapter\AdapterInterface;
-use WPPack\Component\Cache\Adapter\Dsn;
+use WPPack\Component\Dsn\Dsn;
 
 final class ApcuAdapterFactory implements AdapterFactoryInterface
 {

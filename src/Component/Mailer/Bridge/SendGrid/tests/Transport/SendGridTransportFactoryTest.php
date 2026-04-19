@@ -19,7 +19,7 @@ use PHPUnit\Framework\TestCase;
 use WPPack\Component\Mailer\Bridge\SendGrid\Transport\SendGridApiTransport;
 use WPPack\Component\Mailer\Bridge\SendGrid\Transport\SendGridSmtpTransport;
 use WPPack\Component\Mailer\Bridge\SendGrid\Transport\SendGridTransportFactory;
-use WPPack\Component\Mailer\Transport\Dsn;
+use WPPack\Component\Dsn\Dsn;
 
 final class SendGridTransportFactoryTest extends TestCase
 {

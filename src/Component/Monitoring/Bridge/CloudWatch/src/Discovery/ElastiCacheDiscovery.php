@@ -13,10 +13,12 @@ declare(strict_types=1);
 
 namespace WPPack\Component\Monitoring\Bridge\CloudWatch\Discovery;
 
+use WPPack\Component\Dsn\Dsn;
+use WPPack\Component\Dsn\Exception\InvalidDsnException;
+use WPPack\Component\Monitoring\Bridge\CloudWatch\AwsProviderSettings;
 use WPPack\Component\Monitoring\MetricDefinition;
 use WPPack\Component\Monitoring\MonitoringProvider;
 use WPPack\Component\Monitoring\MonitoringProviderInterface;
-use WPPack\Component\Monitoring\Bridge\CloudWatch\AwsProviderSettings;
 
 final class ElastiCacheDiscovery implements MonitoringProviderInterface
 {
@@ -103,15 +105,21 @@ final class ElastiCacheDiscovery implements MonitoringProviderInterface
      */
     private function parseElastiCacheEndpoint(): ?array
     {
-        $dsn = \defined('CACHE_DSN') ? (string) \constant('CACHE_DSN') : ($_ENV['CACHE_DSN'] ?? '');
+        $dsnString = \defined('CACHE_DSN') ? (string) \constant('CACHE_DSN') : ($_ENV['CACHE_DSN'] ?? '');
 
-        if ($dsn === '') {
+        if ($dsnString === '') {
             return null;
         }
 
-        $host = parse_url($dsn, \PHP_URL_HOST);
+        try {
+            $dsn = Dsn::fromString($dsnString);
+        } catch (InvalidDsnException) {
+            return null;
+        }
 
-        if (!\is_string($host) || !str_contains($host, '.cache.amazonaws.com')) {
+        $host = $dsn->getHost();
+
+        if ($host === null || !str_contains($host, '.cache.amazonaws.com')) {
             return null;
         }
 

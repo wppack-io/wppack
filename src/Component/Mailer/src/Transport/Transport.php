@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace WPPack\Component\Mailer\Transport;
 
+use WPPack\Component\Dsn\Dsn;
 use WPPack\Component\Mailer\Bridge\Amazon\Transport\SesTransportFactory;
 use WPPack\Component\Mailer\Bridge\Azure\Transport\AzureTransportFactory;
 use WPPack\Component\Mailer\Bridge\SendGrid\Transport\SendGridTransportFactory;

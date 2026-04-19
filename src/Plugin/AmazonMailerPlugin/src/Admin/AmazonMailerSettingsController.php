@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace WPPack\Plugin\AmazonMailerPlugin\Admin;
 
+use WPPack\Component\Dsn\Dsn;
+use WPPack\Component\Dsn\Exception\InvalidDsnException;
 use WPPack\Component\HttpFoundation\JsonResponse;
 use WPPack\Component\Mailer\Bridge\Amazon\Transport\SesTransportFactory;
 use WPPack\Component\Mailer\Bridge\Azure\Transport\AzureTransportFactory;
@@ -196,8 +198,12 @@ final class AmazonMailerSettingsController extends AbstractRestController
         $fields = isset($input['fields']) && \is_array($input['fields']) ? $input['fields'] : [];
         $dsn = isset($fields['dsn']) && \is_string($fields['dsn']) ? $fields['dsn'] : '';
 
-        if ($dsn !== '' && $dsn !== AmazonMailerConfiguration::MASKED_VALUE && parse_url($dsn, \PHP_URL_SCHEME) === null) {
-            return 'Invalid DSN format.';
+        if ($dsn !== '' && $dsn !== AmazonMailerConfiguration::MASKED_VALUE) {
+            try {
+                Dsn::fromString($dsn);
+            } catch (InvalidDsnException) {
+                return 'Invalid DSN format.';
+            }
         }
 
         return null;

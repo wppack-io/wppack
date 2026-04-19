@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace WPPack\Component\Mailer\Exception;
 
-use WPPack\Component\Mailer\Transport\Dsn;
+use WPPack\Component\Dsn\Dsn;
 
 final class UnsupportedSchemeException extends \LogicException implements ExceptionInterface
 {

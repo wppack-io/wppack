@@ -16,7 +16,7 @@ namespace WPPack\Component\Mailer\Tests\Transport;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WPPack\Component\Mailer\Exception\UnsupportedSchemeException;
-use WPPack\Component\Mailer\Transport\Dsn;
+use WPPack\Component\Dsn\Dsn;
 use WPPack\Component\Mailer\Transport\NativeTransport;
 use WPPack\Component\Mailer\Transport\NativeTransportFactory;
 use WPPack\Component\Mailer\Transport\NullTransport;

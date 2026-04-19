@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace WPPack\Component\Storage\Adapter;
 
+use WPPack\Component\Dsn\Dsn;
 use WPPack\Component\Storage\Bridge\Azure\AzureStorageAdapterFactory;
 use WPPack\Component\Storage\Bridge\Gcs\GcsStorageAdapterFactory;
 use WPPack\Component\Storage\Bridge\S3\S3StorageAdapterFactory;

@@ -15,7 +15,7 @@ namespace WPPack\Component\Storage\Tests\Exception;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WPPack\Component\Storage\Adapter\Dsn;
+use WPPack\Component\Dsn\Dsn;
 use WPPack\Component\Storage\Exception\ExceptionInterface;
 use WPPack\Component\Storage\Exception\InvalidArgumentException;
 use WPPack\Component\Storage\Exception\ObjectNotFoundException;

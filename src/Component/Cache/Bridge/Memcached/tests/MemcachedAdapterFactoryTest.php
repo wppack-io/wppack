@@ -15,7 +15,7 @@ namespace WPPack\Component\Cache\Bridge\Memcached\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WPPack\Component\Cache\Adapter\Dsn;
+use WPPack\Component\Dsn\Dsn;
 use WPPack\Component\Cache\Bridge\Memcached\MemcachedAdapter;
 use WPPack\Component\Cache\Bridge\Memcached\MemcachedAdapterFactory;
 

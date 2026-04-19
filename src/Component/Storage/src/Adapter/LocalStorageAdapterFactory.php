@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace WPPack\Component\Storage\Adapter;
 
+use WPPack\Component\Dsn\Dsn;
 use WPPack\Component\Storage\Exception\InvalidArgumentException;
 
 final class LocalStorageAdapterFactory implements StorageAdapterFactoryInterface
