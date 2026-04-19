@@ -12,41 +12,54 @@ independently testable, type-safe, and cloud-ready.
 
 ## Why WPPack?
 
-- **Adopt piece by piece — no framework lock-in.** Plugin and theme authors can
-  drop a single component into an existing codebase without rewriting it.
-  `composer require wppack/option` for type-safe options, `wppack/database` for
-  a portable `$wpdb` replacement, `wppack/mailer` to swap in SES / SendGrid /
-  Azure Communication without touching call sites. 58 components and 25 bridges,
-  each an independent Composer package with its own tests and docs.
-- **Production-grade quality, verified on every push.** **PHPStan level 6** on
-  114k LOC of source. php-cs-fixer on PER Coding Style. 149k LOC of tests
-  (1.31:1 test/production ratio). A 16-job CI matrix — PHP 8.2 / 8.3 / 8.4 / 8.5
-  × mysql / sqlite / postgresql / legacy wpdb — runs on every push, all green.
-  122 interfaces (interface-first design) and `declare(strict_types=1)`
-  throughout make refactoring safe in a way WordPress core never could.
+### For plugin and theme authors
+
+- **Adopt piece by piece — no framework lock-in.** Drop a single component into
+  an existing codebase without rewriting it. `composer require wppack/option`
+  for type-safe options, `wppack/database` for a portable `$wpdb` replacement,
+  `wppack/mailer` to swap in SES / SendGrid / Azure Communication without
+  touching call sites. 58 components and 25 bridges, each an independent
+  Composer package with its own tests and docs.
 - **Type-safe WordPress with modern PHP attributes.** Declarative event listeners
   (`#[AsEventListener]`), option injection (`#[Option]`), and routing — all
   backed by a Symfony-style DI container with autowiring and service
   auto-discovery. Type-safe wrappers over `$wpdb`, `WP_Query`, the Options API,
-  Transients, and object cache. PSR-3 / PSR-6 / PSR-11 / PSR-14 / PSR-16 / PSR-18
-  compliant.
+  Transients, and object cache. IDE autocomplete, PHPStan guarantees, and
+  refactoring safety you can't get from WordPress core.
+- **Quality you can depend on.** **PHPStan level 6** on 114k LOC of source.
+  php-cs-fixer on PER Coding Style. 149k LOC of tests (1.31:1 test/production
+  ratio). A 16-job CI matrix — PHP 8.2 / 8.3 / 8.4 / 8.5 × mysql / sqlite /
+  postgresql / legacy wpdb — runs on every push, all green. 122 interfaces
+  and `declare(strict_types=1)` throughout.
+- **Don't reinvent auth.** OAuth 2.0 / OIDC, SAML 2.0, and WebAuthn / Passkey
+  are layered on a single `wppack/security` framework — `AbstractAuthenticator`,
+  `TokenStorage`, `AccessDecisionManager`, `UserProvider`. Adding a new
+  provider or migrating between them doesn't rewrite your auth flow; just
+  swap the bridge. SCIM 2.0 provisioning included.
+
+### For WordPress site operators
+
 - **Cloud-ready without glue code.** Aurora DSQL (IAM auth + OCC retry), Aurora
   RDS Data API, ElastiCache IAM, EventBridge Scheduler, S3 / Azure Blob / GCS
   storage, SES / SendGrid / Azure Communication mail, SQS messenger, CloudWatch
   / Cloudflare monitoring — 25 first-party bridges across 8 domains. Stateless
   by default; cold starts, gone-away reconnect, OCC retry, and graceful
-  fallbacks (SQS → synchronous, EventBridge → WP-Cron) are built in.
-- **Unified security framework, pluggable providers.** OAuth 2.0 / OIDC, SAML
-  2.0, and WebAuthn / Passkey are layered on a single `wppack/security`
-  framework (`AbstractAuthenticator`, `TokenStorage`, `AccessDecisionManager`,
-  `UserProvider`). Adding a new provider or migrating between them doesn't
-  rewrite your auth flow — just swap the bridge. SCIM 2.0 provisioning
-  included.
-- **Multi-engine database, transparent to your code.** Write MySQL dialect; run
-  on MySQL, SQLite, PostgreSQL, or Aurora DSQL unchanged thanks to an AST-based
-  query translator. Native prepared statements on every engine. Reader/writer
-  affinity, transparent reconnect, slow-query logging, and PSR-14 events for
-  APM integration. No other WordPress library ships this.
+  fallbacks (SQS → synchronous, EventBridge → WP-Cron) are built in so Lambda
+  / Cloud Functions / Fargate just work.
+- **Multi-engine database, pick per environment.** Write MySQL dialect; run on
+  MySQL, SQLite, PostgreSQL, or Aurora DSQL unchanged thanks to an AST-based
+  query translator. Use SQLite for local / CI speed, PostgreSQL or Aurora DSQL
+  for production scale — no code changes. Native prepared statements on every
+  engine.
+- **Multi-cloud, no vendor lock-in.** 25 bridges across AWS / GCP / Azure let
+  you choose your cloud provider per domain: S3 or GCS or Azure Blob for
+  storage; SES or Azure Communication or SendGrid for mail; Redis or
+  DynamoDB or Memcached or APCu for cache. Migrate between providers by
+  swapping a bridge, not the application.
+- **Observability out of the box.** PSR-3 logger (Monolog bridge ready), PSR-14
+  event dispatcher on top of `$wp_filter`, per-query slow-log threshold,
+  CloudWatch / Cloudflare monitoring bridges for metrics, and a debug toolbar
+  with database / cache / event / mailer collectors.
 
 ## Feature Highlights
 
