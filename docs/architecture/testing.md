@@ -85,7 +85,7 @@ $extraIncludes = [
 define('ABSPATH', dirname(__DIR__) . '/web/wp/');
 define('DB_NAME', 'wppack_test');
 define('DB_USER', 'root');
-define('DB_PASSWORD', 'root');
+define('DB_PASSWORD', 'password');
 define('DB_HOST', '127.0.0.1');
 
 // WP 6.8+: wp_is_block_theme() の _doing_it_wrong notice を回避
