@@ -126,7 +126,15 @@ final class RedirectHandler
             'status' => $status,
         ];
 
-        if (!$this->shutdownRegistered) {
+        // Skip the shutdown-registered intermediate page in CLI contexts
+        // (phpunit, WP-CLI). register_shutdown_function() cannot be
+        // unregistered, so once a test triggers onRedirect() the shutdown
+        // callback lives until the PHP process exits and then calls
+        // `while (ob_get_level()) ob_end_clean()`, which eats phpunit's
+        // test-summary output and makes the run appear to terminate
+        // silently mid-stream. HTML rendering belongs to the browser
+        // path, never to a CLI binary.
+        if (!$this->shutdownRegistered && \PHP_SAPI !== 'cli') {
             $this->shutdownRegistered = true;
             register_shutdown_function($this->renderRedirectPage(...));
             ob_start();

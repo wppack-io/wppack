@@ -947,7 +947,7 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
 
     private function buildColumnDef(\PhpMyAdmin\SqlParser\Components\CreateDefinition $field): string
     {
-        $name = $this->quoteIdLower($field->name ?? '');
+        $name = $this->quoteId($field->name ?? '');
         $typeName = $field->type !== null ? strtoupper($field->type->name) : '';
 
         // Map MySQL type → PostgreSQL type
@@ -1007,7 +1007,7 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
 
         foreach ($key->columns as $col) {
             if (isset($col['name'])) {
-                $columns[] = $this->quoteIdLower($col['name']);
+                $columns[] = $this->quoteId($col['name']);
             }
         }
 
@@ -1031,7 +1031,7 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
 
         foreach ($key->columns as $col) {
             if (isset($col['name'])) {
-                $columns[] = $this->quoteIdLower($col['name']);
+                $columns[] = $this->quoteId($col['name']);
             }
         }
 
@@ -1080,19 +1080,6 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
     private function quoteId(string $identifier): string
     {
         return '"' . str_replace('"', '""', $identifier) . '"';
-    }
-
-    /**
-     * Quote identifier with forced lowercase for DDL.
-     *
-     * PostgreSQL folds unquoted identifiers to lowercase. When WordPress
-     * creates tables with "ID" (uppercase quoted) but queries with unquoted
-     * ID (resolved to lowercase "id"), the names don't match. Forcing
-     * lowercase in DDL ensures compatibility with WordPress query patterns.
-     */
-    private function quoteIdLower(string $identifier): string
-    {
-        return '"' . str_replace('"', '""', strtolower($identifier)) . '"';
     }
 
     /**

@@ -1,25 +1,26 @@
 {
-    "name": "wppack/redis-cache",
-    "description": "Redis adapter for WPPack Cache Object Cache drop-in",
-    "type": "library",
-    "license": "MIT",
-    "require": {
-        "php": "^8.2",
-        "wppack/cache": "^0.1"
-    },
-    "suggest": {
-        "ext-redis": "For using native Redis extension (recommended, highest performance)",
-        "ext-relay": "For using Relay with in-process caching",
-        "predis/predis": "For pure PHP Redis client (no extension required)"
-    },
-    "autoload": {
-        "psr-4": {
-            "WPPack\\Component\\Cache\\Bridge\\Redis\\": "src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "WPPack\\Component\\Cache\\Bridge\\Redis\\Tests\\": "tests/"
-        }
+  "name": "wppack/redis-cache",
+  "description": "Redis adapter for WPPack Cache Object Cache drop-in",
+  "type": "library",
+  "license": "MIT",
+  "require": {
+    "php": "^8.2",
+    "wppack/cache": "^0.1",
+    "wppack/dsn": "^1.0"
+  },
+  "suggest": {
+    "ext-redis": "For using native Redis extension (recommended, highest performance)",
+    "ext-relay": "For using Relay with in-process caching",
+    "predis/predis": "For pure PHP Redis client (no extension required)"
+  },
+  "autoload": {
+    "psr-4": {
+      "WPPack\\Component\\Cache\\Bridge\\Redis\\": "src/"
     }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "WPPack\\Component\\Cache\\Bridge\\Redis\\Tests\\": "tests/"
+    }
+  }
 }

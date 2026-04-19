@@ -1,21 +1,22 @@
 {
-    "name": "wppack/amazon-mailer",
-    "description": "Amazon SES transport for WPPack Mailer",
-    "type": "library",
-    "license": "MIT",
-    "require": {
-        "php": "^8.2",
-        "wppack/mailer": "^1.0",
-        "async-aws/ses": "^1.14"
-    },
-    "autoload": {
-        "psr-4": {
-            "WPPack\\Component\\Mailer\\Bridge\\Amazon\\": "src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "WPPack\\Component\\Mailer\\Bridge\\Amazon\\Tests\\": "tests/"
-        }
+  "name": "wppack/amazon-mailer",
+  "description": "Amazon SES transport for WPPack Mailer",
+  "type": "library",
+  "license": "MIT",
+  "require": {
+    "async-aws/ses": "^1.14",
+    "php": "^8.2",
+    "wppack/dsn": "^1.0",
+    "wppack/mailer": "^1.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "WPPack\\Component\\Mailer\\Bridge\\Amazon\\": "src/"
     }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "WPPack\\Component\\Mailer\\Bridge\\Amazon\\Tests\\": "tests/"
+    }
+  }
 }

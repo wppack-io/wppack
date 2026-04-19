@@ -1,21 +1,22 @@
 {
-    "name": "wppack/s3-storage",
-    "description": "Amazon S3 adapter for WPPack Storage",
-    "type": "library",
-    "license": "MIT",
-    "require": {
-        "php": "^8.2",
-        "wppack/storage": "^0.1",
-        "async-aws/s3": "^2.0"
-    },
-    "autoload": {
-        "psr-4": {
-            "WPPack\\Component\\Storage\\Bridge\\S3\\": "src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "WPPack\\Component\\Storage\\Bridge\\S3\\Tests\\": "tests/"
-        }
+  "name": "wppack/s3-storage",
+  "description": "Amazon S3 adapter for WPPack Storage",
+  "type": "library",
+  "license": "MIT",
+  "require": {
+    "async-aws/s3": "^2.0",
+    "php": "^8.2",
+    "wppack/dsn": "^1.0",
+    "wppack/storage": "^0.1"
+  },
+  "autoload": {
+    "psr-4": {
+      "WPPack\\Component\\Storage\\Bridge\\S3\\": "src/"
     }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "WPPack\\Component\\Storage\\Bridge\\S3\\Tests\\": "tests/"
+    }
+  }
 }

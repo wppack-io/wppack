@@ -24,11 +24,12 @@ class PostgresqlPlatform extends AbstractPlatform
 
     public function quoteIdentifier(string $identifier): string
     {
-        // PostgreSQL folds unquoted identifiers to lowercase. WordPress uses
-        // mixed-case names (e.g. ID, post_title) in both DDL and DML without
-        // quoting, so they are resolved to lowercase. Quoted identifiers are
-        // case-sensitive, so we must lowercase them to match.
-        return '"' . str_replace('"', '""', strtolower($identifier)) . '"';
+        // Preserve the identifier's original case. PostgreSQL folds unquoted
+        // identifiers to lowercase, but our callers — including WP and the
+        // query translator — are expected to give us names whose case matches
+        // what's actually stored in the catalog, so forcing a lowercase
+        // transform here breaks any mixed-case identifier the caller passes.
+        return '"' . str_replace('"', '""', $identifier) . '"';
     }
 
     public function getBeginTransactionSql(): string
