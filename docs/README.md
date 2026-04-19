@@ -1,21 +1,6 @@
 # WPPack ドキュメント
 
-WordPress をモダンに扱うためのコンポーネントライブラリ。Symfony にインスパイアされた設計で、WordPress のエコシステムに最適化されたパッケージ群を提供します。
-
-## プロジェクト概要
-
-WPPack は、WordPress のグローバル関数・手続き型 API を、型安全な OOP インターフェースでラップするコンポーネントライブラリです。Symfony のパターンを WordPress に持ち込み、`declare(strict_types=1)` の世界で WordPress 開発を行えるようにします。
-
-主な特徴:
-
-- **PHP Attributes による宣言的 API** — イベントリスナー (`#[AsEventListener]`)、ルート、オプション注入 (`#[Option]`) などを Attribute で定義
-- **DI コンテナ** — Symfony スタイルのオートワイヤリングとサービス自動検出
-- **型安全なラッパー** — WordPress API を `declare(strict_types=1)` で扱える
-- **コンポーネント単位の導入** — 必要なパッケージだけ `composer require`
-- **クラウドファースト設計** — Lambda / Cloud Functions / Fargate / Aurora Serverless を第一等市民として扱う。ステートレス、gone-away 再接続、OCC リトライ、graceful fallback
-- **マルチクラウド対応** — コアは抽象インターフェース、AWS / GCP / Azure は Bridge パッケージで分離
-
-コード例や API リファレンスは各コンポーネントの README を参照してください。トップレベルに重複させず、使いどころのあるページに集約しています。
+WPPack の設計思想・コンポーネント仕様・運用ガイドをまとめたドキュメントです。プロジェクト概要と採用理由はリポジトリルートの [README.md](../README.md) を参照してください。
 
 ## ドキュメント構成
 
@@ -81,12 +66,4 @@ vendor/bin/php-cs-fixer fix --dry-run --diff    # コードスタイルチェッ
 vendor/bin/phpunit                              # テスト実行
 ```
 
-## 設計原則
-
-### Hook vs EventDispatcher
-
-新規実装では **EventDispatcher を優先** してください (`#[AsEventListener]` など)。EventDispatcher は内部で WordPress の `$wp_filter` をバックエンドに利用しており、WordPress フックも型安全に扱えます。`wppack/hook` コンポーネントは既存コードとの互換性のために残されています。
-
-### セキュリティ統合
-
-OAuth 2.0 / OIDC、SAML 2.0、WebAuthn / Passkey は個別実装ではなく、共通の `wppack/security` フレームワークの上に bridge として実装されています。`AbstractAuthenticator` / `TokenStorage` / `AccessDecisionManager` / `UserProvider` を一度実装すれば、プロバイダの追加・切替は bridge 単位で行えます。
+コーディング規約・コミットメッセージ形式・コンポーネント追加チェックリストは [coding-standards.md](../coding-standards.md) に、Issue / PR のプロセスは [CONTRIBUTING.md](../CONTRIBUTING.md) に集約しています。

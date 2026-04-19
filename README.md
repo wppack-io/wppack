@@ -7,15 +7,10 @@
 [![WordPress](https://img.shields.io/badge/WordPress-6.3%2B-21759B.svg)](https://wordpress.org)
 
 WPPack is a Symfony-inspired component library that brings modern PHP development
-practices to WordPress. Adopt one component or the whole stack — every package is
-independently testable, type-safe, and cloud-ready.
+practices to WordPress. Adopt a single component or a composed stack — every
+package is independently testable, type-safe, and production-ready.
 
 ## Why WPPack?
-
-> **Scope: infrastructure, not features.** WPPack intentionally stays at the
-> foundation layer — database, cache, mail, storage, auth, observability,
-> scheduling. Upper-layer features (forms, e-commerce, page builders) live
-> in your own plugins or third-party products, built on top of WPPack.
 
 ### For plugin and theme authors
 
@@ -24,75 +19,50 @@ independently testable, type-safe, and cloud-ready.
   for type-safe options, `wppack/database` for a portable `$wpdb` replacement,
   `wppack/mailer` to swap in SES / SendGrid / Azure Communication without
   touching call sites. 58 components and 25 bridges, each an independent
-  Composer package with its own tests and docs.
+  Composer package.
 - **Type-safe WordPress with modern PHP attributes.** Declarative event listeners
-  (`#[AsEventListener]`), option injection (`#[Option]`), and routing — all
-  backed by a Symfony-style DI container with autowiring and service
-  auto-discovery. Type-safe wrappers over `$wpdb`, `WP_Query`, the Options API,
-  Transients, and object cache. IDE autocomplete, PHPStan guarantees, and
-  refactoring safety you can't get from WordPress core.
-- **Quality you can depend on.** **PHPStan level 6** on 114k LOC of source.
-  php-cs-fixer on PER Coding Style. 149k LOC of tests (1.31:1 test/production
-  ratio). A 16-job CI matrix — PHP 8.2 / 8.3 / 8.4 / 8.5 × mysql / sqlite /
-  postgresql / legacy wpdb — runs on every push, all green. 122 interfaces
-  and `declare(strict_types=1)` throughout.
-- **Symfony-grade debug toolbar out of the box.** `composer require
-  wppack/debug-plugin` turns on a Symfony-profiler-style toolbar with 17
-  data collectors — database queries, object cache operations, DI container
-  services, dispatched events, HTTP client calls, sent mail, REST / Ajax
-  / shortcode / routing activity, memory and request profiles. An
-  intermediate page on every redirect keeps post-redirect profiling data
-  accessible. Fatal errors and uncaught exceptions are caught by a
-  drop-in before the DI container even boots, so you get a readable
-  error page instead of a white screen.
+  (`#[AsEventListener]`), option injection (`#[Option]`), and routing — backed
+  by a DI container with autowiring and service auto-discovery. Type-safe
+  wrappers over `$wpdb`, `WP_Query`, the Options API, Transients, and object
+  cache give you IDE autocomplete, PHPStan guarantees, and refactoring safety
+  you can't get from WordPress core.
+- **Quality you can depend on.** **PHPStan level 6** on 114k LOC of source,
+  php-cs-fixer on PER Coding Style, 149k LOC of tests (1.31:1 test/production
+  ratio), and a 16-job CI matrix — PHP 8.2 / 8.3 / 8.4 / 8.5 × mysql / sqlite /
+  postgresql / legacy wpdb — green on every push. 122 interfaces and
+  `declare(strict_types=1)` throughout.
+- **Debug toolbar and profiler out of the box.** `composer require
+  wppack/debug-plugin` activates a debug toolbar with 17 data collectors
+  (database / cache / DI / events / HTTP / mail / REST / Ajax / shortcode /
+  routing / memory / request). An intermediate page on every redirect
+  preserves post-redirect profiling data. A drop-in catches fatal errors and
+  uncaught exceptions *before* the DI container boots — no more white screen.
 
-- **Infrastructure plugins at commercial-offering quality.** WPPack's
-  first-party plugins — Redis Object Cache, S3 Media Storage, Amazon SES
-  Mailer, EventBridge Scheduler, CloudWatch Monitoring — are built at a
-  quality level comparable to paid commercial WordPress plugins, but MIT
-  licensed. Engineered for production workloads, tested in the same 16-job CI
-  matrix as the core components.
-- **Robust authentication, ready to deploy.** SAML 2.0, OAuth 2.0 / OIDC, and
-  WebAuthn / Passkey each ship as a dedicated login plugin layered on a
-  unified security framework. Deploy only the provider you need, or combine
-  them freely. SCIM 2.0 provisioning included for directory sync.
-- **Cloud-ready without glue code.** Aurora DSQL (IAM auth + OCC retry), Aurora
-  RDS Data API, ElastiCache IAM, EventBridge Scheduler, S3 / Azure Blob / GCS
-  storage, SES / SendGrid / Azure Communication mail, SQS messenger, CloudWatch
-  / Cloudflare monitoring — 25 first-party bridges across 8 domains. Stateless
-  by default; cold starts, gone-away reconnect, OCC retry, and graceful
-  fallbacks (SQS → synchronous, EventBridge → WP-Cron) are built in so Lambda
-  / Cloud Functions / Fargate just work.
+### For WordPress site operators
+
+- **Commercial-grade infrastructure plugins, MIT licensed.** Every first-party
+  plugin is engineered for production workloads and tested in the same 16-job
+  CI matrix as the core components: Redis Object Cache, S3 Media Storage,
+  Amazon SES Mailer, EventBridge Scheduler, CloudWatch Monitoring — plus SSO
+  login plugins for SAML 2.0, OAuth 2.0 / OIDC, and WebAuthn / Passkey, and
+  SCIM 2.0 provisioning for directory sync. Deploy only the ones you need.
+- **Cloud-ready and multi-cloud.** 25 first-party bridges across AWS / GCP /
+  Azure cover storage (S3 / GCS / Azure Blob), mail (SES / SendGrid / Azure
+  Communication), cache (Redis / Valkey / DynamoDB / Memcached / APCu +
+  ElastiCache IAM), queue (SQS), scheduler (EventBridge), and monitoring
+  (CloudWatch / Cloudflare). Stateless by default with gone-away reconnect,
+  OCC retry, and graceful fallbacks (SQS → synchronous, EventBridge →
+  WP-Cron) — Lambda / Cloud Functions / Fargate just work. Swap providers per
+  domain without touching application code.
 - **Multi-engine database, pick per environment.** Write MySQL dialect; run on
   MySQL, SQLite, PostgreSQL, or Aurora DSQL unchanged thanks to an AST-based
-  query translator. Use SQLite for local / CI speed, PostgreSQL or Aurora DSQL
-  for production scale — no code changes. Native prepared statements on every
-  engine.
-- **Multi-cloud, no vendor lock-in.** 25 bridges across AWS / GCP / Azure let
-  you choose your cloud provider per domain: S3 or GCS or Azure Blob for
-  storage; SES or Azure Communication or SendGrid for mail; Redis or
-  DynamoDB or Memcached or APCu for cache. Migrate between providers by
-  swapping a bridge, not the application.
-- **Observability out of the box.** PSR-3 logger (Monolog bridge ready), PSR-14
-  event dispatcher on top of `$wp_filter`, per-query slow-log threshold,
-  CloudWatch / Cloudflare monitoring bridges for metrics, and a debug toolbar
-  with database / cache / event / mailer collectors.
-
-## Feature Highlights
-
-- **Database.** AST-based MySQL → SQLite / PostgreSQL / Aurora DSQL query
-  translator, native prepared statements on every engine, reader/writer affinity
-  with read-your-own-writes, transparent reconnect on `server has gone away`,
-  PSR-3 logging with param redaction, and PSR-14 events for APM integration.
-- **Security.** Pluggable AuthN / AuthZ framework with first-party bridges for
-  OAuth 2.0 / OIDC, SAML 2.0, and WebAuthn / Passkey. SCIM 2.0 provisioning.
-- **Cache.** PSR-6 and PSR-16 façade over Redis / Valkey, Memcached, APCu, and
-  DynamoDB, with an object-cache drop-in that auto-discovers the adapter from
-  the `CACHE_DSN` environment variable.
-- **Observability.** PSR-3 logger with a Monolog bridge, PSR-14 event dispatcher
-  built on the WordPress hook backend, per-query slow-log threshold, CloudWatch /
-  Cloudflare monitoring bridges, and a debug toolbar with database / cache /
-  event / mailer collectors.
+  query translator. SQLite for local / CI speed, PostgreSQL or Aurora DSQL for
+  production scale — no code changes. Native prepared statements on every
+  engine, reader/writer affinity with read-your-own-writes semantics,
+  transparent reconnect on `server has gone away`.
+- **Observability baked in.** PSR-3 logger with a Monolog bridge, PSR-14 event
+  dispatcher on top of the WordPress hook backend for APM integration, and a
+  per-query slow-log threshold with structured, param-redacted context.
 
 ## Installation
 
@@ -108,6 +78,13 @@ composer require wppack/kernel wppack/dependency-injection wppack/event-dispatch
 # A ready-to-use WordPress plugin
 composer require wppack/saml-login-plugin
 ```
+
+**Composer-based installation is recommended for plugins as well.** A
+Composer install resolves the shared component dependency graph into
+`vendor/` once, instead of duplicating the same components inside every
+plugin bundled under `web/wp-content/plugins/`. That keeps your web-root
+footprint small and avoids version skew between plugins that share a
+dependency.
 
 See [`docs/components/`](docs/components/) for the full catalogue of components
 and their package names, and [`docs/plugins/`](docs/plugins/) for distributable
@@ -158,6 +135,12 @@ The repository is in active design phase on the `1.x` branch. Backward
 compatibility is not preserved across commits; API changes, parameter
 reordering, and renames may happen at any time until a stable release is
 tagged.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the contribution process (bug
+reports, pull requests, review expectations) and
+[coding-standards.md](coding-standards.md) for code style, commit
+conventions, testing, and the checklists for adding new components or
+plugins.
 
 ## License
 
