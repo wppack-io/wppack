@@ -36,8 +36,15 @@ independently testable, type-safe, and cloud-ready.
   ratio). A 16-job CI matrix — PHP 8.2 / 8.3 / 8.4 / 8.5 × mysql / sqlite /
   postgresql / legacy wpdb — runs on every push, all green. 122 interfaces
   and `declare(strict_types=1)` throughout.
-
-### For WordPress site operators
+- **Symfony-grade debug toolbar out of the box.** `composer require
+  wppack/debug-plugin` turns on a Symfony-profiler-style toolbar with 17
+  data collectors — database queries, object cache operations, DI container
+  services, dispatched events, HTTP client calls, sent mail, REST / Ajax
+  / shortcode / routing activity, memory and request profiles. An
+  intermediate page on every redirect keeps post-redirect profiling data
+  accessible. Fatal errors and uncaught exceptions are caught by a
+  drop-in before the DI container even boots, so you get a readable
+  error page instead of a white screen.
 
 - **Infrastructure plugins at commercial-offering quality.** WPPack's
   first-party plugins — Redis Object Cache, S3 Media Storage, Amazon SES
