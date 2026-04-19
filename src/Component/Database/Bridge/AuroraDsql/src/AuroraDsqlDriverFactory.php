@@ -50,16 +50,6 @@ final class AuroraDsqlDriverFactory implements DriverFactoryInterface
         $occMaxRetries = $dsn->getOption('occMaxRetries');
         $tokenDurationSecs = $dsn->getOption('tokenDurationSecs');
 
-        $searchPathRaw = $dsn->getOption('search_path') ?? $dsn->getOption('schema');
-        $searchPath = null;
-        if ($searchPathRaw !== null && $searchPathRaw !== '') {
-            $parts = array_values(array_filter(
-                array_map('trim', explode(',', $searchPathRaw)),
-                static fn(string $s): bool => $s !== '',
-            ));
-            $searchPath = $parts === [] ? null : $parts;
-        }
-
         return new AuroraDsqlDriver(
             endpoint: $endpoint,
             region: $region,
@@ -70,7 +60,7 @@ final class AuroraDsqlDriverFactory implements DriverFactoryInterface
             occMaxRetries: $occMaxRetries !== null ? (int) $occMaxRetries : 3,
             credentialProvider: $options['credentialProvider'] ?? null,
             logger: $options['logger'] ?? null,
-            searchPath: $searchPath,
+            searchPath: \WpPack\Component\Database\Bridge\Pgsql\PgsqlDriverFactory::parseSearchPath($dsn),
         );
     }
 

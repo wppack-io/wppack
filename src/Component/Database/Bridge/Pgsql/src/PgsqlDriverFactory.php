@@ -57,9 +57,13 @@ final class PgsqlDriverFactory implements DriverFactoryInterface
      * single-schema alias) from the DSN query string. Returns null when
      * neither is set, so the server-side default applies.
      *
+     * Shared with AuroraDsqlDriverFactory — any DSN extension that
+     * targets a pg-compatible engine should parse the same options so
+     * multi-tenant / blog-scoped search_path works uniformly.
+     *
      * @return list<string>|null
      */
-    private static function parseSearchPath(Dsn $dsn): ?array
+    public static function parseSearchPath(Dsn $dsn): ?array
     {
         $raw = $dsn->getOption('search_path') ?? $dsn->getOption('schema');
         if ($raw === null || $raw === '') {

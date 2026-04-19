@@ -172,6 +172,50 @@ final class AuroraDsqlDriverFactoryTest extends TestCase
         self::assertInstanceOf(AuroraDsqlDriver::class, $driver);
     }
 
+    #[Test]
+    public function factoryForwardsSearchPathToDriver(): void
+    {
+        if (!\function_exists('pg_connect')) {
+            self::markTestSkipped('ext-pgsql not available.');
+        }
+
+        $factory = new AuroraDsqlDriverFactory();
+        $driver = $factory->create(
+            Dsn::fromString('dsql://admin:token@abc.dsql.us-east-1.on.aws/mydb?search_path=tenant_1,public'),
+        );
+
+        // The property is protected on PgsqlDriver; read it via reflection
+        // so we can pin the DSN → driver wiring without booting a live
+        // DSQL connection. Regression guard for the case where
+        // AuroraDsqlDriver's doConnect override silently dropped the
+        // searchPath arg (fixed — applySearchPath is now invoked from
+        // the subclass).
+        $reflection = new \ReflectionClass(\WpPack\Component\Database\Bridge\Pgsql\PgsqlDriver::class);
+        self::assertSame(
+            ['tenant_1', 'public'],
+            $reflection->getProperty('searchPath')->getValue($driver),
+        );
+    }
+
+    #[Test]
+    public function factoryTreatsSchemaOptionAsSingleEntrySearchPath(): void
+    {
+        if (!\function_exists('pg_connect')) {
+            self::markTestSkipped('ext-pgsql not available.');
+        }
+
+        $factory = new AuroraDsqlDriverFactory();
+        $driver = $factory->create(
+            Dsn::fromString('dsql://admin:token@abc.dsql.us-east-1.on.aws/mydb?schema=tenant_42'),
+        );
+
+        $reflection = new \ReflectionClass(\WpPack\Component\Database\Bridge\Pgsql\PgsqlDriver::class);
+        self::assertSame(
+            ['tenant_42'],
+            $reflection->getProperty('searchPath')->getValue($driver),
+        );
+    }
+
     // ── OCC Retry ──
 
     #[Test]

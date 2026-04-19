@@ -52,7 +52,11 @@ final class PgsqlSearchPathTest extends TestCase
         // and tear-down from a single driver kept alive across the try.
         $admin = $this->makeDriver($parsed, null);
         $admin->connect();
-        $schemaName = 'wppack_searchpath_test_' . substr(md5((string) mt_rand()), 0, 8);
+        // Use cryptographic randomness so concurrent test-matrix shards
+        // (4 PHP × 4 engines × 3 variants on shared pg) never collide on
+        // the temp schema name. Include the pid as a belt-and-braces
+        // guard for the same-process case.
+        $schemaName = 'wppack_searchpath_test_' . bin2hex(random_bytes(8)) . '_' . getmypid();
         $admin->executeStatement(\sprintf('CREATE SCHEMA IF NOT EXISTS %s', $this->quoteId($schemaName)));
 
         try {
@@ -73,6 +77,26 @@ final class PgsqlSearchPathTest extends TestCase
             $admin->executeStatement(\sprintf('DROP SCHEMA IF EXISTS %s CASCADE', $this->quoteId($schemaName)));
             $admin->close();
         }
+    }
+
+    #[Test]
+    public function nulByteInSearchPathThrows(): void
+    {
+        $parsed = Dsn::fromString($this->dsnString);
+        $driver = $this->makeDriver($parsed, ["tenant\0injected"]);
+
+        $this->expectException(\WpPack\Component\Database\Exception\ConnectionException::class);
+        $driver->connect();
+    }
+
+    #[Test]
+    public function newlineInSearchPathThrows(): void
+    {
+        $parsed = Dsn::fromString($this->dsnString);
+        $driver = $this->makeDriver($parsed, ["tenant\nDROP"]);
+
+        $this->expectException(\WpPack\Component\Database\Exception\ConnectionException::class);
+        $driver->connect();
     }
 
     #[Test]

@@ -147,15 +147,30 @@ class PgsqlDriver extends AbstractDriver
      * uppercase letters, reserved words, or non-ASCII characters.
      * Nothing runs when searchPath is null — PostgreSQL falls back to its
      * role / database default (`"$user", public`).
+     *
+     * Protected so the Aurora DSQL subclass (which overrides doConnect()
+     * for IAM token refresh) can re-apply it after its own connect path.
      */
-    private function applySearchPath(): void
+    protected function applySearchPath(): void
     {
         if ($this->searchPath === null || $this->searchPath === [] || $this->connection === null) {
             return;
         }
 
         $parts = array_map(
-            static fn(string $schema): string => '"' . str_replace('"', '""', $schema) . '"',
+            static function (string $schema): string {
+                // libpq treats identifiers as C-strings; a NUL byte truncates
+                // silently server-side and the wrong schema gets selected.
+                // Reject early rather than let the connection use a mangled
+                // path.
+                if (strpbrk($schema, "\0\n\r") !== false) {
+                    throw new ConnectionException(
+                        'search_path entries must not contain NUL / newline / CR characters.',
+                    );
+                }
+
+                return '"' . str_replace('"', '""', $schema) . '"';
+            },
             $this->searchPath,
         );
 

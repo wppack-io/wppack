@@ -151,6 +151,13 @@ class AuroraDsqlDriver extends PgsqlDriver
         }
 
         $this->connection = $connection;
+
+        // Base doConnect() is bypassed here (token refresh requires the
+        // bespoke connection-string build above), so the parent's
+        // applySearchPath() never runs unless we invoke it ourselves.
+        // Without this call, DSN options like ?search_path=tenant_42
+        // would parse, populate the property, and silently do nothing.
+        $this->applySearchPath();
     }
 
     public function getName(): string
