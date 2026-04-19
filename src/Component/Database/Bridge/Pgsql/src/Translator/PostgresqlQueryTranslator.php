@@ -2583,6 +2583,18 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
     }
 
     /**
+     * MySQL meta-command rewrites (SHOW TABLES, SHOW COLUMNS, etc.).
+     *
+     * Introspection probes below scope by `table_schema = current_schema()`
+     * so a caller with `search_path = tenant_42, public` only sees tables
+     * in tenant_42 — `current_schema()` returns the FIRST entry of the
+     * effective search_path, not the union. This matches the common WP
+     * assumption that all app tables live in a single schema; if a site
+     * genuinely stores tables across multiple schemas (e.g. shared
+     * `public` lookups + tenant overrides), callers need to use schema-
+     * qualified identifiers and cannot rely on SHOW TABLES to enumerate
+     * both.
+     *
      * @return list<string>|null
      */
     private function translateMetaCommand(string $sql): ?array

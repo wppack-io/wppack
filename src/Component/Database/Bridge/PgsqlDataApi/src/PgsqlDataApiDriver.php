@@ -37,8 +37,12 @@ use WpPack\Component\Database\Translator\QueryTranslatorInterface;
  *   - Pin the search_path at the IAM secret / role level.
  *   - Use schema-qualified identifiers (`schema.table`).
  *   - Wrap per-request state in a transaction (`transactionId`) and
- *     issue `SET search_path` once as the first statement.
+ *     issue `SET search_path` once as the first statement —
+ *     `DataApiDriverTrait::$transactionId` carries across calls within
+ *     a single BEGIN / COMMIT boundary, so the SET persists there.
  * WpPack's `PgsqlDriver::$searchPath` accordingly has no effect here.
+ *
+ * @see \WpPack\Component\Database\Driver\DataApiDriverTrait::$transactionId
  */
 class PgsqlDataApiDriver extends PgsqlDriver
 {
