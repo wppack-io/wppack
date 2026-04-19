@@ -333,7 +333,7 @@ services:
     image: mysql:8.0
     platform: linux/amd64
     environment:
-      MYSQL_ROOT_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: wppack_test
     ports:
       - '3306:3306'

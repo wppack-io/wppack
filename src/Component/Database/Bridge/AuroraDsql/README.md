@@ -46,6 +46,14 @@ $driver = new AuroraDsqlDriver(
 $connection = new Connection($driver);
 ```
 
+## Features
+
+- **IAM token auth** — SigV4 presigned URL, auto-generated via `async-aws/core`. `admin` uses the `DbConnectAdmin` action; other users use `DbConnect`.
+- **Token refresh** — default 900s (15 min) lifetime; the driver rotates 120s before expiry to cover SigV4 clock skew, async-aws credential-fetch latency, and the `pg_connect()` round trip. `ensureTokenFresh()` is a no-op during a transaction — closing the connection mid-tx would silently abort it, so the refresh happens at the `transaction()` retry boundary instead.
+- **OCC retry** — SQLSTATE `40001` / `OC000` / `OC001` trigger exponential backoff + decorrelated jitter (`random_int(waitMs/2, waitMs)`, 100ms → 2× → 5s cap). `occMaxRetries` defaults to 3. `transaction()` retries the entire callback on conflict; individual statements inside a transaction are not retried.
+- **SSL verify-full** — always enforced; `sslnegotiation=direct` is added on libpq 17+.
+- **search_path / schema** — inherited from `PgsqlDriver`. Pass via `?search_path=tenant_42,public` or `?schema=myschema` on the DSN, or the `searchPath:` constructor argument. The DSQL `doConnect()` override explicitly calls `applySearchPath()` after its bespoke IAM-token connection string build, so reconnects after token rotation keep the schema.
+
 ## License
 
 MIT

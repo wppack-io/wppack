@@ -545,7 +545,7 @@ Aurora DSQL は PostgreSQL 互換だが、以下の制限がある:
 | IAM トークン認証 | SigV4 presigned URL で自動生成（`async-aws/core`） |
 | SSL verify-full | 接続時に `sslmode=verify-full` を強制 |
 | OCC リトライ | SQLSTATE 40001/OC000/OC001 で指数バックオフ + ジッター |
-| トークン有効期間管理 | 期限 60 秒前に自動再接続 |
+| トークン有効期間管理 | 期限 120 秒前に自動再接続 |
 
 ### OCC（楽観的同時実行制御）リトライ
 

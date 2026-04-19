@@ -54,7 +54,7 @@ jobs:
       mysql:
         image: mysql:8.0
         env:
-          MYSQL_ROOT_PASSWORD: root
+          MYSQL_ROOT_PASSWORD: password
           MYSQL_DATABASE: wppack_test
         ports:
           - 3306:3306
@@ -151,7 +151,7 @@ jobs:
           case '${{ matrix.db-engine }}' in
             wpdb)       dsn='wpdb://' ;;
             sqlite)     dsn='sqlite:///tmp/wppack-test.db' ;;
-            mysql)      dsn='mysql://root:root@127.0.0.1:3306/wppack_test?charset=utf8mb4&collate=utf8mb4_general_ci' ;;
+            mysql)      dsn='mysql://root:password@127.0.0.1:3306/wppack_test?charset=utf8mb4&collate=utf8mb4_general_ci' ;;
             postgresql) dsn='pgsql://wppack:wppack@127.0.0.1:5432/wppack_test' ;;
           esac
           echo "value=$dsn" >> "$GITHUB_OUTPUT"

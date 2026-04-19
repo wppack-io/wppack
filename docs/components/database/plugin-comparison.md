@@ -9,7 +9,7 @@ WPPack Database コンポーネントの MySQL→SQLite / MySQL→PostgreSQL ク
 | リポジトリ | wordpress/sqlite-database-integration | PostgreSQL-For-Wordpress/postgresql-for-wordpress | wppack-io/wppack |
 | エンジン | SQLite | PostgreSQL | SQLite + PostgreSQL + Aurora DSQL |
 | アーキテクチャ | 独自 Lexer + トークン書き換え + UDF 46個 | 正規表現ベース文字列置換 | AST (phpmyadmin/sql-parser) + QueryRewriter + UDF 14個 |
-| テスト | WordPress e2e 依存 | 504 スタブベーステスト | 900+ テスト / 1,800+ アサーション (単体 + 統合、MySQL/SQLite/PostgreSQL 3 engine マトリクスで回帰) |
+| テスト | WordPress e2e 依存 | 504 スタブベーステスト | ~8,900 テスト / engine (単体 + wpdb/mysql/sqlite/postgresql × PHP 8.2/8.3/8.4/8.5 の 16 ジョブマトリクスで全て green) |
 
 ## 対応範囲一覧
 
@@ -130,10 +130,10 @@ WPPack Database コンポーネントの MySQL→SQLite / MySQL→PostgreSQL ク
 
 | | SQLite プラグイン | WPPack SQLite | WPPack PgSQL |
 |---|---:|---:|---:|
-| トランスレーター | 4,543行 | 1,940行 | 1,867行 |
-| QueryRewriter | 343行 | 279行 | 279行 |
-| UDF / Driver | 899行（46関数） | 342行（15関数） | — |
-| **合計** | **5,785行** | **~2,560行** | **~2,150行** |
+| トランスレーター | 4,543行 | 2,623行 | 2,716行 |
+| QueryRewriter（共有） | 343行 | 279行 | 279行 |
+| UDF / Driver | 899行（46関数） | 411行（15関数） | — |
+| **合計** | **5,785行** | **~3,310行** | **~3,000行** |
 
 WPPack は phpmyadmin/sql-parser の AST を活用することで、プラグインの約半分のコード量で同等以上の機能をカバーする。プラグインは独自 Lexer（2,997行）を含むため、パーサー込みの総コスト差はさらに大きい。
 
@@ -262,7 +262,7 @@ WPPack は phpmyadmin/sql-parser の AST を活用することで、プラグイ
 | **ネイティブ関数優先** | UDF 14個 vs プラグイン46個。パフォーマンスに直結 |
 | **真の Prepared Statement** | `?` パラメータを Driver に分離。SQL インジェクション構造的防止 |
 | **Reader/Writer Split** | `DATABASE_READER_DSN` で読み書き分離 |
-| **608 ユニットテスト** | プラグインは WordPress e2e テスト依存 |
+| **~8,900 テスト / engine** | PHP 8.2/8.3/8.4/8.5 × wpdb/mysql/sqlite/postgresql の 16 ジョブ CI マトリクスで全て green。プラグインは WordPress e2e テスト依存 |
 | **文字列リテラル安全性** | `TokenType::String` による構造的保証 |
 
 ### プラグインの優位点
@@ -277,9 +277,9 @@ WPPack は phpmyadmin/sql-parser の AST を活用することで、プラグイ
 
 | | PG4WP | WPPack PgSQL |
 |---|---:|---:|
-| トランスレーター/ドライバ | ~4,000行 | 1,867行 |
-| QueryRewriter | — | 279行 |
-| **合計** | **~4,000行** | **~2,150行** |
+| トランスレーター/ドライバ | ~4,000行 | 2,716行 |
+| QueryRewriter（共有） | — | 279行 |
+| **合計** | **~4,000行** | **~3,000行** |
 
 ### アーキテクチャ
 
@@ -365,7 +365,7 @@ WPPack は phpmyadmin/sql-parser の AST を活用することで、プラグイ
 | **AS 'alias' → AS "alias"** | PgSQL はシングルクォート識別子非対応。プラグイン互換 |
 | **ALTER TABLE ADD/DROP INDEX** | `CREATE INDEX` / `DROP INDEX IF EXISTS` に変換 |
 | **COUNT(*) ORDER BY 除去** | 不要な ORDER BY をパフォーマンス向上のため除去 |
-| **608 ユニットテスト** | PG4WP は504スタブテスト |
+| **~8,900 テスト / engine** | PG4WP は 504 スタブテスト。WPPack は CI で 16 マトリクスジョブを回している |
 
 ### PG4WP のみの機能（WPPack にない）
 
@@ -386,5 +386,5 @@ WPPack は phpmyadmin/sql-parser の AST を活用することで、プラグイ
 | SHOW 対応 | ★★★ | ★★★ | ★★★★ |
 | 型安全性 | ★★ (文字列結合) | ★★ | ★★★★ (Prepared Statement) |
 | マルチエンジン | ★ (SQLite のみ) | ★ (PgSQL のみ) | ★★★★★ (SQLite + PgSQL + DSQL) |
-| テスト | ★★ (e2e 依存) | ★★★ (504 スタブ) | ★★★★★ (608 ユニットテスト) |
+| テスト | ★★ (e2e 依存) | ★★★ (504 スタブ) | ★★★★★ (~8,900 テスト / engine、16 ジョブ CI マトリクス) |
 | WP 固有対応 | ★★★★★ | ★★★★ | ★★★★★ |
