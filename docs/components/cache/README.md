@@ -175,7 +175,7 @@ composer require wppack/redis-cache
 
 ```php
 // Redis Standalone
-define('WPPACK_CACHE_DSN', 'redis://127.0.0.1:6379');
+define('CACHE_DSN', 'redis://127.0.0.1:6379');
 
 // プレフィックス（オプション、デフォルト 'wp:'）
 define('WPPACK_CACHE_PREFIX', 'wp:');

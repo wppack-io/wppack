@@ -49,7 +49,7 @@ composer require wppack/apcu-cache
 ### wp-config.php
 
 ```php
-define('WPPACK_CACHE_DSN', 'apcu://');
+define('CACHE_DSN', 'apcu://');
 
 // プレフィックス（オプション、デフォルト 'wp:'）
 define('WPPACK_CACHE_PREFIX', 'wp:');
@@ -64,7 +64,7 @@ APCu はローカルメモリのためホスト指定は不要です:
 ```
 
 > [!NOTE]
-> Symfony は APCu に DSN を使いませんが、WPPack は `WPPACK_CACHE_DSN` で統一的にバックエンドを選択するため `apcu://` スキームを採用しています。
+> Symfony は APCu に DSN を使いませんが、WPPack は `CACHE_DSN` で統一的にバックエンドを選択するため `apcu://` スキームを採用しています。
 
 ## CLI での利用
 

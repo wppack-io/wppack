@@ -39,22 +39,22 @@ Configure in `wp-config.php`:
 
 ```php
 // Standalone
-define('WPPACK_CACHE_DSN', 'redis://127.0.0.1:6379');
+define('CACHE_DSN', 'redis://127.0.0.1:6379');
 
 // TLS
-define('WPPACK_CACHE_DSN', 'rediss://127.0.0.1:6380');
+define('CACHE_DSN', 'rediss://127.0.0.1:6380');
 
 // Valkey
-define('WPPACK_CACHE_DSN', 'valkey://127.0.0.1:6379');
+define('CACHE_DSN', 'valkey://127.0.0.1:6379');
 
 // Unix socket
-define('WPPACK_CACHE_DSN', 'redis:///var/run/redis.sock');
+define('CACHE_DSN', 'redis:///var/run/redis.sock');
 
 // Cluster
-define('WPPACK_CACHE_DSN', 'redis:?host[node1:6379]&host[node2:6379]&redis_cluster=1');
+define('CACHE_DSN', 'redis:?host[node1:6379]&host[node2:6379]&redis_cluster=1');
 
 // Sentinel
-define('WPPACK_CACHE_DSN', 'redis:?host[sentinel1:26379]&host[sentinel2:26379]&redis_sentinel=mymaster');
+define('CACHE_DSN', 'redis:?host[sentinel1:26379]&host[sentinel2:26379]&redis_sentinel=mymaster');
 ```
 
 ### Client Selection
@@ -68,7 +68,7 @@ To force a specific client:
 define('WPPACK_CACHE_OPTIONS', ['class' => \Relay\Relay::class]);
 
 // Via DSN query parameter
-define('WPPACK_CACHE_DSN', 'redis://127.0.0.1:6379?class=Relay%5CRelay');
+define('CACHE_DSN', 'redis://127.0.0.1:6379?class=Relay%5CRelay');
 ```
 
 ### Hash Alloptions

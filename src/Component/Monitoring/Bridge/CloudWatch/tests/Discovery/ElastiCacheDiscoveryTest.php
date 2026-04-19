@@ -21,13 +21,13 @@ final class ElastiCacheDiscoveryTest extends TestCase
 {
     protected function tearDown(): void
     {
-        unset($_ENV['WPPACK_CACHE_DSN']);
+        unset($_ENV['CACHE_DSN']);
     }
 
     #[Test]
     public function returnsEmptyWhenNoDsnConfigured(): void
     {
-        unset($_ENV['WPPACK_CACHE_DSN']);
+        unset($_ENV['CACHE_DSN']);
 
         $discovery = new ElastiCacheDiscovery();
 
@@ -37,7 +37,7 @@ final class ElastiCacheDiscoveryTest extends TestCase
     #[Test]
     public function discoversStandardElastiCacheEndpoint(): void
     {
-        $_ENV['WPPACK_CACHE_DSN'] = 'redis://prod-redis-001.abc123.ap-northeast-1.cache.amazonaws.com:6379';
+        $_ENV['CACHE_DSN'] = 'redis://prod-redis-001.abc123.ap-northeast-1.cache.amazonaws.com:6379';
 
         $discovery = new ElastiCacheDiscovery();
         $providers = $discovery->getProviders();
@@ -60,7 +60,7 @@ final class ElastiCacheDiscoveryTest extends TestCase
     #[Test]
     public function discoversClusterModeEndpoint(): void
     {
-        $_ENV['WPPACK_CACHE_DSN'] = 'redis://my-cluster.abc123.clustercfg.us-west-2.cache.amazonaws.com:6379';
+        $_ENV['CACHE_DSN'] = 'redis://my-cluster.abc123.clustercfg.us-west-2.cache.amazonaws.com:6379';
 
         $discovery = new ElastiCacheDiscovery();
         $providers = $discovery->getProviders();
@@ -75,7 +75,7 @@ final class ElastiCacheDiscoveryTest extends TestCase
     #[Test]
     public function returnsEmptyForNonElastiCacheHost(): void
     {
-        $_ENV['WPPACK_CACHE_DSN'] = 'redis://localhost:6379';
+        $_ENV['CACHE_DSN'] = 'redis://localhost:6379';
 
         $discovery = new ElastiCacheDiscovery();
 
@@ -85,7 +85,7 @@ final class ElastiCacheDiscoveryTest extends TestCase
     #[Test]
     public function returnsEmptyForEmptyDsn(): void
     {
-        $_ENV['WPPACK_CACHE_DSN'] = '';
+        $_ENV['CACHE_DSN'] = '';
 
         $discovery = new ElastiCacheDiscovery();
 
@@ -95,7 +95,7 @@ final class ElastiCacheDiscoveryTest extends TestCase
     #[Test]
     public function metricsIncludeExpectedCloudWatchMetrics(): void
     {
-        $_ENV['WPPACK_CACHE_DSN'] = 'redis://test-001.abc123.eu-west-1.cache.amazonaws.com:6379';
+        $_ENV['CACHE_DSN'] = 'redis://test-001.abc123.eu-west-1.cache.amazonaws.com:6379';
 
         $discovery = new ElastiCacheDiscovery();
         $providers = $discovery->getProviders();
@@ -113,7 +113,7 @@ final class ElastiCacheDiscoveryTest extends TestCase
     #[Test]
     public function allMetricsAreLocked(): void
     {
-        $_ENV['WPPACK_CACHE_DSN'] = 'redis://test-001.abc123.eu-west-1.cache.amazonaws.com:6379';
+        $_ENV['CACHE_DSN'] = 'redis://test-001.abc123.eu-west-1.cache.amazonaws.com:6379';
 
         $discovery = new ElastiCacheDiscovery();
         $providers = $discovery->getProviders();
@@ -126,7 +126,7 @@ final class ElastiCacheDiscoveryTest extends TestCase
     #[Test]
     public function allMetricsUseElastiCacheNamespace(): void
     {
-        $_ENV['WPPACK_CACHE_DSN'] = 'redis://test-001.abc123.eu-west-1.cache.amazonaws.com:6379';
+        $_ENV['CACHE_DSN'] = 'redis://test-001.abc123.eu-west-1.cache.amazonaws.com:6379';
 
         $discovery = new ElastiCacheDiscovery();
         $providers = $discovery->getProviders();

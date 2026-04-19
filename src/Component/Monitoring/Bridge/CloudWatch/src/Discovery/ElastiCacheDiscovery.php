@@ -94,7 +94,7 @@ final class ElastiCacheDiscovery implements MonitoringProviderInterface
     }
 
     /**
-     * Parse ElastiCache endpoint from WPPACK_CACHE_DSN.
+     * Parse ElastiCache endpoint from CACHE_DSN.
      *
      * Endpoint format: {cluster-id}.{hash}.{region}.cache.amazonaws.com
      * Cluster mode:    {cluster-id}.{hash}.clustercfg.{region}.cache.amazonaws.com
@@ -103,7 +103,7 @@ final class ElastiCacheDiscovery implements MonitoringProviderInterface
      */
     private function parseElastiCacheEndpoint(): ?array
     {
-        $dsn = \defined('WPPACK_CACHE_DSN') ? (string) \constant('WPPACK_CACHE_DSN') : ($_ENV['WPPACK_CACHE_DSN'] ?? '');
+        $dsn = \defined('CACHE_DSN') ? (string) \constant('CACHE_DSN') : ($_ENV['CACHE_DSN'] ?? '');
 
         if ($dsn === '') {
             return null;

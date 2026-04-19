@@ -37,7 +37,7 @@ Real-time metric cards with sparkline graphs, grouped by provider. Configurable 
 Automatically detects AWS services from existing WPPack plugin configurations:
 
 - **RDS / Aurora** from `DB_HOST` (detects cluster vs instance endpoints)
-- **ElastiCache (Redis)** from `WPPACK_CACHE_DSN`
+- **ElastiCache (Redis)** from `CACHE_DSN`
 - **SES** from `MAILER_DSN` (`ses://` scheme)
 - **S3** from `STORAGE_DSN` or wp_options (via S3StoragePlugin)
 
@@ -85,7 +85,7 @@ The plugin registers the following services into the container:
 | `MetricTemplateRegistry` | Registry for metric templates (RDS, Lambda, Cloudflare, etc.) |
 | `SyncTemplatesController` | REST controller for syncing provider metrics with templates |
 | `DatabaseDiscovery` | Auto-discovers RDS/Aurora from `DB_HOST` |
-| `ElastiCacheDiscovery` | Auto-discovers Redis from `WPPACK_CACHE_DSN` |
+| `ElastiCacheDiscovery` | Auto-discovers Redis from `CACHE_DSN` |
 | `SesDiscovery` | Auto-discovers SES from `MAILER_DSN` |
 | `S3Discovery` | Auto-discovers S3 from storage configuration |
 

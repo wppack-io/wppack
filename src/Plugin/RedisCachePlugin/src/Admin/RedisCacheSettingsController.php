@@ -99,10 +99,10 @@ final class RedisCacheSettingsController extends AbstractRestController
         $source = 'default';
         $dsn = '';
 
-        if (\defined('WPPACK_CACHE_DSN')) {
+        if (\defined('CACHE_DSN')) {
             $source = 'constant';
             $dsn = RedisCacheConfiguration::MASKED_VALUE;
-        } elseif (isset($_ENV['WPPACK_CACHE_DSN']) || getenv('WPPACK_CACHE_DSN') !== false) {
+        } elseif (isset($_ENV['CACHE_DSN']) || getenv('CACHE_DSN') !== false) {
             $source = 'constant';
             $dsn = RedisCacheConfiguration::MASKED_VALUE;
         } elseif (isset($saved['dsn']) && $saved['dsn'] !== '') {
@@ -149,7 +149,7 @@ final class RedisCacheSettingsController extends AbstractRestController
         $parsedFields = [];
         $parsedProvider = '';
         if ($source === 'constant') {
-            $rawDsn = \defined('WPPACK_CACHE_DSN') ? (string) \constant('WPPACK_CACHE_DSN') : (getenv('WPPACK_CACHE_DSN') ?: '');
+            $rawDsn = \defined('CACHE_DSN') ? (string) \constant('CACHE_DSN') : (getenv('CACHE_DSN') ?: '');
             if ($rawDsn !== '') {
                 $parsed = $this->parseDsnToFields($rawDsn, $definitions);
                 $parsedProvider = $parsed['provider'];
@@ -276,7 +276,7 @@ final class RedisCacheSettingsController extends AbstractRestController
      */
     private function persistOptions(array $input): void
     {
-        if (\defined('WPPACK_CACHE_DSN')) {
+        if (\defined('CACHE_DSN')) {
             return;
         }
 

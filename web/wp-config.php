@@ -31,7 +31,7 @@ define('SITE_ID_CURRENT_SITE', 1);
 define('BLOG_ID_CURRENT_SITE', 1);
 
 // Redis (Valkey) object cache
-define('WPPACK_CACHE_DSN', 'redis://127.0.0.1:6379');
+define('CACHE_DSN', 'redis://127.0.0.1:6379');
 
 define('WP_DEBUG', true);
 define('WP_DEBUG_LOG', true);

@@ -39,7 +39,7 @@ composer require wppack/memcached-cache
 ## Configuration (wp-config.php)
 
 ```php
-define('WPPACK_CACHE_DSN', 'memcached://127.0.0.1:11211');
+define('CACHE_DSN', 'memcached://127.0.0.1:11211');
 define('WPPACK_CACHE_PREFIX', 'wp:');
 ```
 

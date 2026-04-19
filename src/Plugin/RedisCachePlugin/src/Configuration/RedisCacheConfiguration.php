@@ -32,7 +32,7 @@ final readonly class RedisCacheConfiguration
     public static function fromEnvironment(): self
     {
         return new self(
-            dsn: self::requireEnv('WPPACK_CACHE_DSN'),
+            dsn: self::requireEnv('CACHE_DSN'),
             prefix: self::getEnv('WPPACK_CACHE_PREFIX') ?? 'wp:',
             maxTtl: ($v = self::getEnv('WPPACK_CACHE_MAX_TTL')) !== null ? (int) $v : null,
             hashAlloptions: self::getBool('WPPACK_CACHE_HASH_ALLOPTIONS'),
@@ -44,15 +44,15 @@ final readonly class RedisCacheConfiguration
 
     public static function fromEnvironmentOrOptions(): self
     {
-        if (\defined('WPPACK_CACHE_DSN')) {
-            $value = \constant('WPPACK_CACHE_DSN');
+        if (\defined('CACHE_DSN')) {
+            $value = \constant('CACHE_DSN');
 
             if (\is_string($value) && $value !== '') {
                 return self::buildFromDsn($value);
             }
         }
 
-        $dsn = self::getEnvVar('WPPACK_CACHE_DSN');
+        $dsn = self::getEnvVar('CACHE_DSN');
         if ($dsn !== null) {
             return self::buildFromDsn($dsn);
         }
@@ -72,16 +72,16 @@ final readonly class RedisCacheConfiguration
             );
         }
 
-        throw new \RuntimeException('WPPACK_CACHE_DSN is not configured.');
+        throw new \RuntimeException('CACHE_DSN is not configured.');
     }
 
     public static function hasConfiguration(): bool
     {
-        if (\defined('WPPACK_CACHE_DSN') && \constant('WPPACK_CACHE_DSN') !== '') {
+        if (\defined('CACHE_DSN') && \constant('CACHE_DSN') !== '') {
             return true;
         }
 
-        if (self::getEnvVar('WPPACK_CACHE_DSN') !== null) {
+        if (self::getEnvVar('CACHE_DSN') !== null) {
             return true;
         }
 

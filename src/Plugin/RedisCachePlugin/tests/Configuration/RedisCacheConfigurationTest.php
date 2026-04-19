@@ -23,7 +23,7 @@ final class RedisCacheConfigurationTest extends TestCase
 {
     /** @var list<string> */
     private array $envVars = [
-        'WPPACK_CACHE_DSN',
+        'CACHE_DSN',
         'WPPACK_CACHE_PREFIX',
         'WPPACK_CACHE_MAX_TTL',
         'WPPACK_CACHE_HASH_ALLOPTIONS',
@@ -77,7 +77,7 @@ final class RedisCacheConfigurationTest extends TestCase
     #[Test]
     public function fromEnvironmentReadsDsn(): void
     {
-        putenv('WPPACK_CACHE_DSN=redis://cache.example.com:6379');
+        putenv('CACHE_DSN=redis://cache.example.com:6379');
 
         $config = RedisCacheConfiguration::fromEnvironment();
 
@@ -88,7 +88,7 @@ final class RedisCacheConfigurationTest extends TestCase
     public function fromEnvironmentThrowsWhenDsnMissing(): void
     {
         $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('Required environment variable "WPPACK_CACHE_DSN" is not set.');
+        $this->expectExceptionMessage('Required environment variable "CACHE_DSN" is not set.');
 
         RedisCacheConfiguration::fromEnvironment();
     }
@@ -96,7 +96,7 @@ final class RedisCacheConfigurationTest extends TestCase
     #[Test]
     public function fromEnvironmentReadsEnvSuperglobal(): void
     {
-        $_ENV['WPPACK_CACHE_DSN'] = 'redis://env-host:6379';
+        $_ENV['CACHE_DSN'] = 'redis://env-host:6379';
 
         $config = RedisCacheConfiguration::fromEnvironment();
 
@@ -106,7 +106,7 @@ final class RedisCacheConfigurationTest extends TestCase
     #[Test]
     public function fromEnvironmentReadsOptionalPrefix(): void
     {
-        putenv('WPPACK_CACHE_DSN=redis://localhost:6379');
+        putenv('CACHE_DSN=redis://localhost:6379');
         putenv('WPPACK_CACHE_PREFIX=site1:');
 
         $config = RedisCacheConfiguration::fromEnvironment();
@@ -117,7 +117,7 @@ final class RedisCacheConfigurationTest extends TestCase
     #[Test]
     public function fromEnvironmentReadsOptionalMaxTtl(): void
     {
-        putenv('WPPACK_CACHE_DSN=redis://localhost:6379');
+        putenv('CACHE_DSN=redis://localhost:6379');
         putenv('WPPACK_CACHE_MAX_TTL=7200');
 
         $config = RedisCacheConfiguration::fromEnvironment();
@@ -128,7 +128,7 @@ final class RedisCacheConfigurationTest extends TestCase
     #[Test]
     public function fromEnvironmentMaxTtlDefaultsToNull(): void
     {
-        putenv('WPPACK_CACHE_DSN=redis://localhost:6379');
+        putenv('CACHE_DSN=redis://localhost:6379');
 
         $config = RedisCacheConfiguration::fromEnvironment();
 
@@ -138,7 +138,7 @@ final class RedisCacheConfigurationTest extends TestCase
     #[Test]
     public function fromEnvironmentReadsOptionalHashAlloptions(): void
     {
-        putenv('WPPACK_CACHE_DSN=redis://localhost:6379');
+        putenv('CACHE_DSN=redis://localhost:6379');
         putenv('WPPACK_CACHE_HASH_ALLOPTIONS=true');
 
         $config = RedisCacheConfiguration::fromEnvironment();
@@ -149,7 +149,7 @@ final class RedisCacheConfigurationTest extends TestCase
     #[Test]
     public function fromEnvironmentReadsOptionalAsyncFlush(): void
     {
-        putenv('WPPACK_CACHE_DSN=redis://localhost:6379');
+        putenv('CACHE_DSN=redis://localhost:6379');
         putenv('WPPACK_CACHE_ASYNC_FLUSH=1');
 
         $config = RedisCacheConfiguration::fromEnvironment();
@@ -160,7 +160,7 @@ final class RedisCacheConfigurationTest extends TestCase
     #[Test]
     public function fromEnvironmentReadsOptionalCompression(): void
     {
-        putenv('WPPACK_CACHE_DSN=redis://localhost:6379');
+        putenv('CACHE_DSN=redis://localhost:6379');
         putenv('WPPACK_CACHE_COMPRESSION=zstd');
 
         $config = RedisCacheConfiguration::fromEnvironment();
@@ -171,7 +171,7 @@ final class RedisCacheConfigurationTest extends TestCase
     #[Test]
     public function fromEnvironmentDefaultsWithOnlyDsn(): void
     {
-        putenv('WPPACK_CACHE_DSN=redis://localhost:6379');
+        putenv('CACHE_DSN=redis://localhost:6379');
 
         $config = RedisCacheConfiguration::fromEnvironment();
 
@@ -188,7 +188,7 @@ final class RedisCacheConfigurationTest extends TestCase
         $trueValues = ['1', 'true', 'yes', 'on'];
 
         foreach ($trueValues as $value) {
-            putenv('WPPACK_CACHE_DSN=redis://localhost:6379');
+            putenv('CACHE_DSN=redis://localhost:6379');
             putenv('WPPACK_CACHE_HASH_ALLOPTIONS=' . $value);
 
             $config = RedisCacheConfiguration::fromEnvironment();
@@ -203,7 +203,7 @@ final class RedisCacheConfigurationTest extends TestCase
         $trueValues = ['TRUE', 'True', 'YES', 'Yes', 'ON', 'On'];
 
         foreach ($trueValues as $value) {
-            putenv('WPPACK_CACHE_DSN=redis://localhost:6379');
+            putenv('CACHE_DSN=redis://localhost:6379');
             putenv('WPPACK_CACHE_HASH_ALLOPTIONS=' . $value);
 
             $config = RedisCacheConfiguration::fromEnvironment();
@@ -218,7 +218,7 @@ final class RedisCacheConfigurationTest extends TestCase
         $falseValues = ['0', 'false', 'no', 'off', ''];
 
         foreach ($falseValues as $value) {
-            putenv('WPPACK_CACHE_DSN=redis://localhost:6379');
+            putenv('CACHE_DSN=redis://localhost:6379');
             putenv('WPPACK_CACHE_ASYNC_FLUSH=' . $value);
 
             $config = RedisCacheConfiguration::fromEnvironment();
@@ -230,7 +230,7 @@ final class RedisCacheConfigurationTest extends TestCase
     #[Test]
     public function getBoolReturnsFalseWhenNotSet(): void
     {
-        putenv('WPPACK_CACHE_DSN=redis://localhost:6379');
+        putenv('CACHE_DSN=redis://localhost:6379');
 
         $config = RedisCacheConfiguration::fromEnvironment();
 
@@ -241,7 +241,7 @@ final class RedisCacheConfigurationTest extends TestCase
     #[Test]
     public function fromEnvironmentOrOptionsReadsEnv(): void
     {
-        putenv('WPPACK_CACHE_DSN=redis://env-host:6379');
+        putenv('CACHE_DSN=redis://env-host:6379');
 
         $config = RedisCacheConfiguration::fromEnvironmentOrOptions();
 
@@ -294,7 +294,7 @@ final class RedisCacheConfigurationTest extends TestCase
         delete_option(RedisCacheConfiguration::OPTION_NAME);
 
         $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('WPPACK_CACHE_DSN is not configured.');
+        $this->expectExceptionMessage('CACHE_DSN is not configured.');
 
         RedisCacheConfiguration::fromEnvironmentOrOptions();
     }
@@ -302,7 +302,7 @@ final class RedisCacheConfigurationTest extends TestCase
     #[Test]
     public function hasConfigurationReturnsTrueForEnv(): void
     {
-        putenv('WPPACK_CACHE_DSN=redis://localhost:6379');
+        putenv('CACHE_DSN=redis://localhost:6379');
 
         self::assertTrue(RedisCacheConfiguration::hasConfiguration());
     }
@@ -366,23 +366,23 @@ final class RedisCacheConfigurationTest extends TestCase
     #[Test]
     public function fromEnvironmentOrOptionsReadsEnvFallback(): void
     {
-        $_ENV['WPPACK_CACHE_DSN'] = 'redis://env-host:6379';
+        $_ENV['CACHE_DSN'] = 'redis://env-host:6379';
 
         $config = RedisCacheConfiguration::fromEnvironmentOrOptions();
 
         self::assertSame('redis://env-host:6379', $config->dsn);
 
-        unset($_ENV['WPPACK_CACHE_DSN']);
+        unset($_ENV['CACHE_DSN']);
     }
 
     #[Test]
     public function hasConfigurationReturnsTrueForEnvSuperglobal(): void
     {
-        $_ENV['WPPACK_CACHE_DSN'] = 'redis://env:6379';
+        $_ENV['CACHE_DSN'] = 'redis://env:6379';
 
         self::assertTrue(RedisCacheConfiguration::hasConfiguration());
 
-        unset($_ENV['WPPACK_CACHE_DSN']);
+        unset($_ENV['CACHE_DSN']);
     }
 
     #[Test]

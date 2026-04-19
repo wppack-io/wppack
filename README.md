@@ -146,8 +146,11 @@ See the [docs/](docs/) directory for detailed documentation on each package.
 
 ## Requirements
 
-- PHP 8.2 or higher
-- WordPress 6.0 or higher
+- **PHP 8.2 or higher**
+- **WordPress 6.3 or higher** — the first release that officially supports
+  PHP 8.2 (earlier versions tested PHP 8.2 as beta only).
+  - WordPress 6.5+ recommended for full PHP 8.3 compatibility.
+  - WordPress 6.8+ recommended for PHP 8.4 compatibility (tested in CI).
 
 ## Development
 

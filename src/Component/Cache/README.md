@@ -88,7 +88,7 @@ WPPack provides an `object-cache.php` drop-in that replaces WordPress's default 
 composer require wppack/redis-cache
 
 # Configure in wp-config.php
-# define('WPPACK_CACHE_DSN', 'redis://127.0.0.1:6379');
+# define('CACHE_DSN', 'redis://127.0.0.1:6379');
 
 # Deploy drop-in
 cp vendor/wppack/cache/drop-in/object-cache.php wp-content/object-cache.php

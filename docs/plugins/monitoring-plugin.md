@@ -82,7 +82,7 @@ src/Plugin/MonitoringPlugin/
 | Discovery | 検出元 | 検出ロジック |
 |-----------|--------|-------------|
 | `DatabaseDiscovery` | `DB_HOST` | Aurora クラスターエンドポイント（`.cluster-`）を検出し RDS/Aurora を判別 |
-| `ElastiCacheDiscovery` | `WPPACK_CACHE_DSN` | `redis://` / `rediss://` スキームから ElastiCache を検出 |
+| `ElastiCacheDiscovery` | `CACHE_DSN` | `redis://` / `rediss://` スキームから ElastiCache を検出 |
 | `SesDiscovery` | `MAILER_DSN` | `ses://` スキームから SES を検出 |
 | `S3Discovery` | Storage 設定 | S3Storage 設定からバケット名・リージョンを検出 |
 

@@ -65,7 +65,7 @@ aws dynamodb update-time-to-live \
 ## Configuration (wp-config.php)
 
 ```php
-define('WPPACK_CACHE_DSN', 'dynamodb://ap-northeast-1/cache');
+define('CACHE_DSN', 'dynamodb://ap-northeast-1/cache');
 define('WPPACK_CACHE_PREFIX', 'wp:');
 ```
 
@@ -83,5 +83,5 @@ services:
 ```
 
 ```php
-define('WPPACK_CACHE_DSN', 'dynamodb://us-east-1/cache?endpoint=http://localhost:8000');
+define('CACHE_DSN', 'dynamodb://us-east-1/cache?endpoint=http://localhost:8000');
 ```

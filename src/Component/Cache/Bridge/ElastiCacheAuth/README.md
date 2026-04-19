@@ -25,7 +25,7 @@ The simplest way. Add IAM parameters to your cache options:
 
 ```php
 // wp-config.php
-define('WPPACK_CACHE_DSN', 'rediss://my-cluster.xxxxx.apne1.cache.amazonaws.com:6379');
+define('CACHE_DSN', 'rediss://my-cluster.xxxxx.apne1.cache.amazonaws.com:6379');
 define('WPPACK_CACHE_OPTIONS', [
     'iam_auth' => true,
     'iam_region' => 'ap-northeast-1',
@@ -36,7 +36,7 @@ define('WPPACK_CACHE_OPTIONS', [
 ### Option 2: DSN Query Parameters
 
 ```php
-define('WPPACK_CACHE_DSN', 'rediss://my-cluster.xxxxx.apne1.cache.amazonaws.com:6379?iam_auth=1&iam_region=ap-northeast-1&iam_user_id=my-iam-user');
+define('CACHE_DSN', 'rediss://my-cluster.xxxxx.apne1.cache.amazonaws.com:6379?iam_auth=1&iam_region=ap-northeast-1&iam_user_id=my-iam-user');
 ```
 
 ### Option 3: Manual credential_provider
@@ -51,7 +51,7 @@ $generator = new ElastiCacheIamTokenGenerator(
     userId: 'my-iam-user',
 );
 
-define('WPPACK_CACHE_DSN', 'rediss://my-cluster.xxxxx.apne1.cache.amazonaws.com:6379');
+define('CACHE_DSN', 'rediss://my-cluster.xxxxx.apne1.cache.amazonaws.com:6379');
 define('WPPACK_CACHE_OPTIONS', [
     'credential_provider' => $generator->createProvider(
         'my-cluster.xxxxx.apne1.cache.amazonaws.com:6379'

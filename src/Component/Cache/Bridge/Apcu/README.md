@@ -26,7 +26,7 @@ composer require wppack/apcu-cache
 ## Configuration (wp-config.php)
 
 ```php
-define('WPPACK_CACHE_DSN', 'apcu://');
+define('CACHE_DSN', 'apcu://');
 define('WPPACK_CACHE_PREFIX', 'wp:');
 ```
 

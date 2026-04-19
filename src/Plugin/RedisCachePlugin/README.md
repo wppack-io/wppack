@@ -32,7 +32,7 @@ Set environment variables or constants in `wp-config.php`:
 
 ```php
 // Required
-define('WPPACK_CACHE_DSN', 'redis://127.0.0.1:6379');
+define('CACHE_DSN', 'redis://127.0.0.1:6379');
 
 // Optional
 define('WPPACK_CACHE_PREFIX', 'wp:');              // Key prefix (default: 'wp:')
@@ -48,7 +48,7 @@ define('WPPACK_CACHE_ENABLED', false);              // Disable drop-in (kill swi
 IAM authentication is enabled via DSN query parameters — no plugin-specific configuration required:
 
 ```php
-define('WPPACK_CACHE_DSN', 'rediss://clustername.cache.amazonaws.com:6379?iam_auth=1&iam_region=ap-northeast-1&iam_user_id=my-user');
+define('CACHE_DSN', 'rediss://clustername.cache.amazonaws.com:6379?iam_auth=1&iam_region=ap-northeast-1&iam_user_id=my-user');
 ```
 
 - TLS is required (`rediss://` or `valkeys://` scheme)
@@ -59,7 +59,7 @@ define('WPPACK_CACHE_DSN', 'rediss://clustername.cache.amazonaws.com:6379?iam_au
 Amazon ElastiCache Valkey is supported with the `valkeys://` scheme:
 
 ```php
-define('WPPACK_CACHE_DSN', 'valkeys://clustername.cache.amazonaws.com:6379?iam_auth=1&iam_region=ap-northeast-1');
+define('CACHE_DSN', 'valkeys://clustername.cache.amazonaws.com:6379?iam_auth=1&iam_region=ap-northeast-1');
 ```
 
 ### Kill Switch

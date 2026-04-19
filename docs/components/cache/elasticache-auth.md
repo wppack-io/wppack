@@ -46,7 +46,7 @@ composer require wppack/elasticache-auth
 
 ```php
 // wp-config.php
-define('WPPACK_CACHE_DSN', 'rediss://my-cluster.xxxxx.apne1.cache.amazonaws.com:6379');
+define('CACHE_DSN', 'rediss://my-cluster.xxxxx.apne1.cache.amazonaws.com:6379');
 define('WPPACK_CACHE_OPTIONS', [
     'iam_auth' => true,
     'iam_region' => 'ap-northeast-1',
@@ -58,7 +58,7 @@ define('WPPACK_CACHE_OPTIONS', [
 
 ```php
 // wp-config.php
-define('WPPACK_CACHE_DSN', 'rediss://my-cluster.xxxxx.apne1.cache.amazonaws.com:6379?iam_auth=1&iam_region=ap-northeast-1&iam_user_id=my-iam-user');
+define('CACHE_DSN', 'rediss://my-cluster.xxxxx.apne1.cache.amazonaws.com:6379?iam_auth=1&iam_region=ap-northeast-1&iam_user_id=my-iam-user');
 ```
 
 ### 方法 3: 手動 `credential_provider`
@@ -74,7 +74,7 @@ $generator = new ElastiCacheIamTokenGenerator(
     userId: 'my-iam-user',
 );
 
-define('WPPACK_CACHE_DSN', 'rediss://my-cluster.xxxxx.apne1.cache.amazonaws.com:6379');
+define('CACHE_DSN', 'rediss://my-cluster.xxxxx.apne1.cache.amazonaws.com:6379');
 define('WPPACK_CACHE_OPTIONS', [
     'credential_provider' => $generator->createProvider(
         'my-cluster.xxxxx.apne1.cache.amazonaws.com:6379'

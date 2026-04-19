@@ -22,7 +22,7 @@ final class DynamoDbDiscovery implements MonitoringProviderInterface
 {
     public function getProviders(): array
     {
-        $dsn = \defined('WPPACK_CACHE_DSN') ? (string) \constant('WPPACK_CACHE_DSN') : ($_ENV['WPPACK_CACHE_DSN'] ?? '');
+        $dsn = \defined('CACHE_DSN') ? (string) \constant('CACHE_DSN') : ($_ENV['CACHE_DSN'] ?? '');
 
         if ($dsn === '') {
             return [];

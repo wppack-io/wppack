@@ -458,13 +458,13 @@ function wp_cache_init(): void
 {
     $adapter = null;
 
-    if (defined('WPPACK_CACHE_DSN') && WPPACK_CACHE_DSN !== '') {
+    if (defined('CACHE_DSN') && CACHE_DSN !== '') {
         $options = defined('WPPACK_CACHE_OPTIONS') ? WPPACK_CACHE_OPTIONS : [];
         $compressionType = defined('WPPACK_CACHE_COMPRESSION') ? WPPACK_CACHE_COMPRESSION : 'none';
         if ($compressionType !== 'none') {
             $options['compression'] = $compressionType;
         }
-        $adapter = Adapter::fromDsn(WPPACK_CACHE_DSN, $options);
+        $adapter = Adapter::fromDsn(CACHE_DSN, $options);
 
         if (!$adapter->isAvailable()) {
             $adapter = null;  // グレースフルデグラデーション

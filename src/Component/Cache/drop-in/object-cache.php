@@ -15,7 +15,7 @@
  * Copy this file to wp-content/object-cache.php.
  *
  * Configuration (wp-config.php):
- *   define('WPPACK_CACHE_DSN', 'redis://127.0.0.1:6379');
+ *   define('CACHE_DSN', 'redis://127.0.0.1:6379');
  *   define('WPPACK_CACHE_PREFIX', 'wp:');              // optional, default 'wp:'
  *   define('WPPACK_CACHE_MAX_TTL', 86400);             // optional, max TTL in seconds
  *   define('WPPACK_CACHE_OPTIONS', ['timeout' => 5]);  // optional
@@ -74,7 +74,7 @@ function wp_cache_init(): void
 
     $adapter = null;
 
-    if (\defined('WPPACK_CACHE_DSN') && WPPACK_CACHE_DSN !== '') {
+    if (\defined('CACHE_DSN') && CACHE_DSN !== '') {
         try {
             $options = \defined('WPPACK_CACHE_OPTIONS') ? WPPACK_CACHE_OPTIONS : [];
             $prefix = \defined('WPPACK_CACHE_PREFIX') ? WPPACK_CACHE_PREFIX : 'wp:';
@@ -90,7 +90,7 @@ function wp_cache_init(): void
             if ($redisClient !== '') {
                 $options['class'] = $redisClient;
             }
-            $adapter = Adapter::fromDsn(WPPACK_CACHE_DSN, $options);
+            $adapter = Adapter::fromDsn(CACHE_DSN, $options);
 
             if (!$adapter->isAvailable()) {
                 $adapter = null;

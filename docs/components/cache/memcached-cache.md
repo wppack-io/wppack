@@ -37,7 +37,7 @@ composer require wppack/memcached-cache
 
 ```php
 // Standalone
-define('WPPACK_CACHE_DSN', 'memcached://127.0.0.1:11211');
+define('CACHE_DSN', 'memcached://127.0.0.1:11211');
 
 // プレフィックス（オプション、デフォルト 'wp:'）
 define('WPPACK_CACHE_PREFIX', 'wp:');
@@ -103,10 +103,10 @@ OPT_SERIALIZER          => SERIALIZER_NONE  // WPPack は生文字列を扱う
 
 ```php
 // DSN で複数サーバーを指定
-define('WPPACK_CACHE_DSN', 'memcached:?host[10.0.0.1:11211]&host[10.0.0.2:11211]&host[10.0.0.3:11211]');
+define('CACHE_DSN', 'memcached:?host[10.0.0.1:11211]&host[10.0.0.2:11211]&host[10.0.0.3:11211]');
 
 // weight を使った重み付け分散
-define('WPPACK_CACHE_DSN', 'memcached:?host[10.0.0.1:11211]&host[10.0.0.2:11211]');
+define('CACHE_DSN', 'memcached:?host[10.0.0.1:11211]&host[10.0.0.2:11211]');
 define('WPPACK_CACHE_OPTIONS', ['weight' => 100]);
 ```
 
@@ -117,7 +117,7 @@ define('WPPACK_CACHE_OPTIONS', ['weight' => 100]);
 Amazon ElastiCache (Memcached) や他のマネージドサービスで SASL 認証が必要な場合:
 
 ```php
-define('WPPACK_CACHE_DSN', 'memcached://user:password@my-cluster.xxxxx.cfg.apne1.cache.amazonaws.com:11211');
+define('CACHE_DSN', 'memcached://user:password@my-cluster.xxxxx.cfg.apne1.cache.amazonaws.com:11211');
 ```
 
 > [!NOTE]
