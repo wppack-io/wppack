@@ -4,8 +4,8 @@
   "type": "library",
   "license": "MIT",
   "require": {
-    "dragonmantank/cron-expression": "^3.0",
     "php": "^8.2",
+    "dragonmantank/cron-expression": "^3.0",
     "wordpress/core-implementation": "^6.3",
     "wppack/messenger": "^1.0"
   },

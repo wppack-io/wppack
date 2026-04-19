@@ -1,27 +1,27 @@
 {
-    "name": "wppack/oauth-login-plugin",
-    "description": "OAuth 2.0 / OpenID Connect multi-provider login for WordPress",
-    "type": "wordpress-plugin",
-    "license": "MIT",
-    "require": {
-        "php": "^8.2",
-        "wppack/oauth-security": "^1.0",
-        "wppack/security": "^1.0",
-        "wppack/dependency-injection": "^1.0",
-        "wppack/event-dispatcher": "^1.0",
-        "wppack/kernel": "^1.0"
-    },
-    "autoload": {
-        "psr-4": {
-            "WPPack\\Plugin\\OAuthLoginPlugin\\": "src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "WPPack\\Plugin\\OAuthLoginPlugin\\Tests\\": "tests/"
-        }
-    },
-    "extra": {
-        "installer-name": "wppack-oauth-login"
+  "name": "wppack/oauth-login-plugin",
+  "description": "OAuth 2.0 / OpenID Connect multi-provider login for WordPress",
+  "type": "wordpress-plugin",
+  "license": "MIT",
+  "require": {
+    "php": "^8.2",
+    "wppack/dependency-injection": "^1.0",
+    "wppack/event-dispatcher": "^1.0",
+    "wppack/kernel": "^1.0",
+    "wppack/oauth-security": "^1.0",
+    "wppack/security": "^1.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "WPPack\\Plugin\\OAuthLoginPlugin\\": "src/"
     }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "WPPack\\Plugin\\OAuthLoginPlugin\\Tests\\": "tests/"
+    }
+  },
+  "extra": {
+    "installer-name": "wppack-oauth-login"
+  }
 }

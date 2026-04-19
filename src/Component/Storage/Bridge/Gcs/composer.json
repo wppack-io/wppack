@@ -4,8 +4,8 @@
   "type": "library",
   "license": "MIT",
   "require": {
-    "google/cloud-storage": "^1.30",
     "php": "^8.2",
+    "google/cloud-storage": "^1.30",
     "wppack/dsn": "^1.0",
     "wppack/storage": "^0.1"
   },

@@ -4,8 +4,8 @@
   "type": "library",
   "license": "MIT",
   "require": {
-    "ext-pgsql": "*",
     "php": "^8.2",
+    "ext-pgsql": "*",
     "wppack/database": "^1.0",
     "wppack/dsn": "^1.0",
     "wppack/postgresql-database": "^1.0"

@@ -1,20 +1,20 @@
 {
-    "name": "wppack/eventbridge-scheduler-plugin",
-    "description": "WordPress plugin for EventBridge-based scheduling",
-    "type": "wordpress-plugin",
-    "license": "MIT",
-    "require": {
-        "php": "^8.2",
-        "wppack/scheduler": "^1.0",
-        "wppack/messenger": "^1.0",
-        "bref/bref": "^2.0"
-    },
-    "autoload": {
-        "psr-4": {
-            "WPPack\\Plugin\\EventBridgeSchedulerPlugin\\": "src/"
-        }
-    },
-    "extra": {
-        "installer-name": "wppack-eventbridge-scheduler"
+  "name": "wppack/eventbridge-scheduler-plugin",
+  "description": "WordPress plugin for EventBridge-based scheduling",
+  "type": "wordpress-plugin",
+  "license": "MIT",
+  "require": {
+    "php": "^8.2",
+    "bref/bref": "^2.0",
+    "wppack/messenger": "^1.0",
+    "wppack/scheduler": "^1.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "WPPack\\Plugin\\EventBridgeSchedulerPlugin\\": "src/"
     }
+  },
+  "extra": {
+    "installer-name": "wppack-eventbridge-scheduler"
+  }
 }

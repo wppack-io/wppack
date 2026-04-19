@@ -4,8 +4,8 @@
   "type": "library",
   "license": "MIT",
   "require": {
-    "ext-memcached": "*",
     "php": "^8.2",
+    "ext-memcached": "*",
     "wppack/cache": "^0.1",
     "wppack/dsn": "^1.0"
   },

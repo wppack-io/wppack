@@ -27,6 +27,7 @@
   "require-dev": {
     "async-aws/cloud-watch": "^1.0",
     "async-aws/dynamo-db": "^3.0",
+    "async-aws/rds-data-service": "^3.0",
     "async-aws/s3": "^2.0",
     "async-aws/scheduler": "^1.0",
     "async-aws/ses": "^1.14",

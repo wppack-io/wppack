@@ -4,8 +4,8 @@
   "type": "library",
   "license": "MIT",
   "require": {
-    "azure-oss/storage": "^1.0",
     "php": "^8.2",
+    "azure-oss/storage": "^1.0",
     "wppack/dsn": "^1.0",
     "wppack/storage": "^0.1"
   },

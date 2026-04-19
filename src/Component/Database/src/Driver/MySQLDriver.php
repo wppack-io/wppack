@@ -95,7 +95,15 @@ class MySQLDriver extends AbstractDriver
         return $this->platform;
     }
 
-    public function getNativeConnection(): \mysqli
+    /**
+     * Keep the return type as `mixed` (matching DriverInterface) so
+     * subclasses that route I/O through something other than the
+     * native mysqli handle — notably MySQLDataApiDriver, which talks
+     * to RDS Data API over HTTP — can widen to their own handle type
+     * without triggering PHP covariance errors. The runtime value
+     * returned by this class is always a \mysqli instance.
+     */
+    public function getNativeConnection(): mixed
     {
         $this->ensureConnected();
 

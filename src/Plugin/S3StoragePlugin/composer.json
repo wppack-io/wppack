@@ -4,8 +4,8 @@
   "type": "wordpress-plugin",
   "license": "MIT",
   "require": {
-    "async-aws/s3": "^2.0",
     "php": "^8.2",
+    "async-aws/s3": "^2.0",
     "wppack/asset": "^1.0",
     "wppack/dependency-injection": "^1.0",
     "wppack/dsn": "^1.0",

@@ -19,6 +19,12 @@ use AsyncAws\RdsDataService\Input\ExecuteStatementRequest;
 use AsyncAws\RdsDataService\Input\RollbackTransactionRequest;
 use AsyncAws\RdsDataService\RdsDataServiceClient;
 use AsyncAws\RdsDataService\ValueObject\Field;
+use AsyncAws\RdsDataService\ValueObject\FieldMemberBlobValue;
+use AsyncAws\RdsDataService\ValueObject\FieldMemberBooleanValue;
+use AsyncAws\RdsDataService\ValueObject\FieldMemberDoubleValue;
+use AsyncAws\RdsDataService\ValueObject\FieldMemberIsNull;
+use AsyncAws\RdsDataService\ValueObject\FieldMemberLongValue;
+use AsyncAws\RdsDataService\ValueObject\FieldMemberStringValue;
 use AsyncAws\RdsDataService\ValueObject\SqlParameter;
 use WPPack\Component\Database\Exception\CredentialsExpiredException;
 use WPPack\Component\Database\Exception\DriverException;
@@ -76,7 +82,14 @@ trait DataApiDriverTrait
         return $this->transactionId !== null;
     }
 
-    public function getNativeConnection(): RdsDataServiceClient
+    /**
+     * HTTP-based driver — no native PDO/mysqli/pgsql handle. Returning
+     * mixed instead of RdsDataServiceClient keeps the trait compatible
+     * with both MySQLDriver::getNativeConnection(): \mysqli and
+     * PostgreSQLDriver::getNativeConnection(): \PgSql\Connection when
+     * the Data API drivers subclass them for platform/translator reuse.
+     */
+    public function getNativeConnection(): mixed
     {
         return $this->dataApiClient;
     }
@@ -146,9 +159,14 @@ trait DataApiDriverTrait
             $rows[] = $row;
         }
 
+        // The trait is consumed by MySQLDataApiDriver (MySQLDriver
+        // inherits $logger) and PostgreSQLDataApiDriver (PostgreSQLDriver
+        // has no logger). isset() covers both — declared-but-null and
+        // undeclared both evaluate false without triggering E_WARNING,
+        // whereas a plain property read on the PG side would tip PHP
+        // into dynamic-property territory.
         if (\count($rows) >= self::LARGE_RESULT_WARNING_THRESHOLD
-            && property_exists($this, 'logger')
-            && $this->logger !== null) {
+            && isset($this->logger)) {
             $this->logger->warning('RDS Data API query returned a large result set; add LIMIT / keyset pagination before hitting the 1 MB response cap', [
                 'sql' => $sql,
                 'rows' => \count($rows),
@@ -371,35 +389,29 @@ trait DataApiDriverTrait
 
             $sqlParams[] = new SqlParameter([
                 'name' => $name,
-                'value' => new Field($field),
+                'value' => Field::create($field),
             ]);
         }
 
         return $sqlParams;
     }
 
+    /**
+     * async-aws/rds-data-service ^3 made Field an abstract union — one
+     * concrete subclass per value kind (FieldMemberLongValue, …,
+     * FieldMemberIsNull) — so dispatch on the instance instead of the
+     * legacy getLongValue()/getStringValue() accessors that ^2 exposed.
+     */
     private function fieldToPhp(Field $field): mixed
     {
-        if ($field->getIsNull()) {
-            return null;
-        }
-
-        if (($v = $field->getLongValue()) !== null) {
-            return (int) $v;
-        }
-
-        if (($v = $field->getDoubleValue()) !== null) {
-            return $v;
-        }
-
-        if (($v = $field->getBooleanValue()) !== null) {
-            return $v;
-        }
-
-        if (($v = $field->getBlobValue()) !== null) {
-            return $v;
-        }
-
-        return $field->getStringValue();
+        return match (true) {
+            $field instanceof FieldMemberIsNull => null,
+            $field instanceof FieldMemberLongValue => $field->getLongValue(),
+            $field instanceof FieldMemberDoubleValue => $field->getDoubleValue(),
+            $field instanceof FieldMemberBooleanValue => $field->getBooleanValue(),
+            $field instanceof FieldMemberBlobValue => $field->getBlobValue(),
+            $field instanceof FieldMemberStringValue => $field->getStringValue(),
+            default => null,
+        };
     }
 }

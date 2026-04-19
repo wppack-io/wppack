@@ -4,8 +4,8 @@
   "type": "library",
   "license": "MIT",
   "require": {
-    "ext-apcu": "*",
     "php": "^8.2",
+    "ext-apcu": "*",
     "wppack/cache": "^0.1",
     "wppack/dsn": "^1.0"
   },

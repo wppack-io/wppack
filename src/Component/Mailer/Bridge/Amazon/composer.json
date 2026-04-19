@@ -4,8 +4,8 @@
   "type": "library",
   "license": "MIT",
   "require": {
-    "async-aws/ses": "^1.14",
     "php": "^8.2",
+    "async-aws/ses": "^1.14",
     "wppack/dsn": "^1.0",
     "wppack/mailer": "^1.0"
   },
