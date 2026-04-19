@@ -82,6 +82,12 @@ final class PostgreSQLWpdbIntegrationTest extends TestCase
         if ($this->originalTablePrefix !== null) {
             $GLOBALS['table_prefix'] = $this->originalTablePrefix;
         }
+
+        // The swapped-in wpdb seeded cache entries (users, options,
+        // user_meta, cron) keyed to the temporary 'wpt_' prefix. Dropping
+        // WP's in-memory caches keeps those stale rows from shadowing the
+        // real 'wptests_' tables in subsequent tests.
+        \wp_cache_flush();
     }
 
     protected function getTestWpdb(): \wpdb

@@ -128,9 +128,16 @@ class PostgreSQLDriver extends AbstractDriver
             return;
         }
 
+        // PHP's pg_connect() normally caches the native resource per
+        // connection string — two Driver instances built with the same
+        // DSN would otherwise share a single underlying handle, so
+        // calling close() on one of them (tests, scripts rotating a
+        // driver) would invalidate the other driver mid-query. Force
+        // a fresh connection for non-persistent drivers so each
+        // Driver::close() is isolated.
         $connection = $this->persistent
             ? @pg_pconnect($this->buildConnectionString())
-            : @pg_connect($this->buildConnectionString());
+            : @pg_connect($this->buildConnectionString(), \PGSQL_CONNECT_FORCE_NEW);
 
         if ($connection === false) {
             throw new ConnectionException('Failed to connect to PostgreSQL.');
