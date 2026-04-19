@@ -286,7 +286,10 @@ final class PostgreSQLQueryTranslator implements QueryTranslatorInterface
 
         $updateCols = [];
         foreach ($stmt->onDuplicateSet ?? [] as $set) {
-            $updateCols[] = $set->column;
+            // sql-parser keeps backticks on ODKU column names but strips
+            // them from $stmt->into->columns — normalise both sides so
+            // array_diff actually matches.
+            $updateCols[] = trim((string) $set->column, '`"');
         }
 
         // Conflict target = INSERT columns not in UPDATE set
@@ -427,8 +430,23 @@ final class PostgreSQLQueryTranslator implements QueryTranslatorInterface
                     $rw->skip(); // UPDATE
 
                     // Infer conflict target: INSERT columns minus UPDATE columns.
-                    // If inference fails, fall back to DO NOTHING (safe degradation).
+                    // If the heuristic can't narrow it down (WP's wp_options
+                    // UPSERT lists every column in both INSERT and ODKU), fall
+                    // back to introspecting the unique / primary key constraint
+                    // directly from information_schema.
                     $conflictTarget = $this->inferConflictTarget($stmt);
+                    if ($conflictTarget === '') {
+                        $tableName = (string) ($stmt->into->dest->table ?? '');
+                        if ($tableName !== '') {
+                            $cols = $this->getConstraintColumns($tableName);
+                            if ($cols !== []) {
+                                $conflictTarget = implode(', ', array_map(
+                                    fn(string $c): string => $this->quoteId($c),
+                                    $cols,
+                                ));
+                            }
+                        }
+                    }
                     if ($conflictTarget !== '') {
                         $rw->add('ON CONFLICT (' . $conflictTarget . ') DO UPDATE SET');
                         $inOnConflictUpdate = true;
@@ -484,13 +502,20 @@ final class PostgreSQLQueryTranslator implements QueryTranslatorInterface
     /**
      * Build setval() SQL to sync a SERIAL sequence after explicit ID insertion.
      *
-     * When INSERT specifies an ID column explicitly (e.g., `INSERT INTO t (id, ...) VALUES (5, ...)`),
-     * the PostgreSQL sequence is not updated. This causes the next auto-generated ID
-     * to conflict. setval() resets the sequence to MAX(id)+1.
+     * When INSERT specifies the table's auto-generated identity column
+     * explicitly (e.g., `INSERT INTO t (id, ...) VALUES (5, ...)`), the
+     * PostgreSQL sequence is not updated. This causes the next auto
+     * generated ID to conflict. setval() resets the sequence to MAX(id)+1.
+     *
+     * Heuristics that guess the identity column by name (`term_id` etc.)
+     * misfire on tables like `wp_term_taxonomy` where `term_id` is a
+     * foreign key, not a sequence. Introspect pg_get_serial_sequence()
+     * instead so we only emit setval for columns the database itself
+     * confirms are backed by a sequence.
      */
     private function buildSetvalIfNeeded(InsertStatement $stmt): ?string
     {
-        if ($stmt->into === null) {
+        if ($stmt->into === null || $this->driver === null) {
             return null;
         }
 
@@ -499,34 +524,69 @@ final class PostgreSQLQueryTranslator implements QueryTranslatorInterface
             return null;
         }
 
-        // Check if any column looks like a primary key ID (convention-based)
         $columns = $stmt->into->columns ?? [];
-        $idColumn = null;
+        if ($columns === []) {
+            return null;
+        }
 
+        $serialColumn = null;
+        $sequenceName = null;
         foreach ($columns as $col) {
-            $name = strtolower((string) $col);
-            if ($name === 'id' || str_ends_with($name, '_id') || $name === 'term_id' || $name === 'umeta_id') {
-                $idColumn = $name;
+            $name = (string) $col;
+            $seq = $this->getSequenceForColumn($table, $name);
+            if ($seq !== null) {
+                $serialColumn = $name;
+                $sequenceName = $seq;
                 break;
             }
         }
 
-        if ($idColumn === null) {
+        if ($serialColumn === null) {
             return null;
         }
 
         $quotedTable = $this->quoteId($table);
-        $quotedCol = $this->quoteId($idColumn);
-
-        // Sequence naming convention: {table}_{column}_seq
-        $seqName = $table . '_' . $idColumn . '_seq';
+        $quotedCol = $this->quoteId($serialColumn);
 
         return \sprintf(
             "SELECT setval('%s', COALESCE((SELECT MAX(%s) FROM %s), 0) + 1, false)",
-            str_replace("'", "''", $seqName),
+            str_replace("'", "''", $sequenceName),
             $quotedCol,
             $quotedTable,
         );
+    }
+
+    /** @var array<string, string|null> */
+    private array $sequenceCache = [];
+
+    /**
+     * Resolve the sequence backing a column via pg_get_serial_sequence().
+     * Returns null when the column is not sequence-backed.
+     */
+    private function getSequenceForColumn(string $table, string $column): ?string
+    {
+        if ($this->driver === null) {
+            return null;
+        }
+
+        $cacheKey = $table . "\0" . $column;
+        if (array_key_exists($cacheKey, $this->sequenceCache)) {
+            return $this->sequenceCache[$cacheKey];
+        }
+
+        try {
+            $result = $this->driver->executeQuery(
+                'SELECT pg_get_serial_sequence(?, ?) AS seq',
+                [$table, $column],
+            );
+            $row = $result->fetchAssociative();
+            $seq = $row['seq'] ?? null;
+            $this->sequenceCache[$cacheKey] = \is_string($seq) && $seq !== '' ? $seq : null;
+        } catch (\Throwable) {
+            $this->sequenceCache[$cacheKey] = null;
+        }
+
+        return $this->sequenceCache[$cacheKey];
     }
 
     /**
@@ -2359,72 +2419,87 @@ final class PostgreSQLQueryTranslator implements QueryTranslatorInterface
      */
     private function rewriteLimit(QueryRewriter $rw, int|string $offset, int|string $rowCount): void
     {
-        $rw->skip(); // LIMIT
-
-        $next = $rw->peek();
-        if ($next !== null && $next->type === TokenType::Number) {
-            $rw->skip();
-        }
-
-        $next = $rw->peek();
-        if ($next !== null && $next->type === TokenType::Operator && $next->token === ',') {
-            $rw->skip();
-            $next = $rw->peek();
-            if ($next !== null && $next->type === TokenType::Number) {
-                $rw->skip();
-            }
-        }
-
-        $next = $rw->peek();
-        if ($next !== null && $next->type === TokenType::Keyword && $next->keyword === 'OFFSET') {
-            $rw->skip();
-            $next = $rw->peek();
-            if ($next !== null && $next->type === TokenType::Number) {
-                $rw->skip();
-            }
-        }
-
-        $offsetVal = (int) $offset;
-        if ($offsetVal === 0) {
-            $rw->add('LIMIT ' . $rowCount);
-        } else {
-            $rw->add('LIMIT ' . $rowCount . ' OFFSET ' . $offset);
-        }
+        // Delegate to the token-level pass — sql-parser reports '?' for
+        // placeholders the same way it reports '5' for literals, so the
+        // AST-guided and token-only paths converge on identical handling.
+        $this->rewriteLimitFromTokens($rw);
     }
 
+    /**
+     * Rewrite MySQL LIMIT clauses into PostgreSQL form while preserving
+     * the caller's `?` placeholder ordering. MySQL accepts
+     *   LIMIT offset, count   (two-arg form — offset first)
+     * PostgreSQL only accepts
+     *   LIMIT count OFFSET offset
+     * so the naive swap would reorder the bound parameters. We emit
+     *   OFFSET <offset> LIMIT <count>
+     * instead, which PostgreSQL accepts and which keeps the
+     * (offset, count) positional order the caller expects.
+     */
     private function rewriteLimitFromTokens(QueryRewriter $rw): void
     {
-        $rw->skip();
+        $rw->skip(); // LIMIT
 
         $first = $rw->peek();
-        if ($first === null || $first->type !== TokenType::Number) {
+        $firstLiteral = $this->readLimitArgument($rw);
+        if ($firstLiteral === null) {
             $rw->add('LIMIT');
 
             return;
         }
 
-        $firstNum = $first->token;
-        $rw->skip();
-
         $next = $rw->peek();
         if ($next !== null && $next->type === TokenType::Operator && $next->token === ',') {
-            $rw->skip();
-            $second = $rw->peek();
-            if ($second !== null && $second->type === TokenType::Number) {
-                $secondNum = $second->token;
-                $rw->skip();
-
-                if ($firstNum === '0') {
-                    $rw->add('LIMIT ' . $secondNum);
-                } else {
-                    $rw->add('LIMIT ' . $secondNum . ' OFFSET ' . $firstNum);
-                }
+            $rw->skip(); // ,
+            $secondLiteral = $this->readLimitArgument($rw);
+            if ($secondLiteral !== null) {
+                // MySQL "LIMIT offset, count" → PG "OFFSET offset LIMIT count"
+                $rw->add('OFFSET ' . $firstLiteral . ' LIMIT ' . $secondLiteral);
 
                 return;
             }
         }
 
-        $rw->add('LIMIT ' . $firstNum);
+        if ($next !== null && $next->type === TokenType::Keyword && $next->keyword === 'OFFSET') {
+            $rw->skip(); // OFFSET
+            $offsetLiteral = $this->readLimitArgument($rw);
+            if ($offsetLiteral !== null) {
+                $rw->add('LIMIT ' . $firstLiteral . ' OFFSET ' . $offsetLiteral);
+
+                return;
+            }
+        }
+
+        $rw->add('LIMIT ' . $firstLiteral);
+    }
+
+    /**
+     * Consume one LIMIT/OFFSET argument (numeric literal, `?` placeholder,
+     * or named `:name` placeholder) from the rewriter and return its
+     * textual form for re-emission. Returns null when no such token is
+     * available.
+     */
+    private function readLimitArgument(QueryRewriter $rw): ?string
+    {
+        $tok = $rw->peek();
+        if ($tok === null) {
+            return null;
+        }
+
+        if ($tok->type === TokenType::Number) {
+            $rw->skip();
+
+            return (string) $tok->token;
+        }
+
+        if ($tok->token === '?'
+            || ($tok->type === TokenType::Symbol && str_starts_with((string) $tok->token, ':'))) {
+            $rw->skip();
+
+            return (string) $tok->token;
+        }
+
+        return null;
     }
 
     // ── DDL helpers ──

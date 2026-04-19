@@ -215,7 +215,9 @@ final class PostgreSQLQueryTranslatorTest extends TestCase
     {
         $result = $this->translator->translate('SELECT * FROM t LIMIT 10, 20');
 
-        self::assertStringContainsString('LIMIT 20 OFFSET 10', $result[0]);
+        // Emitting OFFSET before LIMIT keeps the caller's positional `?`
+        // ordering identical between MySQL ("LIMIT ?, ?") and PostgreSQL.
+        self::assertStringContainsString('OFFSET 10 LIMIT 20', $result[0]);
     }
 
     #[Test]
@@ -328,7 +330,7 @@ final class PostgreSQLQueryTranslatorTest extends TestCase
         self::assertStringContainsString('TO_CHAR', $result[0]);
         self::assertStringContainsString('CASE WHEN', $result[0]);
         self::assertStringContainsString("INTERVAL '7 day'", $result[0]);
-        self::assertStringContainsString('LIMIT 10 OFFSET 5', $result[0]);
+        self::assertStringContainsString('OFFSET 5 LIMIT 10', $result[0]);
     }
 
     #[Test]
@@ -615,7 +617,7 @@ SQL;
 
         self::assertCount(1, $result);
         self::assertStringContainsString('(SELECT COUNT', $result[0]);
-        self::assertStringContainsString('LIMIT 20 OFFSET 10', $result[0]);
+        self::assertStringContainsString('OFFSET 10 LIMIT 20', $result[0]);
         self::assertStringNotContainsString('`', $result[0]);
     }
 
