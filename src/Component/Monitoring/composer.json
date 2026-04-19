@@ -1,24 +1,25 @@
 {
-    "name": "wppack/monitoring",
-    "description": "Infrastructure monitoring abstraction for WordPress",
-    "type": "library",
-    "license": "MIT",
-    "require": {
-        "php": "^8.2"
-    },
-    "suggest": {
-        "wppack/transient": "Required for metric caching",
-        "wppack/rest": "Required for REST API endpoints",
-        "wppack/admin": "Required for dashboard admin page"
-    },
-    "autoload": {
-        "psr-4": {
-            "WPPack\\Component\\Monitoring\\": "src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "WPPack\\Component\\Monitoring\\Tests\\": "tests/"
-        }
+  "name": "wppack/monitoring",
+  "description": "Infrastructure monitoring abstraction for WordPress",
+  "type": "library",
+  "license": "MIT",
+  "require": {
+    "php": "^8.2",
+    "wordpress/core-implementation": "^6.3"
+  },
+  "suggest": {
+    "wppack/transient": "Required for metric caching",
+    "wppack/rest": "Required for REST API endpoints",
+    "wppack/admin": "Required for dashboard admin page"
+  },
+  "autoload": {
+    "psr-4": {
+      "WPPack\\Component\\Monitoring\\": "src/"
     }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "WPPack\\Component\\Monitoring\\Tests\\": "tests/"
+    }
+  }
 }

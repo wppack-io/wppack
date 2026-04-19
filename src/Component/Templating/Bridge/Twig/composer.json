@@ -1,23 +1,24 @@
 {
-    "name": "wppack/twig-templating",
-    "description": "Twig bridge for WPPack Templating",
-    "type": "library",
-    "license": "MIT",
-    "require": {
-        "php": "^8.2",
-        "wppack/templating": "^1.0",
-        "wppack/escaper": "^1.0",
-        "wppack/sanitizer": "^1.0",
-        "twig/twig": "^3.0"
-    },
-    "autoload": {
-        "psr-4": {
-            "WPPack\\Component\\Templating\\Bridge\\Twig\\": "src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "WPPack\\Component\\Templating\\Bridge\\Twig\\Tests\\": "tests/"
-        }
+  "name": "wppack/twig-templating",
+  "description": "Twig bridge for WPPack Templating",
+  "type": "library",
+  "license": "MIT",
+  "require": {
+    "php": "^8.2",
+    "twig/twig": "^3.0",
+    "wordpress/core-implementation": "^6.3",
+    "wppack/escaper": "^1.0",
+    "wppack/sanitizer": "^1.0",
+    "wppack/templating": "^1.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "WPPack\\Component\\Templating\\Bridge\\Twig\\": "src/"
     }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "WPPack\\Component\\Templating\\Bridge\\Twig\\Tests\\": "tests/"
+    }
+  }
 }

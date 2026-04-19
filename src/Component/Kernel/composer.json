@@ -1,22 +1,23 @@
 {
-    "name": "wppack/kernel",
-    "description": "Application bootstrap kernel for WordPress",
-    "type": "library",
-    "license": "MIT",
-    "require": {
-        "php": "^8.2",
-        "wppack/dependency-injection": "^1.0",
-        "wppack/http-foundation": "^1.0"
-    },
-    "autoload": {
-        "psr-4": {
-            "WPPack\\Component\\Kernel\\": "src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "WPPack\\Component\\Kernel\\Tests\\": "tests/"
-        }
-    },
-    "minimum-stability": "stable"
+  "name": "wppack/kernel",
+  "description": "Application bootstrap kernel for WordPress",
+  "type": "library",
+  "license": "MIT",
+  "require": {
+    "php": "^8.2",
+    "wordpress/core-implementation": "^6.3",
+    "wppack/dependency-injection": "^1.0",
+    "wppack/http-foundation": "^1.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "WPPack\\Component\\Kernel\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "WPPack\\Component\\Kernel\\Tests\\": "tests/"
+    }
+  },
+  "minimum-stability": "stable"
 }

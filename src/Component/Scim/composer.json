@@ -1,28 +1,29 @@
 {
-    "name": "wppack/scim",
-    "description": "SCIM 2.0 provisioning for WordPress",
-    "type": "library",
-    "license": "MIT",
-    "require": {
-        "php": "^8.2",
-        "wppack/dependency-injection": "^1.0",
-        "wppack/event-dispatcher": "^1.0",
-        "wppack/http-foundation": "^1.0",
-        "wppack/rest": "^1.0",
-        "wppack/role": "^1.0",
-        "wppack/sanitizer": "^1.0",
-        "wppack/security": "^1.0",
-        "wppack/site": "^1.0",
-        "wppack/user": "^1.0"
-    },
-    "autoload": {
-        "psr-4": {
-            "WPPack\\Component\\Scim\\": "src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "WPPack\\Component\\Scim\\Tests\\": "tests/"
-        }
+  "name": "wppack/scim",
+  "description": "SCIM 2.0 provisioning for WordPress",
+  "type": "library",
+  "license": "MIT",
+  "require": {
+    "php": "^8.2",
+    "wordpress/core-implementation": "^6.3",
+    "wppack/dependency-injection": "^1.0",
+    "wppack/event-dispatcher": "^1.0",
+    "wppack/http-foundation": "^1.0",
+    "wppack/rest": "^1.0",
+    "wppack/role": "^1.0",
+    "wppack/sanitizer": "^1.0",
+    "wppack/security": "^1.0",
+    "wppack/site": "^1.0",
+    "wppack/user": "^1.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "WPPack\\Component\\Scim\\": "src/"
     }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "WPPack\\Component\\Scim\\Tests\\": "tests/"
+    }
+  }
 }

@@ -1,19 +1,20 @@
 {
-    "name": "wppack/cache",
-    "description": "WordPress Object Cache API wrapper",
-    "type": "library",
-    "license": "MIT",
-    "require": {
-        "php": "^8.2"
-    },
-    "autoload": {
-        "psr-4": {
-            "WPPack\\Component\\Cache\\": "src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "WPPack\\Component\\Cache\\Tests\\": "tests/"
-        }
+  "name": "wppack/cache",
+  "description": "WordPress Object Cache API wrapper",
+  "type": "library",
+  "license": "MIT",
+  "require": {
+    "php": "^8.2",
+    "wordpress/core-implementation": "^6.3"
+  },
+  "autoload": {
+    "psr-4": {
+      "WPPack\\Component\\Cache\\": "src/"
     }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "WPPack\\Component\\Cache\\Tests\\": "tests/"
+    }
+  }
 }

@@ -1,22 +1,23 @@
 {
-    "name": "wppack/http-client",
-    "description": "PSR-18 HTTP client wrapping WordPress HTTP API",
-    "type": "library",
-    "license": "MIT",
-    "require": {
-        "php": "^8.2",
-        "psr/http-client": "^1.0",
-        "psr/http-message": "^2.0",
-        "psr/http-factory": "^1.0"
-    },
-    "autoload": {
-        "psr-4": {
-            "WPPack\\Component\\HttpClient\\": "src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "WPPack\\Component\\HttpClient\\Tests\\": "tests/"
-        }
+  "name": "wppack/http-client",
+  "description": "PSR-18 HTTP client wrapping WordPress HTTP API",
+  "type": "library",
+  "license": "MIT",
+  "require": {
+    "php": "^8.2",
+    "psr/http-client": "^1.0",
+    "psr/http-factory": "^1.0",
+    "psr/http-message": "^2.0",
+    "wordpress/core-implementation": "^6.3"
+  },
+  "autoload": {
+    "psr-4": {
+      "WPPack\\Component\\HttpClient\\": "src/"
     }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "WPPack\\Component\\HttpClient\\Tests\\": "tests/"
+    }
+  }
 }

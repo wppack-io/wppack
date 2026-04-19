@@ -1,24 +1,25 @@
 {
-    "name": "wppack/widget",
-    "description": "Widget system for WordPress",
-    "type": "library",
-    "license": "MIT",
-    "require": {
-        "php": "^8.2"
-    },
-    "suggest": {
-        "wppack/http-foundation": "For Request parameter injection in __invoke()",
-        "wppack/templating": "For template rendering via render()",
-        "wppack/security": "For #[CurrentUser] parameter injection in __invoke()"
-    },
-    "autoload": {
-        "psr-4": {
-            "WPPack\\Component\\Widget\\": "src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "WPPack\\Component\\Widget\\Tests\\": "tests/"
-        }
+  "name": "wppack/widget",
+  "description": "Widget system for WordPress",
+  "type": "library",
+  "license": "MIT",
+  "require": {
+    "php": "^8.2",
+    "wordpress/core-implementation": "^6.3"
+  },
+  "suggest": {
+    "wppack/http-foundation": "For Request parameter injection in __invoke()",
+    "wppack/templating": "For template rendering via render()",
+    "wppack/security": "For #[CurrentUser] parameter injection in __invoke()"
+  },
+  "autoload": {
+    "psr-4": {
+      "WPPack\\Component\\Widget\\": "src/"
     }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "WPPack\\Component\\Widget\\Tests\\": "tests/"
+    }
+  }
 }

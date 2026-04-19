@@ -1,24 +1,25 @@
 {
-    "name": "wppack/logger",
-    "description": "PSR-3 logging for WordPress",
-    "type": "library",
-    "license": "MIT",
-    "require": {
-        "php": "^8.2",
-        "psr/log": "^3.0"
-    },
-    "suggest": {
-        "wppack/monolog-logger": "For Monolog integration with advanced logging features",
-        "wppack/dependency-injection": "For DI container integration with channel-based injection"
-    },
-    "autoload": {
-        "psr-4": {
-            "WPPack\\Component\\Logger\\": "src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "WPPack\\Component\\Logger\\Tests\\": "tests/"
-        }
+  "name": "wppack/logger",
+  "description": "PSR-3 logging for WordPress",
+  "type": "library",
+  "license": "MIT",
+  "require": {
+    "php": "^8.2",
+    "psr/log": "^3.0",
+    "wordpress/core-implementation": "^6.3"
+  },
+  "suggest": {
+    "wppack/monolog-logger": "For Monolog integration with advanced logging features",
+    "wppack/dependency-injection": "For DI container integration with channel-based injection"
+  },
+  "autoload": {
+    "psr-4": {
+      "WPPack\\Component\\Logger\\": "src/"
     }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "WPPack\\Component\\Logger\\Tests\\": "tests/"
+    }
+  }
 }

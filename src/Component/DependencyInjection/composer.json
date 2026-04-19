@@ -1,25 +1,26 @@
 {
-    "name": "wppack/dependency-injection",
-    "description": "Dependency Injection component for WordPress",
-    "type": "library",
-    "license": "MIT",
-    "require": {
-        "php": "^8.2",
-        "psr/container": "^2.0",
-        "symfony/dependency-injection": "^6.4"
-    },
-    "suggest": {
-        "wppack/http-foundation": "Required for ContainerValueResolver"
-    },
-    "autoload": {
-        "psr-4": {
-            "WPPack\\Component\\DependencyInjection\\": "src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "WPPack\\Component\\DependencyInjection\\Tests\\": "tests/"
-        }
-    },
-    "minimum-stability": "stable"
+  "name": "wppack/dependency-injection",
+  "description": "Dependency Injection component for WordPress",
+  "type": "library",
+  "license": "MIT",
+  "require": {
+    "php": "^8.2",
+    "psr/container": "^2.0",
+    "symfony/dependency-injection": "^6.4",
+    "wordpress/core-implementation": "^6.3"
+  },
+  "suggest": {
+    "wppack/http-foundation": "Required for ContainerValueResolver"
+  },
+  "autoload": {
+    "psr-4": {
+      "WPPack\\Component\\DependencyInjection\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "WPPack\\Component\\DependencyInjection\\Tests\\": "tests/"
+    }
+  },
+  "minimum-stability": "stable"
 }

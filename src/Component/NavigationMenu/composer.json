@@ -1,19 +1,20 @@
 {
-    "name": "wppack/navigation-menu",
-    "description": "Menu management for WordPress",
-    "type": "library",
-    "license": "MIT",
-    "require": {
-        "php": "^8.2"
-    },
-    "autoload": {
-        "psr-4": {
-            "WPPack\\Component\\NavigationMenu\\": "src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "WPPack\\Component\\NavigationMenu\\Tests\\": "tests/"
-        }
+  "name": "wppack/navigation-menu",
+  "description": "Menu management for WordPress",
+  "type": "library",
+  "license": "MIT",
+  "require": {
+    "php": "^8.2",
+    "wordpress/core-implementation": "^6.3"
+  },
+  "autoload": {
+    "psr-4": {
+      "WPPack\\Component\\NavigationMenu\\": "src/"
     }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "WPPack\\Component\\NavigationMenu\\Tests\\": "tests/"
+    }
+  }
 }

@@ -1,20 +1,21 @@
 {
-    "name": "wppack/mailer",
-    "description": "Email abstraction with TransportInterface for WordPress",
-    "type": "library",
-    "license": "MIT",
-    "require": {
-        "php": "^8.2",
-        "wppack/mime": "^1.0"
-    },
-    "autoload": {
-        "psr-4": {
-            "WPPack\\Component\\Mailer\\": "src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "WPPack\\Component\\Mailer\\Tests\\": "tests/"
-        }
+  "name": "wppack/mailer",
+  "description": "Email abstraction with TransportInterface for WordPress",
+  "type": "library",
+  "license": "MIT",
+  "require": {
+    "php": "^8.2",
+    "wordpress/core-implementation": "^6.3",
+    "wppack/mime": "^1.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "WPPack\\Component\\Mailer\\": "src/"
     }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "WPPack\\Component\\Mailer\\Tests\\": "tests/"
+    }
+  }
 }

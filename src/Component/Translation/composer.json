@@ -1,19 +1,20 @@
 {
-    "name": "wppack/translation",
-    "description": "Internationalization for WordPress",
-    "type": "library",
-    "license": "MIT",
-    "require": {
-        "php": "^8.2"
-    },
-    "autoload": {
-        "psr-4": {
-            "WPPack\\Component\\Translation\\": "src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "WPPack\\Component\\Translation\\Tests\\": "tests/"
-        }
+  "name": "wppack/translation",
+  "description": "Internationalization for WordPress",
+  "type": "library",
+  "license": "MIT",
+  "require": {
+    "php": "^8.2",
+    "wordpress/core-implementation": "^6.3"
+  },
+  "autoload": {
+    "psr-4": {
+      "WPPack\\Component\\Translation\\": "src/"
     }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "WPPack\\Component\\Translation\\Tests\\": "tests/"
+    }
+  }
 }

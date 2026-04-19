@@ -1,20 +1,21 @@
 {
-    "name": "wppack/console",
-    "description": "WP-CLI command framework with type-safe input/output",
-    "type": "library",
-    "license": "MIT",
-    "require": {
-        "php": "^8.2",
-        "wp-cli/wp-cli": "^2.11"
-    },
-    "autoload": {
-        "psr-4": {
-            "WPPack\\Component\\Console\\": "src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "WPPack\\Component\\Console\\Tests\\": "tests/"
-        }
+  "name": "wppack/console",
+  "description": "WP-CLI command framework with type-safe input/output",
+  "type": "library",
+  "license": "MIT",
+  "require": {
+    "php": "^8.2",
+    "wordpress/core-implementation": "^6.3",
+    "wp-cli/wp-cli": "^2.11"
+  },
+  "autoload": {
+    "psr-4": {
+      "WPPack\\Component\\Console\\": "src/"
     }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "WPPack\\Component\\Console\\Tests\\": "tests/"
+    }
+  }
 }

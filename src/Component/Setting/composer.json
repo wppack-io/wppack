@@ -1,29 +1,30 @@
 {
-    "name": "wppack/setting",
-    "description": "Settings management for WordPress",
-    "type": "library",
-    "license": "MIT",
-    "require": {
-        "php": "^8.2",
-        "wppack/http-foundation": "^1.0",
-        "wppack/role": "^1.0"
-    },
-    "require-dev": {
-        "wppack/escaper": "^1.0"
-    },
-    "suggest": {
-        "wppack/escaper": "For delegating output escaping to the Escaper component",
-        "wppack/security": "Required for #[CurrentUser] injection in __invoke()",
-        "wppack/templating": "For template rendering via render()"
-    },
-    "autoload": {
-        "psr-4": {
-            "WPPack\\Component\\Setting\\": "src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "WPPack\\Component\\Setting\\Tests\\": "tests/"
-        }
+  "name": "wppack/setting",
+  "description": "Settings management for WordPress",
+  "type": "library",
+  "license": "MIT",
+  "require": {
+    "php": "^8.2",
+    "wordpress/core-implementation": "^6.3",
+    "wppack/http-foundation": "^1.0",
+    "wppack/role": "^1.0"
+  },
+  "require-dev": {
+    "wppack/escaper": "^1.0"
+  },
+  "suggest": {
+    "wppack/escaper": "For delegating output escaping to the Escaper component",
+    "wppack/security": "Required for #[CurrentUser] injection in __invoke()",
+    "wppack/templating": "For template rendering via render()"
+  },
+  "autoload": {
+    "psr-4": {
+      "WPPack\\Component\\Setting\\": "src/"
     }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "WPPack\\Component\\Setting\\Tests\\": "tests/"
+    }
+  }
 }

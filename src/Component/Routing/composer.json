@@ -1,26 +1,27 @@
 {
-    "name": "wppack/routing",
-    "description": "URL routing for WordPress",
-    "type": "library",
-    "license": "MIT",
-    "require": {
-        "php": "^8.2",
-        "wppack/role": "^1.0",
-        "wppack/http-foundation": "^1.0",
-        "wppack/mime": "^1.0"
-    },
-    "suggest": {
-        "wppack/security": "Required for #[CurrentUser] injection and Security integration in controllers",
-        "wppack/templating": "Required for render() and renderView() template rendering in controllers"
-    },
-    "autoload": {
-        "psr-4": {
-            "WPPack\\Component\\Routing\\": "src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "WPPack\\Component\\Routing\\Tests\\": "tests/"
-        }
+  "name": "wppack/routing",
+  "description": "URL routing for WordPress",
+  "type": "library",
+  "license": "MIT",
+  "require": {
+    "php": "^8.2",
+    "wordpress/core-implementation": "^6.3",
+    "wppack/http-foundation": "^1.0",
+    "wppack/mime": "^1.0",
+    "wppack/role": "^1.0"
+  },
+  "suggest": {
+    "wppack/security": "Required for #[CurrentUser] injection and Security integration in controllers",
+    "wppack/templating": "Required for render() and renderView() template rendering in controllers"
+  },
+  "autoload": {
+    "psr-4": {
+      "WPPack\\Component\\Routing\\": "src/"
     }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "WPPack\\Component\\Routing\\Tests\\": "tests/"
+    }
+  }
 }

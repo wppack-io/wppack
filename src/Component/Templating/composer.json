@@ -1,20 +1,21 @@
 {
-    "name": "wppack/templating",
-    "description": "Template engine for WordPress",
-    "type": "library",
-    "license": "MIT",
-    "require": {
-        "php": "^8.2",
-        "wppack/escaper": "^1.0"
-    },
-    "autoload": {
-        "psr-4": {
-            "WPPack\\Component\\Templating\\": "src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "WPPack\\Component\\Templating\\Tests\\": "tests/"
-        }
+  "name": "wppack/templating",
+  "description": "Template engine for WordPress",
+  "type": "library",
+  "license": "MIT",
+  "require": {
+    "php": "^8.2",
+    "wordpress/core-implementation": "^6.3",
+    "wppack/escaper": "^1.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "WPPack\\Component\\Templating\\": "src/"
     }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "WPPack\\Component\\Templating\\Tests\\": "tests/"
+    }
+  }
 }

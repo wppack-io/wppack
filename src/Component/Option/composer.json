@@ -1,19 +1,20 @@
 {
-    "name": "wppack/option",
-    "description": "WordPress options wrapper",
-    "type": "library",
-    "license": "MIT",
-    "require": {
-        "php": "^8.2"
-    },
-    "autoload": {
-        "psr-4": {
-            "WPPack\\Component\\Option\\": "src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "WPPack\\Component\\Option\\Tests\\": "tests/"
-        }
+  "name": "wppack/option",
+  "description": "WordPress options wrapper",
+  "type": "library",
+  "license": "MIT",
+  "require": {
+    "php": "^8.2",
+    "wordpress/core-implementation": "^6.3"
+  },
+  "autoload": {
+    "psr-4": {
+      "WPPack\\Component\\Option\\": "src/"
     }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "WPPack\\Component\\Option\\Tests\\": "tests/"
+    }
+  }
 }

@@ -1,25 +1,26 @@
 {
-    "name": "wppack/admin",
-    "description": "Administration utilities for WordPress",
-    "type": "library",
-    "license": "MIT",
-    "require": {
-        "php": "^8.2",
-        "wppack/http-foundation": "^1.0",
-        "wppack/role": "^1.0"
-    },
-    "suggest": {
-        "wppack/security": "Required for #[CurrentUser] injection in __invoke()",
-        "wppack/templating": "For template rendering via render()"
-    },
-    "autoload": {
-        "psr-4": {
-            "WPPack\\Component\\Admin\\": "src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "WPPack\\Component\\Admin\\Tests\\": "tests/"
-        }
+  "name": "wppack/admin",
+  "description": "Administration utilities for WordPress",
+  "type": "library",
+  "license": "MIT",
+  "require": {
+    "php": "^8.2",
+    "wordpress/core-implementation": "^6.3",
+    "wppack/http-foundation": "^1.0",
+    "wppack/role": "^1.0"
+  },
+  "suggest": {
+    "wppack/security": "Required for #[CurrentUser] injection in __invoke()",
+    "wppack/templating": "For template rendering via render()"
+  },
+  "autoload": {
+    "psr-4": {
+      "WPPack\\Component\\Admin\\": "src/"
     }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "WPPack\\Component\\Admin\\Tests\\": "tests/"
+    }
+  }
 }

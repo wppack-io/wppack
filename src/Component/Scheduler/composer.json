@@ -1,24 +1,25 @@
 {
-    "name": "wppack/scheduler",
-    "description": "Task scheduler with recurring and one-time message support for WordPress",
-    "type": "library",
-    "license": "MIT",
-    "require": {
-        "php": "^8.2",
-        "wppack/messenger": "^1.0",
-        "dragonmantank/cron-expression": "^3.0"
-    },
-    "suggest": {
-        "wppack/eventbridge-scheduler": "EventBridge backend for high-reliability scheduling"
-    },
-    "autoload": {
-        "psr-4": {
-            "WPPack\\Component\\Scheduler\\": "src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "WPPack\\Component\\Scheduler\\Tests\\": "tests/"
-        }
+  "name": "wppack/scheduler",
+  "description": "Task scheduler with recurring and one-time message support for WordPress",
+  "type": "library",
+  "license": "MIT",
+  "require": {
+    "dragonmantank/cron-expression": "^3.0",
+    "php": "^8.2",
+    "wordpress/core-implementation": "^6.3",
+    "wppack/messenger": "^1.0"
+  },
+  "suggest": {
+    "wppack/eventbridge-scheduler": "EventBridge backend for high-reliability scheduling"
+  },
+  "autoload": {
+    "psr-4": {
+      "WPPack\\Component\\Scheduler\\": "src/"
     }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "WPPack\\Component\\Scheduler\\Tests\\": "tests/"
+    }
+  }
 }
