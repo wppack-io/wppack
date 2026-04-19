@@ -240,7 +240,7 @@ class PostgreSQLDriver extends AbstractDriver
         if ($params === []) {
             $pgResult = @pg_query($this->connection, $sql);
         } else {
-            $pgResult = @pg_query_params($this->connection, $this->convertPlaceholders($sql), $params);
+            $pgResult = @pg_query_params($this->connection, $this->convertPlaceholders($sql), $this->normalizeZeroDateParams($params));
         }
 
         if ($pgResult === false) {
@@ -261,7 +261,7 @@ class PostgreSQLDriver extends AbstractDriver
         if ($params === []) {
             $pgResult = @pg_query($this->connection, $sql);
         } else {
-            $pgResult = @pg_query_params($this->connection, $this->convertPlaceholders($sql), $params);
+            $pgResult = @pg_query_params($this->connection, $this->convertPlaceholders($sql), $this->normalizeZeroDateParams($params));
         }
 
         if ($pgResult === false) {
@@ -272,6 +272,34 @@ class PostgreSQLDriver extends AbstractDriver
         pg_free_result($pgResult);
 
         return $affected;
+    }
+
+    /**
+     * Coerce MySQL's "zero date" sentinels ('0000-00-00', '0000-00-00
+     * 00:00:00') into the earliest value PostgreSQL accepts. The
+     * translator already rewrites these when they appear as string
+     * literals in the SQL text, but parameter-bound queries never
+     * touch that path — the sentinels land in pg_query_params() and
+     * PG rejects them as out-of-range. Keep this in sync with
+     * postProcessPostgreSQL().
+     *
+     * @param array<int|string, mixed> $params
+     * @return array<int|string, mixed>
+     */
+    private function normalizeZeroDateParams(array $params): array
+    {
+        foreach ($params as $key => $value) {
+            if (!\is_string($value)) {
+                continue;
+            }
+            if ($value === '0000-00-00 00:00:00') {
+                $params[$key] = '0001-01-01 00:00:00';
+            } elseif ($value === '0000-00-00') {
+                $params[$key] = '0001-01-01';
+            }
+        }
+
+        return $params;
     }
 
     /**
