@@ -6,26 +6,38 @@
 [![PHP Version](https://img.shields.io/badge/PHP-8.2%2B-777BB4.svg)](https://php.net)
 [![WordPress](https://img.shields.io/badge/WordPress-6.3%2B-21759B.svg)](https://wordpress.org)
 
-WPPack is a Symfony-inspired component library that brings modern PHP development
-practices to WordPress. Adopt a single component or a composed stack — every
-package is independently testable, type-safe, and production-ready.
+WPPack is a Symfony-inspired component library that brings modern PHP
+development practices to WordPress **without replacing it**. Adopt a single
+component or a composed stack — every package is independently testable,
+type-safe, PSR-* compliant, and fully compatible with the WordPress plugin
+and theme ecosystem.
 
 ## Why WPPack?
 
 ### For plugin and theme authors
 
-- **Adopt piece by piece — no framework lock-in.** Drop a single component into
-  an existing codebase without rewriting it. `composer require wppack/option`
+- **Compatible with WordPress, not a rewrite of it.** WPPack wraps WordPress
+  APIs; it never replaces them. `$wpdb`, `WP_Query`, hooks, REST controllers,
+  WP-CLI commands, `wp_mail()`, and the object cache all keep working the way
+  third-party plugins and themes expect. Our EventDispatcher dispatches
+  through `$wp_filter`, our Cache wraps `wp_cache_*`, our Mailer calls
+  `wp_mail()`. You can drop WPPack into a site with a dozen existing plugins
+  and nothing breaks.
+- **Adopt piece by piece — no bloat.** Each component is an independent
+  Composer package focused on one concern. `composer require wppack/option`
   for type-safe options, `wppack/database` for a portable `$wpdb` replacement,
   `wppack/mailer` to swap in SES / SendGrid / Azure Communication without
-  touching call sites. 58 components and 25 bridges, each an independent
-  Composer package.
-- **Type-safe WordPress with modern PHP attributes.** Declarative event listeners
-  (`#[AsEventListener]`), option injection (`#[Option]`), and routing — backed
-  by a DI container with autowiring and service auto-discovery. Type-safe
-  wrappers over `$wpdb`, `WP_Query`, the Options API, Transients, and object
-  cache give you IDE autocomplete, PHPStan guarantees, and refactoring safety
-  you can't get from WordPress core.
+  touching call sites. No DI container, no mailer, no hidden dependencies
+  pulled in if you didn't ask for them. Most plugins adopt 2-3 packages, not
+  all 58.
+- **Type-safe WordPress with modern PHP attributes.** Declarative event
+  listeners (`#[AsEventListener]`), option injection (`#[Option]`), and
+  routing — backed by a DI container with autowiring and service
+  auto-discovery. Type-safe wrappers over `$wpdb`, `WP_Query`, the Options
+  API, Transients, and object cache follow PSR-3 / PSR-6 / PSR-11 / PSR-14 /
+  PSR-16 / PSR-18 contracts, so they mock cleanly and swap cleanly. IDE
+  autocomplete, PHPStan guarantees, and refactoring safety you can't get
+  from WordPress core alone.
 - **Quality you can depend on.** **PHPStan level 6** on 114k LOC of source,
   php-cs-fixer on PER Coding Style, 149k LOC of tests (1.31:1 test/production
   ratio), and a 16-job CI matrix — PHP 8.2 / 8.3 / 8.4 / 8.5 × mysql / sqlite /
