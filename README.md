@@ -7,42 +7,46 @@
 [![WordPress](https://img.shields.io/badge/WordPress-6.3%2B-21759B.svg)](https://wordpress.org)
 
 WPPack is a Symfony-inspired component library that brings modern PHP development
-practices to WordPress. Type-safe, testable, cloud-native, and composable — use the
-whole stack or just the components you need.
+practices to WordPress. Adopt one component or the whole stack — every package is
+independently testable, type-safe, and cloud-ready.
 
 ## Why WPPack?
 
-- **Cloud-first.** Built for Lambda, Cloud Functions, Fargate, and Aurora
-  Serverless. Stateless by default, with transparent reconnects (Database
-  gone-away handling, Aurora DSQL OCC retry), graceful fallbacks (SQS
-  messenger → synchronous, EventBridge scheduler → WP-Cron), and lazy DI
-  for fast cold starts.
-- **Component-level composability.** 58 components and 25 bridges, each an
-  independent Composer package with its own tests and docs. Plugin and theme
-  authors can adopt WPPack one package at a time (`composer require wppack/option`)
-  or compose a full stack. No monolithic framework buy-in.
-- **Modern WordPress wrapper via PHP Attributes and DI.** Declarative event
-  listeners (`#[AsEventListener]`), option injection (`#[Option]`), and routing —
-  all backed by a Symfony-style DI container with autowiring and service
+- **Adopt piece by piece — no framework lock-in.** Plugin and theme authors can
+  drop a single component into an existing codebase without rewriting it.
+  `composer require wppack/option` for type-safe options, `wppack/database` for
+  a portable `$wpdb` replacement, `wppack/mailer` to swap in SES / SendGrid /
+  Azure Communication without touching call sites. 58 components and 25 bridges,
+  each an independent Composer package with its own tests and docs.
+- **Production-grade quality, verified on every push.** **PHPStan level 6** on
+  114k LOC of source. php-cs-fixer on PER Coding Style. 149k LOC of tests
+  (1.31:1 test/production ratio). A 16-job CI matrix — PHP 8.2 / 8.3 / 8.4 / 8.5
+  × mysql / sqlite / postgresql / legacy wpdb — runs on every push, all green.
+  122 interfaces (interface-first design) and `declare(strict_types=1)`
+  throughout make refactoring safe in a way WordPress core never could.
+- **Type-safe WordPress with modern PHP attributes.** Declarative event listeners
+  (`#[AsEventListener]`), option injection (`#[Option]`), and routing — all
+  backed by a Symfony-style DI container with autowiring and service
   auto-discovery. Type-safe wrappers over `$wpdb`, `WP_Query`, the Options API,
   Transients, and object cache. PSR-3 / PSR-6 / PSR-11 / PSR-14 / PSR-16 / PSR-18
   compliant.
-- **Unified security framework.** OAuth 2.0 / OIDC, SAML 2.0, and WebAuthn /
-  Passkey are layered on a single `wppack/security` framework — `AbstractAuthenticator`,
-  `TokenStorage`, `AccessDecisionManager`, `UserProvider`. Adding or swapping a
-  provider requires no user-code change. SCIM 2.0 provisioning is included.
-- **Quality backed by verification.** `declare(strict_types=1)` throughout, 100+
-  interfaces (interface-first design), **PHPStan level 6** on the full 114k-LOC
-  codebase, php-cs-fixer on PER Coding Style, and 149k LOC of tests
-  (1.31:1 test/production ratio). A 16-job CI matrix runs on every push —
-  PHP 8.2 / 8.3 / 8.4 / 8.5 × mysql / sqlite / postgresql / legacy wpdb —
-  all green.
-- **Multi-cloud, first-party bridges.** Aurora DSQL (IAM auth + OCC retry),
-  Aurora RDS Data API, ElastiCache IAM, EventBridge Scheduler,
-  S3 / Azure Blob / GCS storage, SES / SendGrid / Azure Communication mail,
-  SQS messenger, CloudWatch / Cloudflare monitoring. 25 bridges across 8
-  domains — the only WordPress component library shipping native AWS / GCP /
-  Azure integration out of the box.
+- **Cloud-ready without glue code.** Aurora DSQL (IAM auth + OCC retry), Aurora
+  RDS Data API, ElastiCache IAM, EventBridge Scheduler, S3 / Azure Blob / GCS
+  storage, SES / SendGrid / Azure Communication mail, SQS messenger, CloudWatch
+  / Cloudflare monitoring — 25 first-party bridges across 8 domains. Stateless
+  by default; cold starts, gone-away reconnect, OCC retry, and graceful
+  fallbacks (SQS → synchronous, EventBridge → WP-Cron) are built in.
+- **Unified security framework, pluggable providers.** OAuth 2.0 / OIDC, SAML
+  2.0, and WebAuthn / Passkey are layered on a single `wppack/security`
+  framework (`AbstractAuthenticator`, `TokenStorage`, `AccessDecisionManager`,
+  `UserProvider`). Adding a new provider or migrating between them doesn't
+  rewrite your auth flow — just swap the bridge. SCIM 2.0 provisioning
+  included.
+- **Multi-engine database, transparent to your code.** Write MySQL dialect; run
+  on MySQL, SQLite, PostgreSQL, or Aurora DSQL unchanged thanks to an AST-based
+  query translator. Native prepared statements on every engine. Reader/writer
+  affinity, transparent reconnect, slow-query logging, and PSR-14 events for
+  APM integration. No other WordPress library ships this.
 
 ## Feature Highlights
 
