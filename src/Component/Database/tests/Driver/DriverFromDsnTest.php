@@ -16,7 +16,7 @@ namespace WPPack\Component\Database\Tests\Driver;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WPPack\Component\Database\Driver\Driver;
-use WPPack\Component\Database\Driver\MysqlDriver;
+use WPPack\Component\Database\Driver\MySQLDriver;
 use WPPack\Component\Database\Exception\UnsupportedSchemeException;
 
 /**
@@ -29,20 +29,20 @@ use WPPack\Component\Database\Exception\UnsupportedSchemeException;
 final class DriverFromDsnTest extends TestCase
 {
     #[Test]
-    public function mysqlSchemeResolvesToMysqlDriver(): void
+    public function mysqlSchemeResolvesToMySQLDriver(): void
     {
         $driver = Driver::fromDsn('mysql://u:p@host:3306/db');
 
-        self::assertInstanceOf(MysqlDriver::class, $driver);
+        self::assertInstanceOf(MySQLDriver::class, $driver);
         self::assertSame('mysql', $driver->getName());
     }
 
     #[Test]
-    public function mariadbAliasResolvesToMysqlDriver(): void
+    public function mariadbAliasResolvesToMySQLDriver(): void
     {
         $driver = Driver::fromDsn('mariadb://u:p@host:3306/db');
 
-        self::assertInstanceOf(MysqlDriver::class, $driver);
+        self::assertInstanceOf(MySQLDriver::class, $driver);
     }
 
     #[Test]
@@ -54,10 +54,10 @@ final class DriverFromDsnTest extends TestCase
     }
 
     #[Test]
-    public function dataApiSchemeIsNotShadowedByMysql(): void
+    public function dataApiSchemeIsNotShadowedByMySQL(): void
     {
         // The critical safety property: mysql+dataapi must not be routed to
-        // the plain MysqlDriverFactory. In the old iteration-based lookup a
+        // the plain MySQLDriverFactory. In the old iteration-based lookup a
         // future factory claiming 'mysql' via loose matching could have
         // shadowed this; the explicit map guarantees exact scheme dispatch.
         $this->expectException(UnsupportedSchemeException::class);

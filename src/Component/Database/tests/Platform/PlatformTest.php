@@ -16,7 +16,7 @@ namespace WPPack\Component\Database\Tests\Platform;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WPPack\Component\Database\Platform\MariadbPlatform;
-use WPPack\Component\Database\Platform\MysqlPlatform;
+use WPPack\Component\Database\Platform\MySQLPlatform;
 
 final class PlatformTest extends TestCase
 {
@@ -25,7 +25,7 @@ final class PlatformTest extends TestCase
     #[Test]
     public function mysqlQuoteIdentifier(): void
     {
-        $platform = new MysqlPlatform();
+        $platform = new MySQLPlatform();
 
         self::assertSame('`posts`', $platform->quoteIdentifier('posts'));
         self::assertSame('`col``name`', $platform->quoteIdentifier('col`name'));
@@ -34,25 +34,25 @@ final class PlatformTest extends TestCase
     #[Test]
     public function mysqlEngine(): void
     {
-        self::assertSame('mysql', (new MysqlPlatform())->getEngine());
+        self::assertSame('mysql', (new MySQLPlatform())->getEngine());
     }
 
     #[Test]
     public function mysqlTransaction(): void
     {
-        self::assertSame('START TRANSACTION', (new MysqlPlatform())->getBeginTransactionSql());
+        self::assertSame('START TRANSACTION', (new MySQLPlatform())->getBeginTransactionSql());
     }
 
     #[Test]
     public function mysqlAutoIncrement(): void
     {
-        self::assertSame('AUTO_INCREMENT', (new MysqlPlatform())->getAutoIncrementKeyword());
+        self::assertSame('AUTO_INCREMENT', (new MySQLPlatform())->getAutoIncrementKeyword());
     }
 
     #[Test]
     public function mysqlCharsetCollate(): void
     {
-        $platform = new MysqlPlatform();
+        $platform = new MySQLPlatform();
 
         self::assertSame(
             'DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci',
@@ -65,14 +65,14 @@ final class PlatformTest extends TestCase
     {
         self::assertSame(
             'DEFAULT CHARSET=utf8mb4',
-            (new MysqlPlatform())->getCharsetCollateSql('utf8mb4', ''),
+            (new MySQLPlatform())->getCharsetCollateSql('utf8mb4', ''),
         );
     }
 
     #[Test]
     public function mysqlSupportsNativePreparedStatements(): void
     {
-        self::assertTrue((new MysqlPlatform())->supportsNativePreparedStatements());
+        self::assertTrue((new MySQLPlatform())->supportsNativePreparedStatements());
     }
 
     // ── MariaDB ──
@@ -84,7 +84,7 @@ final class PlatformTest extends TestCase
     }
 
     #[Test]
-    public function mariadbInheritsMysqlBehavior(): void
+    public function mariadbInheritsMySQLBehavior(): void
     {
         $platform = new MariadbPlatform();
 

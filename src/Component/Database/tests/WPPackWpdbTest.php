@@ -18,7 +18,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use WPPack\Component\Database\Bridge\Sqlite\SqliteDriver;
 use WPPack\Component\Database\Driver\DriverInterface;
-use WPPack\Component\Database\Platform\MysqlPlatform;
+use WPPack\Component\Database\Platform\MySQLPlatform;
 use WPPack\Component\Database\Result;
 use WPPack\Component\Database\Translator\NullQueryTranslator;
 use WPPack\Component\Database\Translator\QueryTranslatorInterface;
@@ -499,7 +499,7 @@ final class WPPackWpdbTest extends TestCase
     public function selectUsesReaderDriver(): void
     {
         $writerDriver = $this->createMock(DriverInterface::class);
-        $writerDriver->method('getPlatform')->willReturn(new MysqlPlatform());
+        $writerDriver->method('getPlatform')->willReturn(new MySQLPlatform());
         $writerDriver->method('getQueryTranslator')->willReturn(new NullQueryTranslator());
         $writerDriver->expects(self::never())->method('executeQuery');
 
@@ -524,7 +524,7 @@ final class WPPackWpdbTest extends TestCase
     public function insertUsesWriterDriver(): void
     {
         $writerDriver = $this->createMock(DriverInterface::class);
-        $writerDriver->method('getPlatform')->willReturn(new MysqlPlatform());
+        $writerDriver->method('getPlatform')->willReturn(new MySQLPlatform());
         $writerDriver->method('getQueryTranslator')->willReturn(new NullQueryTranslator());
         $writerDriver->expects(self::once())->method('executeStatement')
             ->willReturn(1);
@@ -548,7 +548,7 @@ final class WPPackWpdbTest extends TestCase
     public function allQueriesUseWriterWhenNoReader(): void
     {
         $writerDriver = $this->createMock(DriverInterface::class);
-        $writerDriver->method('getPlatform')->willReturn(new MysqlPlatform());
+        $writerDriver->method('getPlatform')->willReturn(new MySQLPlatform());
         $writerDriver->method('getQueryTranslator')->willReturn(new NullQueryTranslator());
         $writerDriver->expects(self::once())->method('executeQuery')
             ->willReturn(new Result([['id' => 1]]));
@@ -574,7 +574,7 @@ final class WPPackWpdbTest extends TestCase
         $translator->method('translate')->willReturn([]);
 
         $driver = $this->createMock(DriverInterface::class);
-        $driver->method('getPlatform')->willReturn(new MysqlPlatform());
+        $driver->method('getPlatform')->willReturn(new MySQLPlatform());
         $driver->expects(self::never())->method('executeQuery');
 
         $wpdb = new WPPackWpdb(
@@ -591,7 +591,7 @@ final class WPPackWpdbTest extends TestCase
     // ── No MySQL connection ──
 
     #[Test]
-    public function noMysqlConnectionCreated(): void
+    public function noMySQLConnectionCreated(): void
     {
         // WPPackWpdb does not call parent::__construct()
         // so no mysqli connection is attempted
@@ -1089,7 +1089,7 @@ final class WPPackWpdbTest extends TestCase
     }
 
     #[Test]
-    public function hasCapReturnsFalseForMysqlOnlyCapsOnSqlite(): void
+    public function hasCapReturnsFalseForMySQLOnlyCapsOnSqlite(): void
     {
         // set_charset is a MySQL concept (mysqli::set_charset); SQLite
         // doesn't have it, so we should report false.
@@ -1195,7 +1195,7 @@ final class WPPackWpdbTest extends TestCase
         // contract for plugins that check '$wpdb->errno === 2006' to
         // trigger a reconnect — they now see the real code, not 0.
         $writer = $this->createMock(DriverInterface::class);
-        $writer->method('getPlatform')->willReturn(new MysqlPlatform());
+        $writer->method('getPlatform')->willReturn(new MySQLPlatform());
         $writer->method('executeQuery')->willThrowException(
             new \WPPack\Component\Database\Exception\DriverException('server has gone away', 0, null, 2006),
         );

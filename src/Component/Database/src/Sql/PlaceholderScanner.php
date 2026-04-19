@@ -23,7 +23,7 @@ namespace WPPack\Component\Database\Sql;
  * how the database engine would treat them.
  *
  * Used by:
- *   - PgsqlDriver to rewrite '?' into PostgreSQL's '$1, $2, ...' form.
+ *   - PostgreSQLDriver to rewrite '?' into PostgreSQL's '$1, $2, ...' form.
  *   - WPPackWpdb::interpolateForDisplay() to render a human-readable SQL
  *     for SAVEQUERIES logs by substituting each '?' with its bound value.
  */

@@ -23,7 +23,7 @@ final class DsnTest extends TestCase
     // ── Standard URI ──
 
     #[Test]
-    public function parseMysqlDsn(): void
+    public function parseMySQLDsn(): void
     {
         $dsn = Dsn::fromString('mysql://user:pass@host:3306/dbname');
 
@@ -56,7 +56,7 @@ final class DsnTest extends TestCase
     }
 
     #[Test]
-    public function parsePgsqlDsn(): void
+    public function parsePostgreSQLDsn(): void
     {
         $dsn = Dsn::fromString('pgsql://user:pass@host:5432/dbname');
 
@@ -89,7 +89,7 @@ final class DsnTest extends TestCase
     // ── AWS ──
 
     #[Test]
-    public function parseMysqlDataApi(): void
+    public function parseMySQLDataApi(): void
     {
         $dsn = Dsn::fromString('mysql+dataapi://arn:aws:rds:us-east-1:123456789:cluster:my-cluster/mydb?secret_arn=arn:aws:secretsmanager:us-east-1:123456789:secret:my-secret');
 
@@ -98,7 +98,7 @@ final class DsnTest extends TestCase
     }
 
     #[Test]
-    public function parsePgsqlDataApi(): void
+    public function parsePostgreSQLDataApi(): void
     {
         $dsn = Dsn::fromString('pgsql+dataapi://arn:aws:rds:us-east-1:123456789:cluster:my-cluster/mydb?secret_arn=arn:aws:secretsmanager:us-east-1:123456789:secret:my-secret&region=us-east-1');
 
@@ -107,7 +107,7 @@ final class DsnTest extends TestCase
     }
 
     #[Test]
-    public function parseAuroraDsql(): void
+    public function parseAuroraDSQL(): void
     {
         $dsn = Dsn::fromString('dsql://admin:token@abc123.dsql.us-east-1.on.aws/mydb');
 

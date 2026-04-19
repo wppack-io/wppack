@@ -1083,7 +1083,7 @@ final class DatabaseManagerTest extends TestCase
     // Transaction failure tests previously used add_filter('query', ...) to
     // intercept wpdb->query. With the refactor, DatabaseManager delegates
     // directly to Connection → Driver, bypassing wpdb. Driver-level failure
-    // behaviour is covered by MysqlDriverTest and its peers; DatabaseManager's
+    // behaviour is covered by MySQLDriverTest and its peers; DatabaseManager's
     // responsibility is simply to delegate.
 
     // --- prepared statement with no matching params (empty bind) ---

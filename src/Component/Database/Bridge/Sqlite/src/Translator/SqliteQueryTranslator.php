@@ -679,7 +679,7 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
                 }
 
                 // Cache MySQL data type for SHOW CREATE TABLE reconstruction
-                $mysqlType = $this->buildMysqlTypeString($field);
+                $mysqlType = $this->buildMySQLTypeString($field);
                 if ($mysqlType !== '' && $field->name !== null) {
                     $cacheInserts[] = $this->buildCacheInsert($rawTableName, $field->name, $mysqlType);
                 }
@@ -833,7 +833,7 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
     /**
      * Build original MySQL type string from AST for data type cache.
      */
-    private function buildMysqlTypeString(\PhpMyAdmin\SqlParser\Components\CreateDefinition $field): string
+    private function buildMySQLTypeString(\PhpMyAdmin\SqlParser\Components\CreateDefinition $field): string
     {
         if ($field->type === null) {
             return '';

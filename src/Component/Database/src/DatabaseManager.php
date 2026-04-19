@@ -347,13 +347,13 @@ final class DatabaseManager
         $dbh = $wpdb->dbh;
 
         if ($dbh instanceof \mysqli) {
-            $driver = Driver\MysqlDriver::fromMysqli($dbh);
+            $driver = Driver\MySQLDriver::fromMySQLi($dbh);
 
             return new Connection($driver, null, $queryLogger, $driver->getQueryTranslator());
         }
 
         // Fallback — create from DB_* constants
-        $driver = new Driver\MysqlDriver(
+        $driver = new Driver\MySQLDriver(
             host: \defined('DB_HOST') ? DB_HOST : '127.0.0.1',
             username: \defined('DB_USER') ? DB_USER : 'root',
             password: \defined('DB_PASSWORD') ? DB_PASSWORD : '',

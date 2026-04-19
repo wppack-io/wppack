@@ -22,7 +22,7 @@ use WPPack\Component\Database\Sql\QueryRewriter;
  * Helpers shared by every engine-specific QueryTranslator.
  *
  * Extracted verbatim from the duplicated bodies that used to live inside
- * SqliteQueryTranslator and PostgresqlQueryTranslator. Kept as a trait (vs
+ * SqliteQueryTranslator and PostgreSQLQueryTranslator. Kept as a trait (vs
  * an abstract base) so each translator can keep `final` on the class and
  * retain its own dispatch structure — only the pure utility functions are
  * de-duplicated here.

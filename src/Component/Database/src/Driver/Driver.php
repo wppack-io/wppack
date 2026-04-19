@@ -33,17 +33,17 @@ final class Driver
      * @var array<string, class-string<DriverFactoryInterface>>
      */
     private const SCHEME_TO_FACTORY = [
-        'mysql'         => MysqlDriverFactory::class,
-        'mariadb'       => MysqlDriverFactory::class,
-        'mysqli'        => MysqlDriverFactory::class,
+        'mysql'         => MySQLDriverFactory::class,
+        'mariadb'       => MySQLDriverFactory::class,
+        'mysqli'        => MySQLDriverFactory::class,
         'sqlite'        => 'WPPack\Component\Database\Bridge\Sqlite\SqliteDriverFactory',
         'sqlite3'       => 'WPPack\Component\Database\Bridge\Sqlite\SqliteDriverFactory',
-        'pgsql'         => 'WPPack\Component\Database\Bridge\Pgsql\PgsqlDriverFactory',
-        'postgresql'    => 'WPPack\Component\Database\Bridge\Pgsql\PgsqlDriverFactory',
-        'postgres'      => 'WPPack\Component\Database\Bridge\Pgsql\PgsqlDriverFactory',
-        'mysql+dataapi' => 'WPPack\Component\Database\Bridge\MysqlDataApi\MysqlDataApiDriverFactory',
-        'pgsql+dataapi' => 'WPPack\Component\Database\Bridge\PgsqlDataApi\PgsqlDataApiDriverFactory',
-        'dsql'          => 'WPPack\Component\Database\Bridge\AuroraDsql\AuroraDsqlDriverFactory',
+        'pgsql'         => 'WPPack\Component\Database\Bridge\PostgreSQL\PostgreSQLDriverFactory',
+        'postgresql'    => 'WPPack\Component\Database\Bridge\PostgreSQL\PostgreSQLDriverFactory',
+        'postgres'      => 'WPPack\Component\Database\Bridge\PostgreSQL\PostgreSQLDriverFactory',
+        'mysql+dataapi' => 'WPPack\Component\Database\Bridge\MySQLDataApi\MySQLDataApiDriverFactory',
+        'pgsql+dataapi' => 'WPPack\Component\Database\Bridge\PostgreSQLDataApi\PostgreSQLDataApiDriverFactory',
+        'dsql'          => 'WPPack\Component\Database\Bridge\AuroraDSQL\AuroraDSQLDriverFactory',
     ];
 
     /** @param iterable<DriverFactoryInterface> $factories */

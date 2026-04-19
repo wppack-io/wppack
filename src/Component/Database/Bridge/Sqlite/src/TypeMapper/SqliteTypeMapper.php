@@ -23,7 +23,7 @@ use WPPack\Component\Database\TypeMapper\TypeMapperInterface;
  */
 final class SqliteTypeMapper implements TypeMapperInterface
 {
-    public function toMysqlType(string $sourceType): string
+    public function toMySQLType(string $sourceType): string
     {
         $normalized = strtoupper(trim($sourceType));
 

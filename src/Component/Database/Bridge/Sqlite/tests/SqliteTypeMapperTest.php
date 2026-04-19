@@ -52,9 +52,9 @@ final class SqliteTypeMapperTest extends TestCase
 
     #[Test]
     #[DataProvider('typeProvider')]
-    public function toMysqlType(string $source, string $expected): void
+    public function toMySQLType(string $source, string $expected): void
     {
-        self::assertSame($expected, $this->mapper->toMysqlType($source));
+        self::assertSame($expected, $this->mapper->toMySQLType($source));
     }
 
     #[Test]

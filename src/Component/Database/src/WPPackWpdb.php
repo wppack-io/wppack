@@ -590,8 +590,8 @@ class WPPackWpdb extends \wpdb
     /**
      * No-op: charset is set at the driver connection level, not via SQL.
      *
-     * - MySQL: mysqli::set_charset() in MysqlDriver::doConnect()
-     * - PostgreSQL: client_encoding in PgsqlDriver connection string
+     * - MySQL: mysqli::set_charset() in MySQLDriver::doConnect()
+     * - PostgreSQL: client_encoding in PostgreSQLDriver connection string
      * - SQLite: UTF-8 internally (not configurable)
      * - RDS Data API: controlled by Aurora instance configuration
      *

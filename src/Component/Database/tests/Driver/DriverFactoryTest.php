@@ -16,8 +16,8 @@ namespace WPPack\Component\Database\Tests\Driver;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WPPack\Component\Database\Driver\Driver;
-use WPPack\Component\Database\Driver\MysqlDriver;
-use WPPack\Component\Database\Driver\MysqlDriverFactory;
+use WPPack\Component\Database\Driver\MySQLDriver;
+use WPPack\Component\Database\Driver\MySQLDriverFactory;
 use WPPack\Component\Database\Exception\UnsupportedSchemeException;
 use WPPack\Component\Dsn\Dsn;
 
@@ -26,7 +26,7 @@ final class DriverFactoryTest extends TestCase
     #[Test]
     public function mysqlFactorySupportsSchemes(): void
     {
-        $factory = new MysqlDriverFactory();
+        $factory = new MySQLDriverFactory();
 
         self::assertTrue($factory->supports(Dsn::fromString('mysql://host/db')));
         self::assertTrue($factory->supports(Dsn::fromString('mariadb://host/db')));
@@ -37,30 +37,30 @@ final class DriverFactoryTest extends TestCase
     }
 
     #[Test]
-    public function mysqlFactoryCreatesMysqlDriver(): void
+    public function mysqlFactoryCreatesMySQLDriver(): void
     {
-        $factory = new MysqlDriverFactory();
+        $factory = new MySQLDriverFactory();
         $driver = $factory->create(Dsn::fromString('mysql://user:pass@localhost:3306/mydb'));
 
-        self::assertInstanceOf(MysqlDriver::class, $driver);
+        self::assertInstanceOf(MySQLDriver::class, $driver);
         self::assertSame('mysql', $driver->getName());
     }
 
     #[Test]
     public function mysqlFactoryDefinitions(): void
     {
-        $definitions = MysqlDriverFactory::definitions();
+        $definitions = MySQLDriverFactory::definitions();
 
         self::assertCount(1, $definitions);
         self::assertSame('mysql', $definitions[0]->scheme);
     }
 
     #[Test]
-    public function driverFromDsnCreatesMysqlDriver(): void
+    public function driverFromDsnCreatesMySQLDriver(): void
     {
         $driver = Driver::fromDsn('mysql://user:pass@localhost:3306/testdb');
 
-        self::assertInstanceOf(MysqlDriver::class, $driver);
+        self::assertInstanceOf(MySQLDriver::class, $driver);
     }
 
     #[Test]

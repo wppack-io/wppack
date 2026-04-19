@@ -18,7 +18,7 @@ Aurora DSQL   ──→ MySQL SQL 出力（型変換付き）
 | JSON エクスポート | ✅ | ✅ | ✅ | ✅ |
 | CSV エクスポート | ✅ | ✅ | ✅ | ✅ |
 | SQL エクスポート | ✅ | ✅ | ✅ | ✅ |
-| スキーマ読み取り | ✅ MysqlSchemaReader | ✅ SqliteSchemaReader | ✅ PostgresqlSchemaReader | ✅ PostgresqlSchemaReader |
+| スキーマ読み取り | ✅ MySQLSchemaReader | ✅ SqliteSchemaReader | ✅ PostgreSQLSchemaReader | ✅ PostgreSQLSchemaReader |
 
 ## アーキテクチャ
 
@@ -43,10 +43,10 @@ ExportWriter（フォーマット別出力）
 
 | SchemaReader | エンジン | スキーマ取得方法 |
 |-------------|--------|---------------|
-| `MysqlSchemaReader` | MySQL / MariaDB | `SHOW CREATE TABLE`（Database コア） |
-| `MariadbSchemaReader` | MariaDB | `MysqlSchemaReader` 継承（Database コア） |
+| `MySQLSchemaReader` | MySQL / MariaDB | `SHOW CREATE TABLE`（Database コア） |
+| `MariadbSchemaReader` | MariaDB | `MySQLSchemaReader` 継承（Database コア） |
 | `SqliteSchemaReader` | SQLite | `PRAGMA table_info` + `_mysql_data_types_cache`（Bridge/Sqlite） |
-| `PostgresqlSchemaReader` | PostgreSQL / DSQL | `information_schema.columns` + `pg_index`（Bridge/Pgsql） |
+| `PostgreSQLSchemaReader` | PostgreSQL / DSQL | `information_schema.columns` + `pg_index`（Bridge/PostgreSQL） |
 
 ### SQLite → MySQL 型変換
 

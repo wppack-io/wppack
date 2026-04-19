@@ -110,7 +110,7 @@ final class SqliteSchemaReader implements SchemaReaderInterface
 
             $columns[] = new ColumnSchema(
                 name: $row['name'],
-                type: $this->typeMapper->toMysqlType($sourceType),
+                type: $this->typeMapper->toMySQLType($sourceType),
                 nullable: ($row['notnull'] ?? 1) == 0,
                 default: $row['dflt_value'] ?? null,
                 extra: $isAutoIncrement ? 'auto_increment' : '',

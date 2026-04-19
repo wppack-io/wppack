@@ -18,7 +18,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use WPPack\Component\Database\Connection;
 use WPPack\Component\Database\Driver\DriverInterface;
-use WPPack\Component\Database\Platform\MysqlPlatform;
+use WPPack\Component\Database\Platform\MySQLPlatform;
 use WPPack\Component\Database\Result;
 use WPPack\Component\Database\Statement;
 
@@ -125,7 +125,7 @@ final class ConnectionTest extends TestCase
     public function quoteIdentifierDelegatesToPlatform(): void
     {
         $driver = $this->createMock(DriverInterface::class);
-        $driver->method('getPlatform')->willReturn(new MysqlPlatform());
+        $driver->method('getPlatform')->willReturn(new MySQLPlatform());
 
         $connection = new Connection($driver);
 
@@ -135,7 +135,7 @@ final class ConnectionTest extends TestCase
     #[Test]
     public function getPlatform(): void
     {
-        $platform = new MysqlPlatform();
+        $platform = new MySQLPlatform();
         $driver = $this->createMock(DriverInterface::class);
         $driver->method('getPlatform')->willReturn($platform);
 

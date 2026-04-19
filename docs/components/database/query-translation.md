@@ -359,7 +359,7 @@ CREATE TABLE "wp_posts" ("id" BIGSERIAL NOT NULL, ...);
 -- WordPress: SELECT * FROM wp_posts WHERE ID = 1  → id = "id" ✓
 ```
 
-`PostgresqlPlatform::quoteIdentifier()` は自動的に `strtolower()` を適用し、DDL・DML の両方で一貫したケースを保証する。
+`PostgreSQLPlatform::quoteIdentifier()` は自動的に `strtolower()` を適用し、DDL・DML の両方で一貫したケースを保証する。
 
 #### LIKE ESCAPE の自動付与
 
@@ -536,7 +536,7 @@ Aurora DSQL は PostgreSQL 互換だが、以下の制限がある:
 |-------|-----------|------|
 | `TRUNCATE TABLE t` | `DELETE FROM "t"` | DSQL は TRUNCATE 未対応 |
 
-その他の SQL は PostgresqlQueryTranslator と同一の変換を適用。
+その他の SQL は PostgreSQLQueryTranslator と同一の変換を適用。
 
 ### DSQL 固有のドライバ機能
 

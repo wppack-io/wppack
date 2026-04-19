@@ -25,7 +25,7 @@ final class MariadbTypeMapper implements TypeMapperInterface
     private const BINARY_TYPES = ['binary', 'varbinary', 'tinyblob', 'blob', 'mediumblob', 'longblob'];
     private const NUMERIC_TYPES = ['tinyint', 'smallint', 'mediumint', 'int', 'bigint', 'float', 'double', 'decimal', 'bit'];
 
-    public function toMysqlType(string $sourceType): string
+    public function toMySQLType(string $sourceType): string
     {
         $normalized = strtolower(trim($sourceType));
 

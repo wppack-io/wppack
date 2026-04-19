@@ -1,0 +1,401 @@
+<?php
+
+/*
+ * This file is part of the WPPack package.
+ *
+ * (c) Tsuyoshi Tsurushima
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+declare(strict_types=1);
+
+namespace WPPack\Component\Database\Bridge\AuroraDSQL;
+
+use AsyncAws\Core\Configuration;
+use AsyncAws\Core\Credentials\ChainProvider;
+use AsyncAws\Core\Credentials\CredentialProvider;
+use AsyncAws\Core\Request;
+use AsyncAws\Core\RequestContext;
+use AsyncAws\Core\Signer\SignerV4;
+use AsyncAws\Core\Stream\StringStream;
+use Psr\Log\LoggerInterface;
+use WPPack\Component\Database\Bridge\AuroraDSQL\Translator\AuroraDSQLQueryTranslator;
+use WPPack\Component\Database\Bridge\PostgreSQL\PostgreSQLDriver;
+use WPPack\Component\Database\Exception\ConnectionException;
+use WPPack\Component\Database\Exception\DriverException;
+use WPPack\Component\Database\Result;
+use WPPack\Component\Database\Translator\QueryTranslatorInterface;
+
+/**
+ * Aurora DSQL driver — extends PostgreSQLDriver with IAM token auth, SSL, and OCC retry.
+ *
+ * Features (aligned with awslabs/aurora-dsql-php-pdo-pgsql):
+ * - SigV4 presigned IAM tokens (auto-generated via async-aws/core)
+ * - SSL verify-full + sslnegotiation=direct (libpq 17+)
+ * - OCC retry with exponential backoff + jitter (single statements only)
+ * - transaction() for retrying entire transaction blocks on OCC conflict
+ * - Automatic token refresh before expiry
+ */
+class AuroraDSQLDriver extends PostgreSQLDriver
+{
+    private const OCC_INITIAL_WAIT_MS = 100;
+    private const OCC_MAX_WAIT_MS = 5000;
+    private const OCC_MULTIPLIER = 2.0;
+    /**
+     * We rotate the IAM token this many seconds before the actual expiry
+     * returned by SigV4 presigning. The margin has to cover:
+     *   - SigV4 server-side clock skew (AWS allows ±5 min, we cap at 60s).
+     *   - async-aws/core credential fetch latency (≤ ~2s from IMDSv2,
+     *     much higher from STS AssumeRole on first call).
+     *   - Worst-case pg_connect() round trip on a saturated VPC.
+     * 60s was tight for high-load production — 120s gives real headroom
+     * without shortening the effective token lifetime much (default
+     * duration is 900s).
+     */
+    private const TOKEN_REFRESH_MARGIN_SECS = 120;
+
+    private ?\DateTimeImmutable $tokenExpiresAt = null;
+    private ?LoggerInterface $logger;
+    private string $currentToken;
+    private readonly string $region;
+    private readonly int $tokenDurationSecs;
+    private readonly int $occMaxRetries;
+    private readonly ?CredentialProvider $credentialProvider;
+    private readonly bool $hasStaticToken;
+
+    /**
+     * @param list<string>|null $searchPath
+     */
+    public function __construct(
+        string $endpoint,
+        string $region,
+        string $database,
+        string $username = 'admin',
+        #[\SensitiveParameter]
+        ?string $token = null,
+        int $tokenDurationSecs = 900,
+        int $occMaxRetries = 3,
+        ?CredentialProvider $credentialProvider = null,
+        ?LoggerInterface $logger = null,
+        ?array $searchPath = null,
+    ) {
+        $this->region = $region;
+        $this->tokenDurationSecs = $tokenDurationSecs;
+        $this->occMaxRetries = $occMaxRetries;
+        $this->credentialProvider = $credentialProvider;
+        $this->logger = $logger;
+        $this->hasStaticToken = $token !== null;
+
+        $this->currentToken = $token ?? $this->generateToken($endpoint, $region, $username, $tokenDurationSecs, $credentialProvider);
+
+        parent::__construct(
+            host: $endpoint,
+            username: $username,
+            password: $this->currentToken,
+            database: $database,
+            port: 5432,
+            searchPath: $searchPath,
+        );
+    }
+
+    public function getPlatform(): \WPPack\Component\Database\Platform\PlatformInterface
+    {
+        return new DSQLPlatform();
+    }
+
+    /**
+     * Override doConnect to refresh token on reconnection if needed.
+     */
+    protected function doConnect(): void
+    {
+        if ($this->connection !== null) {
+            return;
+        }
+
+        // Refresh token if auto-generated and approaching expiry
+        if (!$this->hasStaticToken && $this->tokenExpiresAt !== null
+            && new \DateTimeImmutable() >= $this->tokenExpiresAt) {
+            $this->currentToken = $this->generateToken(
+                $this->host,
+                $this->region,
+                $this->username,
+                $this->tokenDurationSecs,
+                $this->credentialProvider,
+            );
+        }
+
+        $esc = static fn(string $v): string => "'" . str_replace(['\\', "'"], ['\\\\', "\\'"], $v) . "'";
+
+        $connStr = \sprintf(
+            'host=%s port=%d dbname=%s user=%s password=%s client_encoding=%s',
+            $esc($this->host),
+            $this->port,
+            $esc($this->database),
+            $esc($this->username),
+            $esc($this->currentToken),
+            $esc('UTF8'),
+        );
+
+        $connStr .= " sslmode='verify-full'";
+
+        if (static::supportsDirectSslNegotiation()) {
+            $connStr .= " sslnegotiation='direct'";
+        }
+
+        $connection = @pg_connect($connStr);
+
+        if ($connection === false) {
+            throw new ConnectionException('Failed to connect to Aurora DSQL.');
+        }
+
+        $this->connection = $connection;
+
+        // Base doConnect() is bypassed here (token refresh requires the
+        // bespoke connection-string build above), so the parent's
+        // applySearchPath() never runs unless we invoke it ourselves.
+        // Without this call, DSN options like ?search_path=tenant_42
+        // would parse, populate the property, and silently do nothing.
+        $this->applySearchPath();
+    }
+
+    public function getName(): string
+    {
+        return 'dsql';
+    }
+
+    public function getQueryTranslator(): QueryTranslatorInterface
+    {
+        return new AuroraDSQLQueryTranslator();
+    }
+
+    /**
+     * Execute query with OCC retry (only outside transactions).
+     *
+     * Inside a transaction, individual statements are not retried — the
+     * entire transaction must be retried via transaction(). This matches
+     * the AWS DSQLPdo::exec() semantics.
+     */
+    protected function doExecuteQuery(string $sql, array $params = []): Result
+    {
+        $this->ensureTokenFresh();
+
+        if ($this->occMaxRetries === 0 || $this->inTransaction()) {
+            return parent::doExecuteQuery($sql, $params);
+        }
+
+        return $this->executeWithOccRetry(fn(): Result => parent::doExecuteQuery($sql, $params));
+    }
+
+    protected function doExecuteStatement(string $sql, array $params = []): int
+    {
+        $this->ensureTokenFresh();
+
+        if ($this->occMaxRetries === 0 || $this->inTransaction()) {
+            return parent::doExecuteStatement($sql, $params);
+        }
+
+        return $this->executeWithOccRetry(fn(): int => parent::doExecuteStatement($sql, $params));
+    }
+
+    // ── Transaction with OCC retry ──
+
+    /**
+     * Execute a callback inside a transaction with automatic OCC retry.
+     *
+     * On OCC conflict (SQLSTATE 40001, OC000, OC001), the transaction is
+     * rolled back and the entire callback is re-executed with exponential
+     * backoff. This matches the AWS DSQLPdo::transaction() pattern.
+     *
+     * The callback should NOT call beginTransaction() or commit().
+     *
+     * @template T
+     *
+     * @param callable(self): T $callback
+     *
+     * @return T
+     */
+    public function transaction(callable $callback): mixed
+    {
+        return $this->executeWithOccRetry(function () use ($callback): mixed {
+            // Refresh the IAM token BEFORE entering the transaction, not
+            // while inside it. ensureTokenFresh() is a no-op during an
+            // active transaction so doExecuteStatement() can't close the
+            // connection mid-commit; the retry loop gives us another pass
+            // here with a fresh token on the next attempt.
+            $this->ensureTokenFresh();
+            $this->beginTransaction();
+
+            try {
+                $result = $callback($this);
+                $this->commit();
+
+                return $result;
+            } catch (\Throwable $e) {
+                if ($this->inTransaction()) {
+                    try {
+                        $this->rollBack();
+                    } catch (DriverException $rollbackEx) {
+                        $this->logger?->error(\sprintf(
+                            '[AuroraDSQL] rollBack() failed during OCC retry: %s',
+                            $rollbackEx->getMessage(),
+                        ));
+                    }
+                }
+
+                throw $e;
+            }
+        });
+    }
+
+    // ── Token management ──
+
+    /**
+     * Close connection if token is approaching expiry — doConnect() will regenerate.
+     *
+     * Must NOT fire while we are inside a transaction: closing the
+     * connection mid-transaction silently aborts it on the server side,
+     * and the next query would run outside the user's transaction scope.
+     * The caller (transaction() / executeWithOccRetry) checks freshness
+     * at the start of each retry attempt instead, so a long transaction
+     * that crosses the expiry margin surfaces as a failed commit rather
+     * than as a silent loss of ACID boundaries.
+     */
+    private function ensureTokenFresh(): void
+    {
+        if ($this->tokenExpiresAt === null || $this->hasStaticToken) {
+            return;
+        }
+
+        if ($this->inTransaction()) {
+            return;
+        }
+
+        if (new \DateTimeImmutable() < $this->tokenExpiresAt) {
+            return;
+        }
+
+        $this->close();
+    }
+
+    /**
+     * Generate IAM authentication token via SigV4 presigned URL.
+     *
+     * Uses the same pattern as ElastiCacheIamTokenGenerator.
+     */
+    private function generateToken(
+        string $endpoint,
+        string $region,
+        string $username,
+        int $tokenDurationSecs,
+        ?CredentialProvider $credentialProvider,
+    ): string {
+        if (!class_exists(Configuration::class)) {
+            throw new ConnectionException(
+                'Aurora DSQL requires async-aws/core for IAM token generation. '
+                . 'Install it via: composer require async-aws/core. '
+                . 'Alternatively, provide a pre-generated token via the constructor.',
+            );
+        }
+
+        $provider = $credentialProvider ?? ChainProvider::createDefaultChain();
+        $credentials = $provider->getCredentials(
+            Configuration::create(['region' => $region]),
+        );
+
+        if ($credentials === null) {
+            throw new ConnectionException(
+                'Unable to resolve AWS credentials for Aurora DSQL.',
+            );
+        }
+
+        $action = $username === 'admin' ? 'DbConnectAdmin' : 'DbConnect';
+
+        $request = new Request('GET', '/', [], [], StringStream::create(''));
+        $request->setEndpoint(\sprintf('https://%s', $endpoint));
+        $request->setQueryAttribute('Action', $action);
+
+        $expiresAt = new \DateTimeImmutable(\sprintf('+%d seconds', $tokenDurationSecs));
+        $context = new RequestContext([
+            'expirationDate' => $expiresAt,
+        ]);
+
+        $signer = new SignerV4('dsql', $region);
+        $signer->presign($request, $credentials, $context);
+
+        // Track token expiry with refresh margin
+        $this->tokenExpiresAt = $expiresAt->modify(
+            \sprintf('-%d seconds', self::TOKEN_REFRESH_MARGIN_SECS),
+        );
+
+        return str_replace('https://', '', $request->getEndpoint());
+    }
+
+    // ── OCC Retry ──
+
+    /**
+     * Execute an operation with OCC retry (exponential backoff + jitter).
+     *
+     * @template T
+     *
+     * @param \Closure(): T $operation
+     *
+     * @return T
+     */
+    private function executeWithOccRetry(\Closure $operation): mixed
+    {
+        if ($this->occMaxRetries === 0) {
+            return $operation();
+        }
+
+        $waitMs = self::OCC_INITIAL_WAIT_MS;
+
+        // Attempts = initial call + up to $occMaxRetries retries. The loop
+        // is bounded by `<` so with occMaxRetries=3 we get exactly 4 total
+        // calls (1 + 3), not 5. Previously `<=` produced one too many.
+        for ($attempt = 0; $attempt < $this->occMaxRetries + 1; ++$attempt) {
+            try {
+                return $operation();
+            } catch (DriverException $e) {
+                $isLastAttempt = $attempt === $this->occMaxRetries;
+                if (!self::isOccError($e) || $isLastAttempt) {
+                    throw $e;
+                }
+
+                // Decorrelated jitter between waitMs/2 and waitMs so we
+                // always back off at least half the base wait — the old
+                // `random_int(0, waitMs) + waitMs` form could emit the
+                // same lower bound as the cumulative wait, producing a
+                // retry storm on synchronised client clocks.
+                $sleepMs = random_int((int) ($waitMs / 2), $waitMs);
+
+                $this->logger?->warning(\sprintf(
+                    '[AuroraDSQL] OCC conflict, retrying (attempt %d/%d, wait %.2fs)',
+                    $attempt + 1,
+                    $this->occMaxRetries,
+                    $sleepMs / 1000.0,
+                ));
+
+                usleep($sleepMs * 1000);
+                $waitMs = (int) min($waitMs * self::OCC_MULTIPLIER, self::OCC_MAX_WAIT_MS);
+            }
+        }
+
+        throw new DriverException('OCC max retries exceeded');
+    }
+
+    /**
+     * Check if an exception is an OCC conflict error.
+     *
+     * SQLSTATE codes: 40001 (serialization failure), OC000/OC001 (DSQL-specific).
+     */
+    private static function isOccError(\Throwable $e): bool
+    {
+        $message = $e->getMessage();
+
+        return str_contains($message, '40001')
+            || str_contains($message, 'OC000')
+            || str_contains($message, 'OC001');
+    }
+}

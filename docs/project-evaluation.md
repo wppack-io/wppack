@@ -65,7 +65,7 @@ WordPress エコシステムにおいて**前例のない規模と設計品質**
 - バックエンドサービス: MySQL 8.0, PostgreSQL 17, Valkey 8（スタンドアロン + クラスタ + Sentinel）, DynamoDB Local, Memcached
 - Codecov で **85+ コンポーネント個別カバレッジ追跡**
 - PHPUnit 属性スタイル (`#[Test]`, `#[DataProvider]`) を一貫使用
-- 統合テスト (`MysqlWpdbIntegrationTest`, `SqliteWpdbIntegrationTest`, `PgsqlWpdbIntegrationTest`, `PgsqlSearchPathTest`, `MysqlGoneAwayTest`, `PgsqlGoneAwayTest` など) で実 DB 動作を担保
+- 統合テスト (`MySQLWpdbIntegrationTest`, `SqliteWpdbIntegrationTest`, `PostgreSQLWpdbIntegrationTest`, `PostgreSQLSearchPathTest`, `MySQLGoneAwayTest`, `PostgreSQLGoneAwayTest` など) で実 DB 動作を担保
 
 ### 2.4 ドキュメント
 
@@ -125,7 +125,7 @@ Bridge パッケージの成熟度（src ファイル数）:
 | Cache → Redis | 8 |
 | Scheduler → EventBridge | 7 |
 | Monitoring → CloudWatch | 7 |
-| Database → (Sqlite / Pgsql / AuroraDsql / MysqlDataApi / PgsqlDataApi) | 3 each |
+| Database → (Sqlite / PostgreSQL / AuroraDSQL / MySQLDataApi / PostgreSQLDataApi) | 3 each |
 | Storage → Azure | 4 |
 | Mailer → (Amazon / Azure / SendGrid) | 3-4 each |
 | Logger → Monolog | 3 |

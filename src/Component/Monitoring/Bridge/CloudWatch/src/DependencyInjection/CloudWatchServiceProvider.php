@@ -15,7 +15,7 @@ namespace WPPack\Component\Monitoring\Bridge\CloudWatch\DependencyInjection;
 
 use WPPack\Component\DependencyInjection\ContainerBuilder;
 use WPPack\Component\DependencyInjection\ServiceProviderInterface;
-use WPPack\Component\Monitoring\Bridge\CloudWatch\Discovery\DsqlDiscovery;
+use WPPack\Component\Monitoring\Bridge\CloudWatch\Discovery\DSQLDiscovery;
 use WPPack\Component\Monitoring\Bridge\CloudWatch\Discovery\DynamoDbDiscovery;
 use WPPack\Component\Monitoring\Bridge\CloudWatch\Discovery\ElastiCacheDiscovery;
 use WPPack\Component\Monitoring\Bridge\CloudWatch\Discovery\RdsDiscovery;
@@ -32,7 +32,7 @@ class CloudWatchServiceProvider implements ServiceProviderInterface
         $builder->register(RdsDiscovery::class)
             ->addTag('monitoring.provider');
 
-        $builder->register(DsqlDiscovery::class)
+        $builder->register(DSQLDiscovery::class)
             ->addTag('monitoring.provider');
 
         $builder->register(ElastiCacheDiscovery::class)

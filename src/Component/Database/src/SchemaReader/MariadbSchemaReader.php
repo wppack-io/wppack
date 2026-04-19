@@ -20,11 +20,11 @@ use WPPack\Component\Database\TypeMapper\MariadbTypeMapper;
 /**
  * Schema reader for MariaDB databases.
  *
- * Extends MysqlSchemaReader with MariaDB detection and MariaDB-specific
+ * Extends MySQLSchemaReader with MariaDB detection and MariaDB-specific
  * column type classification (INET4, INET6, UUID, XMLTYPE, VECTOR).
  * DdlNormalizer handles the actual DDL type conversion.
  */
-class MariadbSchemaReader extends MysqlSchemaReader
+class MariadbSchemaReader extends MySQLSchemaReader
 {
     private readonly MariadbTypeMapper $mariadbTypeMapper;
 

@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace WPPack\Component\Database\Platform;
 
-class MariadbPlatform extends MysqlPlatform
+class MariadbPlatform extends MySQLPlatform
 {
     public function getEngine(): string
     {

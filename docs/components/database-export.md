@@ -16,7 +16,7 @@ composer require wppack/database-export
 
 ```php
 use WPPack\Component\Database\DatabaseManager;
-use WPPack\Component\Database\SchemaReader\MysqlSchemaReader;
+use WPPack\Component\Database\SchemaReader\MySQLSchemaReader;
 use WPPack\Component\DatabaseExport\DatabaseExporter;
 use WPPack\Component\DatabaseExport\ExportConfiguration;
 use WPPack\Component\DatabaseExport\RowTransformer\WpOptionsTransformer;
@@ -32,7 +32,7 @@ $config = new ExportConfiguration(
 
 $exporter = new DatabaseExporter(
     db: $db,
-    schemaReader: new MysqlSchemaReader(),
+    schemaReader: new MySQLSchemaReader(),
     writer: new WpressSqlWriter(),
     tableFilter: new PrefixTableFilter($config),
     rowTransformers: [

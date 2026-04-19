@@ -21,7 +21,7 @@ interface TypeMapperInterface
     /**
      * Convert a source database column type to its MySQL equivalent.
      */
-    public function toMysqlType(string $sourceType): string;
+    public function toMySQLType(string $sourceType): string;
 
     /**
      * Determine whether the source type is binary (BLOB, BINARY, etc.).

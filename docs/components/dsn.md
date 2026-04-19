@@ -133,7 +133,7 @@ use WPPack\Component\Database\Driver\Driver;
 $driver = Driver::fromDsn('pgsql://user:pass@host:5432/dbname?search_path=tenant');
 ```
 
-`Driver::fromDsn()` は内部で `Dsn::fromString` を呼び、スキームに応じた `PgsqlDriver` / `MysqlDriver` / `SqliteDriver` 等をディスパッチします。
+`Driver::fromDsn()` は内部で `Dsn::fromString` を呼び、スキームに応じた `PostgreSQLDriver` / `MySQLDriver` / `SqliteDriver` 等をディスパッチします。
 
 ### Cache
 

@@ -258,21 +258,21 @@ component_management:
       paths:
         - src/Component/Database/Bridge/Sqlite/src/**
     - component_id: pgsql-database
-      name: PgsqlDatabase
+      name: PostgreSQLDatabase
       paths:
-        - src/Component/Database/Bridge/Pgsql/src/**
+        - src/Component/Database/Bridge/PostgreSQL/src/**
     - component_id: mysql-data-api-database
-      name: MysqlDataApiDatabase
+      name: MySQLDataApiDatabase
       paths:
-        - src/Component/Database/Bridge/MysqlDataApi/src/**
+        - src/Component/Database/Bridge/MySQLDataApi/src/**
     - component_id: pgsql-data-api-database
-      name: PgsqlDataApiDatabase
+      name: PostgreSQLDataApiDatabase
       paths:
-        - src/Component/Database/Bridge/PgsqlDataApi/src/**
+        - src/Component/Database/Bridge/PostgreSQLDataApi/src/**
     - component_id: aurora-dsql-database
-      name: AuroraDsqlDatabase
+      name: AuroraDSQLDatabase
       paths:
-        - src/Component/Database/Bridge/AuroraDsql/src/**
+        - src/Component/Database/Bridge/AuroraDSQL/src/**
 
     # Application Layer
     - component_id: plugin

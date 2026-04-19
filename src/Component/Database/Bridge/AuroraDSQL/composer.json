@@ -1,0 +1,26 @@
+{
+  "name": "wppack/aurora-dsql-database",
+  "description": "Aurora DSQL database driver for WPPack",
+  "type": "library",
+  "license": "MIT",
+  "require": {
+    "ext-pgsql": "*",
+    "php": "^8.2",
+    "wppack/database": "^1.0",
+    "wppack/dsn": "^1.0",
+    "wppack/postgresql-database": "^1.0"
+  },
+  "suggest": {
+    "async-aws/core": "Required for automatic IAM token generation"
+  },
+  "autoload": {
+    "psr-4": {
+      "WPPack\\Component\\Database\\Bridge\\AuroraDSQL\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "WPPack\\Component\\Database\\Bridge\\AuroraDSQL\\Tests\\": "tests/"
+    }
+  }
+}
