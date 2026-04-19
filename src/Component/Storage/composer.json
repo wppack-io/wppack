@@ -1,20 +1,21 @@
 {
-    "name": "wppack/storage",
-    "description": "Object storage abstraction for WordPress",
-    "type": "library",
-    "license": "MIT",
-    "require": {
-        "php": "^8.2",
-        "wppack/mime": "^1.0"
-    },
-    "autoload": {
-        "psr-4": {
-            "WPPack\\Component\\Storage\\": "src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "WPPack\\Component\\Storage\\Tests\\": "tests/"
-        }
+  "name": "wppack/storage",
+  "description": "Object storage abstraction for WordPress",
+  "type": "library",
+  "license": "MIT",
+  "require": {
+    "php": "^8.2",
+    "wordpress/core-implementation": "^6.3",
+    "wppack/mime": "^1.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "WPPack\\Component\\Storage\\": "src/"
     }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "WPPack\\Component\\Storage\\Tests\\": "tests/"
+    }
+  }
 }

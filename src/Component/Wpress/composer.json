@@ -1,19 +1,20 @@
 {
-    "name": "wppack/wpress",
-    "description": "All-in-One WP Migration .wpress archive format handling",
-    "type": "library",
-    "license": "MIT",
-    "require": {
-        "php": "^8.2"
-    },
-    "autoload": {
-        "psr-4": {
-            "WPPack\\Component\\Wpress\\": "src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "WPPack\\Component\\Wpress\\Tests\\": "tests/"
-        }
+  "name": "wppack/wpress",
+  "description": "All-in-One WP Migration .wpress archive format handling",
+  "type": "library",
+  "license": "MIT",
+  "require": {
+    "php": "^8.2",
+    "wordpress/core-implementation": "^6.3"
+  },
+  "autoload": {
+    "psr-4": {
+      "WPPack\\Component\\Wpress\\": "src/"
     }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "WPPack\\Component\\Wpress\\Tests\\": "tests/"
+    }
+  }
 }
