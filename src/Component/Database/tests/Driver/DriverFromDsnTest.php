@@ -16,6 +16,7 @@ namespace WPPack\Component\Database\Tests\Driver;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WPPack\Component\Database\Driver\Driver;
+use WPPack\Component\Database\Bridge\MySQLDataApi\MySQLDataApiDriver;
 use WPPack\Component\Database\Driver\MySQLDriver;
 use WPPack\Component\Database\Exception\UnsupportedSchemeException;
 
@@ -56,17 +57,16 @@ final class DriverFromDsnTest extends TestCase
     #[Test]
     public function dataApiSchemeIsNotShadowedByMySQL(): void
     {
-        // The critical safety property: mysql+dataapi must not be routed to
-        // the plain MySQLDriverFactory. In the old iteration-based lookup a
-        // future factory claiming 'mysql' via loose matching could have
-        // shadowed this; the explicit map guarantees exact scheme dispatch.
-        $this->expectException(UnsupportedSchemeException::class);
+        // The critical safety property: `mysql+dataapi` must NOT be
+        // routed through MySQLDriverFactory. With an explicit
+        // scheme→factory map a future factory claiming 'mysql' via
+        // loose matching cannot shadow this; the DSN therefore resolves
+        // to MySQLDataApiDriver and never degrades into a plain-MySQL
+        // connection attempt with a malformed host.
+        $driver = Driver::fromDsn('mysql+dataapi://arn:aws:rds:us-east-1:000:cluster/wp');
 
-        // async-aws/rds-data-service is not installed in this test env so
-        // the DataApi factory's supports() returns false — we expect the
-        // router to surface UnsupportedSchemeException rather than falling
-        // through to a mysql path with a malformed host.
-        Driver::fromDsn('mysql+dataapi://arn:aws:rds:us-east-1:000:cluster/wp');
+        self::assertInstanceOf(MySQLDataApiDriver::class, $driver);
+        self::assertSame('mysql+dataapi', $driver->getName());
     }
 
     #[Test]
