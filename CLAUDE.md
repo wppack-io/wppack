@@ -8,19 +8,29 @@ WPPack is a monorepo of component libraries that extend WordPress with modern PH
 
 ## Architecture Principles
 
+### Cloud-First
+
+WPPack is built to run in cloud / serverless environments (Lambda, Cloud Functions,
+Fargate, Aurora Serverless) as first-class citizens. Local and server-based
+installations work through graceful fallbacks — never the other way round.
+
+- Stateless by default; anything that wants to keep state asks for a cache / storage
+  adapter via DI.
+- Transparent reconnects (Database gone-away handling, OCC retry on DSQL),
+  cold-start friendly DI (lazy service resolution).
+- Examples: Messenger (SQS / Lambda → synchronous fallback), Scheduler (EventBridge
+  → WP-Cron fallback), Cache (Redis / DynamoDB / APCu / Memcached).
+
 ### Multi-Cloud Support (AWS / GCP / Azure)
 
-Core interfaces (Abstraction Layer) are cloud-agnostic. Provider-specific implementations are separated into Bridge packages. Development is AWS-first, with GCP and Azure support expanding incrementally.
+Core interfaces (Abstraction Layer) are cloud-agnostic. Provider-specific code lives
+in Bridge packages. Development is AWS-first; GCP and Azure support expands
+incrementally.
 
-- Example: Mailer (core) → AmazonMailer / AzureMailer / SendGridMailer
-- Example: Cache (core) → RedisCache / DynamoDbCache / MemcachedCache / ApcuCache
+- Mailer (core) → AmazonMailer / AzureMailer / SendGridMailer
+- Cache (core) → RedisCache / DynamoDbCache / MemcachedCache / ApcuCache
+- Storage (core) → S3Storage / AzureStorage / GcsStorage
 - Bridge naming: `wppack/{provider}-{component}`
-
-### Serverless Environment Support
-
-Serverless environments such as Lambda and Cloud Functions are first-class citizens. Graceful fallbacks are provided for local and server-based environments.
-
-- Example: Messenger (SQS/Lambda → synchronous fallback), Scheduler (EventBridge → WP-Cron fallback)
 - Details: [docs/architecture/infrastructure.md](docs/architecture/infrastructure.md)
 
 ## Package Categories
@@ -37,320 +47,46 @@ Distributed as WordPress plugins. Built on top of Components.
 - Package name: `wppack/{name}`
 - Directory: `src/Plugin/{Name}/`
 
-## Component List
+## Component & Plugin Catalogue
 
-### Infrastructure Layer
-| Component | Package Name | Description |
-|-----------|-------------|------|
-| Handler | wppack/handler | Modern PHP request handler (front controller) |
-| Hook | wppack/hook | Attribute-based WordPress hook (action/filter) management |
-| DependencyInjection | wppack/dependency-injection | PSR-11 compliant service container, autowiring, configuration management |
-| EventDispatcher | wppack/event-dispatcher | PSR-14 compliant event system |
-| Filesystem | wppack/filesystem | WP_Filesystem DI wrapper, file operation abstraction |
-| Kernel | wppack/kernel | Application bootstrap, #[TextDomain] attribute |
-| Option | wppack/option | Type-safe wrapper for wp_options |
-| Transient | wppack/transient | Type-safe wrapper for the Transient API |
-| Role | wppack/role | Role and capability management |
-| Templating | wppack/templating | Template engine abstraction |
-| TwigTemplating | wppack/twig-templating | Twig bridge |
-| Stopwatch | wppack/stopwatch | Code execution time measurement |
-| Logger | wppack/logger | PSR-3 compliant logger |
-| MonologLogger | wppack/monolog-logger | Monolog bridge |
-| Monitoring | wppack/monitoring | Infrastructure monitoring abstraction |
-| CloudWatchMonitoring | wppack/cloudwatch-monitoring | AWS CloudWatch monitoring bridge |
-| CloudflareMonitoring | wppack/cloudflare-monitoring | Cloudflare Analytics monitoring bridge |
-| Mime | wppack/mime | MIME type detection and extension mapping |
-| Site | wppack/site | Multisite management (blog switching, context, site queries) |
+The authoritative catalogue of components, bridges, and plugins — along with
+descriptions and layer classification — lives in the docs tree:
 
-### Abstraction Layer
-| Component | Package Name | Description |
-|-----------|-------------|------|
-| Cache | wppack/cache | PSR-6/PSR-16 cache abstraction |
-| RedisCache | wppack/redis-cache | Redis / Valkey cache |
-| ElastiCacheAuth | wppack/elasticache-auth | ElastiCache IAM authentication |
-| DynamoDbCache | wppack/dynamodb-cache | DynamoDB cache |
-| MemcachedCache | wppack/memcached-cache | Memcached cache |
-| ApcuCache | wppack/apcu-cache | APCu cache |
-| Database | wppack/database | Type-safe wrapper for $wpdb, Driver/Platform/Connection abstraction, migrations |
-| SqliteDatabase | wppack/sqlite-database | SQLite database driver |
-| PgsqlDatabase | wppack/pgsql-database | PostgreSQL database driver |
-| MysqlDataApiDatabase | wppack/mysql-data-api-database | Aurora MySQL Data API driver |
-| PgsqlDataApiDatabase | wppack/pgsql-data-api-database | Aurora PostgreSQL Data API driver |
-| AuroraDsqlDatabase | wppack/aurora-dsql-database | Aurora DSQL database driver |
-| Dsn | wppack/dsn | Shared DSN parser |
-| Query | wppack/query | WP_Query builder |
-| Security | wppack/security | Authentication and authorization framework |
-| SamlSecurity | wppack/saml-security | SAML 2.0 SP authentication bridge |
-| OAuthSecurity | wppack/oauth-security | OAuth 2.0 / OpenID Connect authentication bridge |
-| PasskeySecurity | wppack/passkey-security | WebAuthn/Passkey authentication bridge |
-| Sanitizer | wppack/sanitizer | Input sanitization |
-| Escaper | wppack/escaper | Output escaping |
-| HttpClient | wppack/http-client | HTTP client abstraction |
-| HttpFoundation | wppack/http-foundation | Request/Response abstraction |
-| Mailer | wppack/mailer | Email sending abstraction, TransportInterface |
-| AmazonMailer | wppack/amazon-mailer | SES transport implementation |
-| AzureMailer | wppack/azure-mailer | Azure Communication Services transport implementation |
-| SendGridMailer | wppack/sendgrid-mailer | SendGrid transport implementation |
-| Messenger | wppack/messenger | Transport-agnostic message bus |
-| SqsMessenger | wppack/sqs-messenger | Amazon SQS transport |
-| Serializer | wppack/serializer | Object serialization (Normalizer chain) |
-| OptionsResolver | wppack/options-resolver | Option resolution (Symfony OptionsResolver extension) |
-| Debug | wppack/debug | Debugging and profiling |
-| Storage | wppack/storage | Object storage abstraction |
-| S3Storage | wppack/s3-storage | Amazon S3 storage adapter |
-| AzureStorage | wppack/azure-storage | Azure Blob Storage adapter |
-| GcsStorage | wppack/gcs-storage | Google Cloud Storage adapter |
+- [docs/components/README.md](docs/components/README.md) — every component and
+  bridge, grouped by layer (Infrastructure / Abstraction / Feature / Application).
+- [docs/plugins/README.md](docs/plugins/README.md) — distributable WordPress
+  plugins built on the components.
 
-### Feature Layer
-| Component | Package Name | Description |
-|-----------|-------------|------|
-| Admin | wppack/admin | Admin page and menu registration |
-| Rest | wppack/rest | REST API endpoint definition |
-| Routing | wppack/routing | URL routing |
-| PostType | wppack/post-type | Custom post type and meta registration |
-| Scheduler | wppack/scheduler | Trigger-based task scheduler |
-| EventBridgeScheduler | wppack/eventbridge-scheduler | EventBridge scheduler |
-| Console | wppack/console | WP-CLI command framework |
-| Shortcode | wppack/shortcode | Shortcode registration |
-| Nonce | wppack/nonce | CSRF token management |
-| Asset | wppack/asset | Asset management (scripts and styles) |
-| Ajax | wppack/ajax | Admin Ajax handler |
-| Scim | wppack/scim | SCIM 2.0 provisioning |
-| Wpress | wppack/wpress | .wpress archive format operations |
-| DatabaseExport | wppack/database-export | Database export to SQL/JSON/CSV with multi-engine support |
+Do not duplicate the package list here — update the docs instead. Directory layout
+is documented under "Directory Structure" below.
 
-### Application Layer
-| Component | Package Name | Description |
-|-----------|-------------|------|
-| Plugin | wppack/plugin | Plugin lifecycle management |
-| Theme | wppack/theme | Theme development framework |
-| Widget | wppack/widget | Widget definition |
-| Setting | wppack/setting | Settings API wrapper |
-| User | wppack/user | User management |
-| Block | wppack/block | Block editor integration |
-| Media | wppack/media | Media management |
-| Comment | wppack/comment | Comment management |
-| Taxonomy | wppack/taxonomy | Taxonomy definition |
-| NavigationMenu | wppack/navigation-menu | Menu management |
-| Feed | wppack/feed | RSS/Atom feed |
-| OEmbed | wppack/oembed | oEmbed provider |
-| SiteHealth | wppack/site-health | Site health checks |
-| DashboardWidget | wppack/dashboard-widget | Dashboard widget |
-| Translation | wppack/translation | Translation and internationalization |
+## Dependency Graph
 
-### Plugin Packages
-| Plugin | Package Name | Description |
-|--------|-------------|------|
-| EventBridgeSchedulerPlugin | wppack/eventbridge-scheduler-plugin | EventBridge scheduler plugin |
-| S3StoragePlugin | wppack/s3-storage-plugin | S3 storage plugin |
-| AmazonMailerPlugin | wppack/amazon-mailer-plugin | Amazon SES mailer plugin |
-| DebugPlugin | wppack/debug-plugin | Debug toolbar plugin |
-| RedisCachePlugin | wppack/redis-cache-plugin | Redis cache plugin |
-| SamlLoginPlugin | wppack/saml-login-plugin | SAML 2.0 SSO login plugin |
-| ScimPlugin | wppack/scim-plugin | SCIM 2.0 provisioning plugin |
-| MonitoringPlugin | wppack/monitoring-plugin | Infrastructure monitoring dashboard plugin |
-| OAuthLoginPlugin | wppack/oauth-login-plugin | OAuth 2.0 / OpenID Connect login plugin |
-| PasskeyLoginPlugin | wppack/passkey-login-plugin | WebAuthn/Passkey passwordless login plugin |
-| RoleProvisioningPlugin | wppack/role-provisioning-plugin | Rule-based role provisioning and blog membership plugin |
+Per-package dependencies are declared in each `composer.json` and flow through
+Composer's PSR-4 autoload. Architectural layering (Infrastructure → Abstraction →
+Feature → Application) is documented in
+[docs/architecture/](docs/architecture/) — refer there when deciding whether a new
+dependency is acceptable (a lower layer must never depend on a higher one).
 
-## Key Dependencies
-
-```
-wppack/handler
-    ↓ requires
-wppack/http-foundation, wppack/mime
-    + wppack/kernel (suggest)
-
-wppack/eventbridge-scheduler-plugin
-    ↓ requires
-wppack/scheduler
-    ↓ requires
-wppack/messenger
-
-wppack/messenger
-    ↓ requires
-wppack/serializer, wppack/site
-
-wppack/sqs-messenger
-    ↓ requires
-wppack/messenger, wppack/site
-    + async-aws/sqs
-
-wppack/media
-    ↓ requires
-wppack/post-type, wppack/storage, wppack/site
-
-wppack/s3-storage-plugin
-    ↓ requires
-wppack/storage, wppack/s3-storage, wppack/rest, wppack/site
-    + wppack/media, wppack/messenger
-    + async-aws/s3
-
-wppack/s3-storage
-    ↓ requires
-wppack/storage
-    + async-aws/s3
-
-wppack/azure-storage
-    ↓ requires
-wppack/storage
-    + azure-oss/storage
-
-wppack/gcs-storage
-    ↓ requires
-wppack/storage
-    + google/cloud-storage
-
-wppack/elasticache-auth
-    + async-aws/core
-
-wppack/redis-cache
-    ↓ requires
-wppack/cache
-    + ext-redis / ext-relay / predis/predis
-
-wppack/dynamodb-cache
-    ↓ requires
-wppack/cache
-    + async-aws/dynamo-db
-
-wppack/memcached-cache
-    ↓ requires
-wppack/cache
-    + ext-memcached
-
-wppack/apcu-cache
-    ↓ requires
-wppack/cache
-    + ext-apcu
-
-wppack/amazon-mailer
-    ↓ requires
-wppack/mailer
-    + async-aws/ses
-
-wppack/azure-mailer
-    ↓ requires
-wppack/mailer
-
-wppack/sendgrid-mailer
-    ↓ requires
-wppack/mailer
-
-wppack/amazon-mailer-plugin
-    ↓ requires
-wppack/amazon-mailer, wppack/mailer, wppack/hook
-    + wppack/dependency-injection, wppack/kernel, wppack/messenger
-
-wppack/redis-cache-plugin
-    ↓ requires
-wppack/cache, wppack/redis-cache, wppack/elasticache-auth, wppack/hook
-    + wppack/dependency-injection, wppack/kernel
-
-wppack/security
-    ↓ requires
-wppack/role, wppack/http-foundation, wppack/event-dispatcher, wppack/site
-
-wppack/admin, wppack/setting, wppack/dashboard-widget
-    ↓ requires
-wppack/role, wppack/http-foundation
-    + wppack/security (suggest)
-    + wppack/templating (suggest)
-
-wppack/ajax, wppack/routing, wppack/rest
-    ↓ requires
-wppack/role, wppack/http-foundation
-
-wppack/saml-security
-    ↓ requires
-wppack/security, wppack/site
-    + litesaml/lightsaml
-
-wppack/oauth-security
-    ↓ requires
-wppack/security, wppack/site
-    + firebase/php-jwt
-
-wppack/passkey-security
-    ↓ requires
-wppack/security
-    + web-auth/webauthn-lib
-
-wppack/passkey-login-plugin
-    ↓ requires
-wppack/passkey-security, wppack/kernel, wppack/dependency-injection, wppack/hook
-    + wppack/security, wppack/rest, wppack/database, wppack/transient
-
-wppack/eventbridge-scheduler
-    ↓ requires
-wppack/scheduler, wppack/messenger, wppack/site
-    + async-aws/scheduler
-
-wppack/twig-templating
-    ↓ requires
-wppack/templating
-    + twig/twig
-
-wppack/monolog-logger
-    ↓ requires
-wppack/logger
-    + monolog/monolog
-
-wppack/scim
-    ↓ requires
-wppack/rest, wppack/user, wppack/role, wppack/security
-wppack/http-foundation, wppack/event-dispatcher, wppack/sanitizer, wppack/site
-
-wppack/database-export
-    ↓ requires
-wppack/database
-    + wppack/wpress (suggest)
-
-wppack/database
-    ↓ requires
-wppack/dsn, psr/log
-
-wppack/sqlite-database
-    ↓ requires
-wppack/database, phpmyadmin/sql-parser
-    + ext-pdo_sqlite
-
-wppack/pgsql-database
-    ↓ requires
-wppack/database, phpmyadmin/sql-parser
-    + ext-pgsql
-
-wppack/mysql-data-api-database
-    ↓ requires
-wppack/database
-    + async-aws/rds-data-service
-
-wppack/pgsql-data-api-database
-    ↓ requires
-wppack/database, wppack/pgsql-database
-    + async-aws/rds-data-service
-
-wppack/aurora-dsql-database
-    ↓ requires
-wppack/database, wppack/pgsql-database
-    + async-aws/core (suggest)
-
-wppack/scim-plugin
-    ↓ requires
-wppack/scim, wppack/kernel, wppack/dependency-injection
-wppack/event-dispatcher, wppack/security
-wppack/http-foundation, wppack/rest, wppack/site, wppack/user
-```
+`wordpress/core-implementation` is declared by every package whose src/ calls a
+WordPress function directly. See "Checklist for Adding Components" below for the
+current rule.
 
 ## Development Guidelines
 
 ### Language
-- Documentation: English
+- Documentation: English (`src/Component/**/README.md`, `src/Plugin/**/README.md`)
+- Top-level docs (`docs/`, root `README.md`): English
+- Japanese docs under `docs/` are acceptable where the audience is JP-speaking
+  operators / maintainers (per-case)
 - Code: English (variable names, class names, comments)
 
 ### PHP Requirements
 - PHP 8.2 or higher
 - PSR-4 autoloading
+
+### WordPress Requirements
+- WordPress 6.3 or higher (first release with official PHP 8.2 support)
 
 ### Coding Standards
 
@@ -572,6 +308,9 @@ vendor/bin/phpunit             # Run all tests
 docker compose down            # Stop MySQL
 ```
 
+Test DB credentials are `root` / `password` on port 3307 (tmpfs, reset on
+container restart). See `tests/wp-config.php` for defaults.
+
 #### Mocking WordPress Functions in Tests
 
 For tests that depend on WordPress functions, mock HTTP calls using the `pre_http_request` filter. Do not use the pattern of extending `HttpClient` with anonymous classes (incompatible with clone-based immutability).
@@ -608,10 +347,16 @@ When adding a new component or Bridge package:
    - `phpunit.xml.dist` — PHPUnit configuration
    - `.github/PULL_REQUEST_TEMPLATE.md` — Subtree split PR template
    - `.github/workflows/close-pull-request.yml` — Auto-close PRs on read-only repo
-2. **Root `composer.json`** — Add to `autoload.psr-4`, `autoload-dev.psr-4`, and `replace`
-3. **`codecov.yml`** — Add `component_id` / `name` / `paths` to `individual_components`
-4. **`CLAUDE.md`** — Add to the component list table and key dependencies
-5. **`docs/`** — Create or update documentation for the component
+2. **`composer.json` `require`** — If the package's src/ calls any WordPress
+   function, constant, or class directly, declare
+   `"wordpress/core-implementation": "^6.3"`. Pure-PHP packages (value objects,
+   AST translators, SDK adapters) should not. When in doubt, grep src/ for
+   `wp_`, `get_`, `add_action`, `add_filter`, `WP_`, `ABSPATH`, `$wpdb`.
+3. **Root `composer.json`** — Add to `autoload.psr-4`, `autoload-dev.psr-4`, and `replace`
+4. **`codecov.yml`** — Add `component_id` / `name` / `paths` to `individual_components`
+5. **`docs/components/README.md`** — Register the new package in the catalogue
+   table for its layer, linking to a component-level doc if you added one
+6. **`docs/`** — Create or update documentation for the component
 
 ### Checklist for Adding Plugins
 
@@ -633,13 +378,13 @@ When adding a new WordPress plugin package:
    cd web/wp-content/plugins && ln -s ../../../src/Plugin/{Name} wppack-{slug}
    ```
    Required for WordPress to discover the plugin. Always use relative paths.
-5. **`CLAUDE.md`** — Add to Plugin Packages table
+5. **`docs/plugins/README.md`** — Register the plugin in the catalogue table
 6. **`docs/plugins/`** — Create plugin documentation
 
 ### Consistency Checks for Documentation & Component Updates
 
 - **When updating documentation**: Verify that link targets in the component list table in `docs/components/README.md` actually exist. When adding new documentation, add a link to the table and ensure path format consistency with existing links (files: `./name.md`, directories: `./name/`)
-- **When updating components**: Ensure that component names, package names, and descriptions are consistent across: the component list table in `CLAUDE.md`, the table in `docs/components/README.md`, `src/Component/{Name}/README.md` (package README), and the implementation under `src/` (namespaces, directory names, `composer.json`)
+- **When updating components**: Ensure that component names, package names, and descriptions are consistent across: `docs/components/README.md`, `src/Component/{Name}/README.md` (package README), and the implementation under `src/` (namespaces, directory names, `composer.json`)
 
 ### Database Component Maintenance Notes
 
@@ -656,8 +401,16 @@ The `wppack/database` component is the project's most feature-rich abstraction (
 - **Reader/Writer routing.** `WPPackWpdb::selectDriver()` is the single dispatch point. Changes to which query goes where (SELECT vs write, transaction vs plain) touch replication-lag-sensitive code paths — always add a spy-driver test that seeds distinct data in the two connections.
 - **PreparedBank.** Markers are `/*WPP:<16-hex>*/` computed from a per-instance `random_bytes(8)` salt + sha1(sql + params). Never remove the salt (marker forge protection). When changing the marker format, update `MARKER_PATTERN` in both `PreparedBank.php` and every hardcoded test regex under `tests/`.
 - **Drivers' gone-away handling.** `MysqlDriver::throwQueryError()` and `PgsqlDriver::throwQueryError()` drop `$this->connection = null` on specific error codes so `ensureConnected()` re-opens on the next call. Do not restore a stale handle "just to be nice" — production callers rely on the nulling.
+- **PostgreSQL search_path.** `PgsqlDriver` (and `AuroraDsqlDriver` via inheritance) accept a `searchPath` ctor arg / `?search_path=` DSN option, emitting `SET search_path TO ...` after each connect. Translator introspection (`SHOW TABLES`, `SHOW COLUMNS`) uses `current_schema()`, not hardcoded `'public'`.
 - **Translator exceptions.** `TranslationException`, `ParserFailureException`, `UnsupportedFeatureException`. Drivers emit `DriverException`, `DriverThrottledException`, `DriverTimeoutException`, `CredentialsExpiredException`, `ConnectionException`. All implement `ExceptionInterface`.
 - **Mocking caveats.** `AuroraDsqlDriver` and the DataApi drivers require optional async-aws packages. Tests that don't need a live connection should use `ReflectionClass::newInstanceWithoutConstructor()` + property injection (see `tests/Bridge/AuroraDsql/tests/OccRetryTest.php`).
+
+### Cache Component Notes
+
+- Adapter selection is driven by the `CACHE_DSN` environment variable / PHP
+  constant (previously `WPPACK_CACHE_DSN` — renamed). The `object-cache.php`
+  drop-in reads it, as do `CloudWatch` auto-discovery and
+  `RedisCacheConfiguration`.
 
 ### Plugin Settings Pages (WordPress Components)
 
@@ -711,18 +464,22 @@ wppack/
 
 ### Backward Compatibility
 
-All packages are pre-release (in design phase), so backward compatibility is not a concern. API changes, parameter reordering, class renames, and deletions may be done freely.
+All packages are pre-release on the `1.x` branch (in design phase), so backward
+compatibility is not a concern. API changes, parameter reordering, class
+renames, and deletions may be done freely.
 
 ## Status
 
-- All packages: In design phase
+- All packages: In design phase (branch `1.x`, unreleased)
 
 ## Updating This File
 
 Update this CLAUDE.md as needed when the project changes:
 
-- When new packages or modules are added
 - When architecture or design principles change
 - When coding standards are updated
 - When important development rules or commands are added
 - When the project status changes
+
+New packages should be registered in `docs/components/README.md` or
+`docs/plugins/README.md`, not here.
