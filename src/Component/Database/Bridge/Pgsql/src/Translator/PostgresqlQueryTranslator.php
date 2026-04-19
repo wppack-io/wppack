@@ -1150,6 +1150,22 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
             return;
         }
 
+        // Unquoted identifiers that contain uppercase letters must be
+        // double-quoted so PostgreSQL preserves case. PG folds every
+        // unquoted identifier to lowercase, which breaks WordPress
+        // schemas whose columns are stored case-preserved (e.g.
+        // "ID", "comment_ID", "comment_post_ID"). Lowercase-only
+        // identifiers are left untouched — PG's fold happens to match
+        // the stored name on both sides.
+        if ($token->type === TokenType::None
+            && $token->token !== ''
+            && preg_match('/[A-Z]/', $token->token) === 1) {
+            $rw->skip();
+            $rw->add('"' . str_replace('"', '""', $token->token) . '"');
+
+            return;
+        }
+
         if ($token->type !== TokenType::Keyword || $token->keyword === null) {
             $rw->consume();
 
