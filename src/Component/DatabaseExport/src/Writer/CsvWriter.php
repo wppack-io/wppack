@@ -43,7 +43,7 @@ final class CsvWriter implements ExportWriterInterface
 
         // Header row
         $columnNames = array_map(fn($col) => $col->name, $schema->columns);
-        fputcsv($stream, $columnNames);
+        fputcsv($stream, $columnNames, ',', '"', '');
     }
 
     public function writeRows($stream, TableSchema $schema, array $rows): void
@@ -63,7 +63,7 @@ final class CsvWriter implements ExportWriterInterface
                 }
             }
 
-            fputcsv($stream, $values);
+            fputcsv($stream, $values, ',', '"', '');
         }
     }
 

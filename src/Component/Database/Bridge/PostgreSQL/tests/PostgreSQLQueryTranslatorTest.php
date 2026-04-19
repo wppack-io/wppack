@@ -928,7 +928,9 @@ SQL;
     {
         $result = $this->translator->translate('SHOW INDEX FROM `wp_posts`');
 
-        self::assertStringContainsString('pg_indexes', $result[0]);
+        self::assertStringContainsString('pg_index', $result[0]);
+        self::assertStringContainsString('AS "Key_name"', $result[0]);
+        self::assertStringContainsString('AS "Column_name"', $result[0]);
     }
 
     #[Test]

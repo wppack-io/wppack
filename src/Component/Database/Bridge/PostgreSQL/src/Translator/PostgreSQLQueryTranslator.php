@@ -2665,9 +2665,29 @@ final class PostgreSQLQueryTranslator implements QueryTranslatorInterface
         }
 
         if (preg_match('/^\s*SHOW\s+(?:INDEX|KEYS?)\s+FROM\s+[`"]?(\w+)[`"]?\s*/i', $sql, $m)) {
+            // dbDelta() reads Key_name/Column_name/Sub_part/Non_unique/
+            // Index_type from SHOW INDEX, so project the catalog join
+            // into the MySQL shape.
+            $t = str_replace("'", "''", $m[1]);
+
             return [\sprintf(
-                "SELECT indexname AS \"Key_name\", indexdef AS \"Index_type\" FROM pg_indexes WHERE schemaname = current_schema() AND tablename = '%s'",
-                str_replace("'", "''", $m[1]),
+                'SELECT t.relname AS "Table", '
+                . 'CASE WHEN i.indisunique THEN 0 ELSE 1 END AS "Non_unique", '
+                . 'c.relname AS "Key_name", '
+                . '(array_position(i.indkey::int[], a.attnum))::int AS "Seq_in_index", '
+                . 'a.attname AS "Column_name", '
+                . '\'A\' AS "Collation", 0 AS "Cardinality", '
+                . 'NULL AS "Sub_part", NULL AS "Packed", '
+                . 'CASE WHEN a.attnotnull THEN \'\' ELSE \'YES\' END AS "Null", '
+                . '\'BTREE\' AS "Index_type", \'\' AS "Comment", \'\' AS "Index_comment", '
+                . '\'YES\' AS "Visible", NULL AS "Expression" '
+                . 'FROM pg_class t '
+                . 'JOIN pg_index i ON i.indrelid = t.oid '
+                . 'JOIN pg_class c ON c.oid = i.indexrelid '
+                . 'JOIN pg_attribute a ON a.attrelid = t.oid AND a.attnum = ANY(i.indkey) '
+                . 'WHERE t.relname = \'%s\' AND t.relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = current_schema()) '
+                . 'ORDER BY c.relname, array_position(i.indkey::int[], a.attnum)',
+                $t,
             )];
         }
 

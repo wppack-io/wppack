@@ -291,7 +291,11 @@ final class SqliteQueryTranslatorTest extends TestCase
     #[Test]
     public function showColumnsFrom(): void
     {
-        self::assertStringContainsString('PRAGMA table_info', $this->translator->translate('SHOW COLUMNS FROM `wp_posts`')[0]);
+        $result = $this->translator->translate('SHOW COLUMNS FROM `wp_posts`')[0];
+
+        self::assertStringContainsString('pragma_table_info', $result);
+        self::assertStringContainsString('AS "Field"', $result);
+        self::assertStringContainsString('AS "Type"', $result);
     }
 
     #[Test]
@@ -306,7 +310,11 @@ final class SqliteQueryTranslatorTest extends TestCase
     #[Test]
     public function showIndexFrom(): void
     {
-        self::assertStringContainsString('PRAGMA index_list', $this->translator->translate('SHOW INDEX FROM `wp_posts`')[0]);
+        $result = $this->translator->translate('SHOW INDEX FROM `wp_posts`')[0];
+
+        self::assertStringContainsString('pragma_index_list', $result);
+        self::assertStringContainsString('AS "Key_name"', $result);
+        self::assertStringContainsString('AS "Column_name"', $result);
     }
 
     #[Test]
@@ -433,7 +441,8 @@ final class SqliteQueryTranslatorTest extends TestCase
     {
         $result = $this->translator->translate('DESCRIBE `wp_posts`');
 
-        self::assertStringContainsString('PRAGMA table_info', $result[0]);
+        self::assertStringContainsString('pragma_table_info', $result[0]);
+        self::assertStringContainsString('AS "Field"', $result[0]);
     }
 
     // ── SAVEPOINT ──

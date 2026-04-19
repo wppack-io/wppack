@@ -2540,7 +2540,19 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
         }
 
         if (preg_match('/^\s*SHOW\s+(?:FULL\s+)?COLUMNS\s+FROM\s+[`"]?(\w+)[`"]?\s*/i', $sql, $m)) {
-            return [\sprintf('PRAGMA table_info("%s")', $m[1])];
+            // dbDelta() and other WP upgrade helpers read $col->Field /
+            // $col->Type (the MySQL SHOW COLUMNS shape), so project
+            // pragma_table_info to the same column names.
+            $t = str_replace("'", "''", $m[1]);
+
+            return [\sprintf(
+                'SELECT name AS "Field", type AS "Type", '
+                . 'CASE WHEN "notnull" = 1 THEN \'NO\' ELSE \'YES\' END AS "Null", '
+                . 'CASE WHEN pk > 0 THEN \'PRI\' ELSE \'\' END AS "Key", '
+                . 'dflt_value AS "Default", \'\' AS "Extra" '
+                . 'FROM pragma_table_info(\'%s\')',
+                $t,
+            )];
         }
 
         if (preg_match('/^\s*SHOW\s+CREATE\s+TABLE\s+[`"]?(\w+)[`"]?\s*/i', $sql, $m)) {
@@ -2563,7 +2575,27 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
         }
 
         if (preg_match('/^\s*SHOW\s+(?:INDEX|KEYS?)\s+FROM\s+[`"]?(\w+)[`"]?\s*/i', $sql, $m)) {
-            return [\sprintf('PRAGMA index_list("%s")', $m[1])];
+            // dbDelta() reads Key_name/Column_name/Sub_part/Non_unique/
+            // Index_type from SHOW INDEX; cross-join index_list with
+            // index_info to expose one row per indexed column.
+            $t = str_replace("'", "''", $m[1]);
+
+            return [\sprintf(
+                'SELECT \'%s\' AS "Table", '
+                . 'CASE WHEN il."unique" = 1 THEN 0 ELSE 1 END AS "Non_unique", '
+                . 'il.name AS "Key_name", '
+                . 'ii.seqno + 1 AS "Seq_in_index", '
+                . 'ii.name AS "Column_name", '
+                . '\'A\' AS "Collation", 0 AS "Cardinality", '
+                . 'NULL AS "Sub_part", NULL AS "Packed", \'\' AS "Null", '
+                . '\'BTREE\' AS "Index_type", \'\' AS "Comment", \'\' AS "Index_comment", '
+                . '\'YES\' AS "Visible", NULL AS "Expression" '
+                . 'FROM pragma_index_list(\'%s\') il '
+                . 'JOIN pragma_index_info(il.name) ii '
+                . 'ORDER BY il.name, ii.seqno',
+                $t,
+                $t,
+            )];
         }
 
         if (preg_match('/^\s*SHOW\s+(?:GLOBAL\s+|SESSION\s+)?VARIABLES/i', $sql)) {
@@ -2600,7 +2632,18 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
         }
 
         if (preg_match('/^\s*DESCRIBE\s+[`"]?(\w+)[`"]?\s*/i', $sql, $m)) {
-            return [\sprintf('PRAGMA table_info("%s")', $m[1])];
+            // dbDelta() reads $col->Field / $col->Type from DESCRIBE output,
+            // so project pragma_table_info to the MySQL SHOW COLUMNS shape.
+            $t = str_replace("'", "''", $m[1]);
+
+            return [\sprintf(
+                'SELECT name AS "Field", type AS "Type", '
+                . 'CASE WHEN "notnull" = 1 THEN \'NO\' ELSE \'YES\' END AS "Null", '
+                . 'CASE WHEN pk > 0 THEN \'PRI\' ELSE \'\' END AS "Key", '
+                . 'dflt_value AS "Default", \'\' AS "Extra" '
+                . 'FROM pragma_table_info(\'%s\')',
+                $t,
+            )];
         }
 
         // SHOW GRANTS FOR → dummy
