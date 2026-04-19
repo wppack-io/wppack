@@ -12,6 +12,11 @@ independently testable, type-safe, and cloud-ready.
 
 ## Why WPPack?
 
+> **Scope: infrastructure, not features.** WPPack intentionally stays at the
+> foundation layer — database, cache, mail, storage, auth, observability,
+> scheduling. Upper-layer features (forms, e-commerce, page builders) live
+> in your own plugins or third-party products, built on top of WPPack.
+
 ### For plugin and theme authors
 
 - **Adopt piece by piece — no framework lock-in.** Drop a single component into
@@ -31,14 +36,19 @@ independently testable, type-safe, and cloud-ready.
   ratio). A 16-job CI matrix — PHP 8.2 / 8.3 / 8.4 / 8.5 × mysql / sqlite /
   postgresql / legacy wpdb — runs on every push, all green. 122 interfaces
   and `declare(strict_types=1)` throughout.
-- **Don't reinvent auth.** OAuth 2.0 / OIDC, SAML 2.0, and WebAuthn / Passkey
-  are layered on a single `wppack/security` framework — `AbstractAuthenticator`,
-  `TokenStorage`, `AccessDecisionManager`, `UserProvider`. Adding a new
-  provider or migrating between them doesn't rewrite your auth flow; just
-  swap the bridge. SCIM 2.0 provisioning included.
 
 ### For WordPress site operators
 
+- **Infrastructure plugins at commercial-offering quality.** WPPack's
+  first-party plugins — Redis Object Cache, S3 Media Storage, Amazon SES
+  Mailer, EventBridge Scheduler, CloudWatch Monitoring — are built at a
+  quality level comparable to paid commercial WordPress plugins, but MIT
+  licensed. Engineered for production workloads, tested in the same 16-job CI
+  matrix as the core components.
+- **Robust authentication, ready to deploy.** SAML 2.0, OAuth 2.0 / OIDC, and
+  WebAuthn / Passkey each ship as a dedicated login plugin layered on a
+  unified security framework. Deploy only the provider you need, or combine
+  them freely. SCIM 2.0 provisioning included for directory sync.
 - **Cloud-ready without glue code.** Aurora DSQL (IAM auth + OCC retry), Aurora
   RDS Data API, ElastiCache IAM, EventBridge Scheduler, S3 / Azure Blob / GCS
   storage, SES / SendGrid / Azure Communication mail, SQS messenger, CloudWatch
