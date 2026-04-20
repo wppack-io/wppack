@@ -18,6 +18,7 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WPPack\Component\Admin\AdminPageRegistry;
 use WPPack\Component\DependencyInjection\Container;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
 use WPPack\Component\HttpFoundation\Request;
 use WPPack\Component\Option\OptionManager;
 use WPPack\Component\Rest\RestRegistry;
@@ -181,5 +182,17 @@ final class SamlLoginPluginTest extends TestCase
         $classes = array_map(static fn(object $p): string => $p::class, $passes);
         self::assertContains(\WPPack\Component\Security\DependencyInjection\RegisterAuthenticatorsPass::class, $classes);
         self::assertContains(\WPPack\Component\EventDispatcher\DependencyInjection\RegisterEventListenersPass::class, $classes);
+    }
+
+    #[Test]
+    public function registerDelegatesToServiceProvider(): void
+    {
+        $plugin = new SamlLoginPlugin(__FILE__);
+        $builder = new ContainerBuilder();
+
+        $plugin->register($builder);
+
+        self::assertTrue($builder->hasDefinition(SamlLoginConfiguration::class));
+        self::assertTrue($builder->hasDefinition(SamlLoginSettingsController::class));
     }
 }
