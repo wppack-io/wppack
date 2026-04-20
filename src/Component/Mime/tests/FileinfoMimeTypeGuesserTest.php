@@ -63,7 +63,8 @@ final class FileinfoMimeTypeGuesserTest extends TestCase
         $img = imagecreatetruecolor(1, 1);
         \assert($img !== false);
         imagepng($img, $path);
-        imagedestroy($img);
+        // imagedestroy() is a no-op since PHP 8.0 and deprecated in 8.5;
+        // letting the GdImage go out of scope releases the resource.
 
         try {
             self::assertSame('image/png', $this->guesser->guessMimeType($path));

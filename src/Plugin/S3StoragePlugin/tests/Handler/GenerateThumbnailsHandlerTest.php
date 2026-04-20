@@ -163,7 +163,8 @@ final class GenerateThumbnailsHandlerTest extends TestCase
             $img = imagecreatetruecolor(100, 100);
             if ($img !== false) {
                 imagejpeg($img, $filePath);
-                imagedestroy($img);
+                // imagedestroy() is a no-op since PHP 8.0 and deprecated in 8.5;
+                // letting the GdImage go out of scope releases the resource.
             }
         }
 

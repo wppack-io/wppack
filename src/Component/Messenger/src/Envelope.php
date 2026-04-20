@@ -82,7 +82,11 @@ final class Envelope
     {
         $stamps = $this->stamps[$stampClass] ?? [];
 
-        return $stamps[array_key_last($stamps)] ?? null;
+        if ($stamps === []) {
+            return null;
+        }
+
+        return $stamps[array_key_last($stamps)];
     }
 
     /**
