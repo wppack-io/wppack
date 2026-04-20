@@ -16,10 +16,20 @@ namespace WPPack\Plugin\DebugPlugin\Tests;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WPPack\Component\Debug\DebugConfig;
 use WPPack\Component\Debug\DependencyInjection\InjectContainerSnapshotPass;
 use WPPack\Component\Debug\DependencyInjection\RegisterDataCollectorsPass;
 use WPPack\Component\Debug\DependencyInjection\RegisterPanelRenderersPass;
+use WPPack\Component\Debug\ErrorHandler\ErrorRenderer;
+use WPPack\Component\Debug\ErrorHandler\ExceptionHandler;
+use WPPack\Component\Debug\ErrorHandler\RedirectHandler;
+use WPPack\Component\Debug\ErrorHandler\WpDieHandler;
+use WPPack\Component\Debug\Profiler\Profile;
+use WPPack\Component\Debug\Toolbar\ToolbarRenderer;
+use WPPack\Component\Debug\Toolbar\ToolbarSubscriber;
 use WPPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
+use WPPack\Component\DependencyInjection\Container;
+use WPPack\Component\DependencyInjection\ContainerBuilder;
 use WPPack\Component\Hook\DependencyInjection\RegisterHookSubscribersPass;
 use WPPack\Component\Kernel\ManagesDropin;
 use WPPack\Component\Logger\DependencyInjection\RegisterLoggerPass;
@@ -153,5 +163,60 @@ final class DebugPluginTest extends TestCase
 
         self::assertTrue(file_exists($dropinPath), 'Foreign drop-in should not be removed');
         self::assertSame('<?php // foreign drop-in', file_get_contents($dropinPath));
+    }
+
+    #[Test]
+    public function registerDelegatesToServiceProvider(): void
+    {
+        $plugin = new DebugPlugin(__FILE__);
+        $builder = new ContainerBuilder();
+
+        $plugin->register($builder);
+
+        self::assertTrue($builder->hasDefinition(DebugConfig::class));
+    }
+
+    #[Test]
+    public function bootRegistersAllFourDebugSubscribers(): void
+    {
+        $config = new DebugConfig(enabled: true, showToolbar: true);
+        $profile = new Profile();
+        $toolbarRenderer = new ToolbarRenderer($profile);
+        $errorRenderer = new ErrorRenderer();
+
+        $toolbar = new ToolbarSubscriber($config, $toolbarRenderer, $profile, []);
+        $redirect = new RedirectHandler($errorRenderer, $config, $toolbarRenderer, $profile);
+        $exception = new ExceptionHandler($errorRenderer, $config, $toolbarRenderer, $profile);
+        $wpDie = new WpDieHandler($errorRenderer, $config, $toolbarRenderer, $profile);
+
+        $symfonyContainer = new \Symfony\Component\DependencyInjection\Container();
+        $symfonyContainer->set(ToolbarSubscriber::class, $toolbar);
+        $symfonyContainer->set(RedirectHandler::class, $redirect);
+        $symfonyContainer->set(ExceptionHandler::class, $exception);
+        $symfonyContainer->set(WpDieHandler::class, $wpDie);
+
+        $container = new Container($symfonyContainer);
+
+        $plugin = new DebugPlugin(__FILE__);
+
+        try {
+            $plugin->boot($container);
+
+            // ToolbarSubscriber::register attaches wp_footer + admin_footer
+            self::assertNotFalse(has_action('wp_footer'));
+        } finally {
+            // ExceptionHandler registers a PHP-level set_exception_handler
+            // that PHPUnit flags as risky if left dangling; restore just
+            // the one we installed.
+            restore_exception_handler();
+            remove_all_actions('wp_footer');
+            remove_all_actions('admin_footer');
+            remove_all_actions('shutdown');
+            remove_all_filters('wp_redirect_status');
+            remove_all_filters('wp_die_handler');
+            remove_all_filters('wp_die_ajax_handler');
+            remove_all_filters('wp_die_json_handler');
+            remove_all_filters('wp_die_xmlrpc_handler');
+        }
     }
 }
