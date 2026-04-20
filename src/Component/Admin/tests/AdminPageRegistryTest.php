@@ -30,6 +30,13 @@ final class AdminPageRegistryTest extends TestCase
         $this->registry = new AdminPageRegistry();
     }
 
+    protected function tearDown(): void
+    {
+        global $submenu, $wp_filter;
+        $submenu = [];
+        unset($wp_filter['admin_menu'], $wp_filter['network_admin_menu']);
+    }
+
     #[Test]
     public function registerCompletesWithoutException(): void
     {
@@ -142,6 +149,73 @@ final class AdminPageRegistryTest extends TestCase
 
         self::assertNotFalse(has_action('network_admin_menu'));
     }
+
+    #[Test]
+    public function sortSubmenuReordersWpPackItemsByRegisteredPosition(): void
+    {
+        $registry = new AdminPageRegistry();
+
+        // Register three WPPack pages with explicit positions so the
+        // registry records them in submenuPositions.
+        $registry->register(new RegistryPositionedThirdPage());
+        $registry->register(new RegistryPositionedFirstPage());
+        $registry->register(new RegistryPositionedSecondPage());
+
+        // Simulate WordPress having populated $submenu as it would after
+        // admin_menu ran: a core item then WPPack pages in registration
+        // order.
+        global $submenu;
+        $submenu['options-general.php'] = [
+            ['Core Option', 'manage_options', 'options-general.php'],
+            ['Third', 'manage_options', 'wppack-third'],
+            ['First', 'manage_options', 'wppack-first'],
+            ['Second', 'manage_options', 'wppack-second'],
+        ];
+
+        // Invoke the private sortSubmenu pass directly — we don't want to
+        // fire admin_menu again because that would re-run add_menu_page
+        // and duplicate the rows we just seeded.
+        (new \ReflectionMethod($registry, 'sortSubmenu'))->invoke($registry);
+
+        self::assertSame(
+            ['options-general.php', 'wppack-first', 'wppack-second', 'wppack-third'],
+            array_column($submenu['options-general.php'], 2),
+        );
+    }
+
+    #[Test]
+    public function sortSubmenuSkipsParentsWithoutRegisteredEntries(): void
+    {
+        $registry = new AdminPageRegistry();
+        $registry->register(new RegistryPositionedStandalonePage());
+
+        global $submenu;
+        $submenu = [];
+
+        // Parent key missing from $submenu → sortSubmenu foreach takes the
+        // `continue` branch without touching anything.
+        (new \ReflectionMethod($registry, 'sortSubmenu'))->invoke($registry);
+
+        self::assertSame([], $submenu);
+    }
+
+    #[Test]
+    public function registerWithNetworkTrueRemapsOptionsGeneralParentToSettings(): void
+    {
+        $registry = new AdminPageRegistry();
+        $registry->register(new RegistryPositionedNetPage(), network: true);
+
+        // Tracked parent is remapped from options-general.php to settings.php
+        // when $network=true, so sortSubmenu looks at $submenu['settings.php'].
+        global $submenu;
+        $submenu['settings.php'] = [
+            ['Net', 'manage_options', 'wppack-netpage'],
+        ];
+
+        (new \ReflectionMethod($registry, 'sortSubmenu'))->invoke($registry);
+
+        self::assertSame(['wppack-netpage'], array_column($submenu['settings.php'], 2));
+    }
 }
 
 #[AsAdminPage(slug: 'registry-test-admin', label: 'Registry Test')]
@@ -178,6 +252,51 @@ class RegistryAutoScopedAdminPage extends AbstractAdminPage
 
 #[AsAdminPage(slug: 'registry-network-scoped', label: 'Registry Network Scoped', scope: AdminScope::Network)]
 class RegistryNetworkScopedAdminPage extends AbstractAdminPage
+{
+    public function __invoke(): string
+    {
+        return '';
+    }
+}
+
+#[AsAdminPage(slug: 'wppack-first', label: 'First', parent: 'options-general.php', position: 100)]
+class RegistryPositionedFirstPage extends AbstractAdminPage
+{
+    public function __invoke(): string
+    {
+        return '';
+    }
+}
+
+#[AsAdminPage(slug: 'wppack-second', label: 'Second', parent: 'options-general.php', position: 200)]
+class RegistryPositionedSecondPage extends AbstractAdminPage
+{
+    public function __invoke(): string
+    {
+        return '';
+    }
+}
+
+#[AsAdminPage(slug: 'wppack-third', label: 'Third', parent: 'options-general.php', position: 300)]
+class RegistryPositionedThirdPage extends AbstractAdminPage
+{
+    public function __invoke(): string
+    {
+        return '';
+    }
+}
+
+#[AsAdminPage(slug: 'wppack-standalone', label: 'Standalone', parent: 'options-general.php', position: 10)]
+class RegistryPositionedStandalonePage extends AbstractAdminPage
+{
+    public function __invoke(): string
+    {
+        return '';
+    }
+}
+
+#[AsAdminPage(slug: 'wppack-netpage', label: 'Net', parent: 'options-general.php', position: 50)]
+class RegistryPositionedNetPage extends AbstractAdminPage
 {
     public function __invoke(): string
     {
