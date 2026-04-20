@@ -15,6 +15,20 @@ namespace WPPack\Component\Cache\Bridge\Redis\Adapter;
 
 final class RelayClusterAdapter extends AbstractNativeClusterAdapter
 {
+    /**
+     * Per-process bootstrap tracker. Relay\Cluster emits a PHP warning
+     * when both `name` (persistent handle key) and `seeds` (bootstrap
+     * nodes) are passed to the constructor, because on reuse of a
+     * named persistent handle the seeds are redundant — Relay prefers
+     * the cached handle and ignores seeds. We still need seeds for the
+     * very first call per handle name, so track which names have
+     * already been bootstrapped in this worker and skip seeds on
+     * subsequent opens.
+     *
+     * @var array<string, true>
+     */
+    private static array $bootstrappedNames = [];
+
     public function getName(): string
     {
         return 'relay-cluster';
@@ -46,14 +60,24 @@ final class RelayClusterAdapter extends AbstractNativeClusterAdapter
             default => \Relay\Cluster::FAILOVER_NONE,
         };
 
+        $name = $persistent ? 'wppack' : null;
+        $seedsForCtor = $seeds;
+        if ($name !== null && isset(self::$bootstrappedNames[$name])) {
+            $seedsForCtor = null;
+        }
+
         $relay = new \Relay\Cluster(
-            name: $persistent ? 'wppack' : null,
-            seeds: $seeds,
+            name: $name,
+            seeds: $seedsForCtor,
             connect_timeout: $timeout,
             command_timeout: $readTimeout,
             persistent: $persistent,
             auth: $password,
         );
+
+        if ($name !== null) {
+            self::$bootstrappedNames[$name] = true;
+        }
 
         $relay->setOption(\Relay\Cluster::OPT_SLAVE_FAILOVER, $failover);
         $relay->setOption(\Relay\Relay::OPT_SERIALIZER, self::resolveRelaySerializer($this->connectionParams['serializer'] ?? 'none'));
