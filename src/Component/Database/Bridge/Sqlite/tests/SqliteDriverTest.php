@@ -192,7 +192,7 @@ final class SqliteDriverTest extends TestCase
     #[Test]
     public function fromPdo(): void
     {
-        $pdo = new \PDO('sqlite::memory:');
+        $pdo = new \Pdo\Sqlite('sqlite::memory:');
         $driver = SqliteDriver::fromPdo($pdo);
 
         self::assertTrue($driver->isConnected());

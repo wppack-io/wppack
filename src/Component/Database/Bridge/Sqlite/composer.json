@@ -7,6 +7,7 @@
     "php": "^8.2",
     "ext-pdo_sqlite": "*",
     "phpmyadmin/sql-parser": "^6.0",
+    "symfony/polyfill-php84": "^1.34",
     "wppack/database": "^1.0",
     "wppack/dsn": "^1.0"
   },

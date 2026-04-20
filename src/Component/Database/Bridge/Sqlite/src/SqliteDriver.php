@@ -23,7 +23,7 @@ use WPPack\Component\Database\Statement;
 
 final class SqliteDriver extends AbstractDriver
 {
-    private ?\PDO $pdo;
+    private ?\Pdo\Sqlite $pdo;
     private bool $inTx = false;
     private bool $ownsConnection;
 
@@ -35,9 +35,9 @@ final class SqliteDriver extends AbstractDriver
     }
 
     /**
-     * Wrap an existing PDO connection (e.g., from WP_SQLite_DB).
+     * Wrap an existing Pdo\Sqlite connection.
      */
-    public static function fromPdo(\PDO $pdo): self
+    public static function fromPdo(\Pdo\Sqlite $pdo): self
     {
         $driver = new self(':memory:');
         $driver->pdo = $pdo;
@@ -116,7 +116,10 @@ final class SqliteDriver extends AbstractDriver
         }
 
         try {
-            $this->pdo = new \PDO('sqlite:' . $this->path);
+            // Pdo\Sqlite is native from PHP 8.4 and polyfilled by
+            // symfony/polyfill-php84 on 8.2–8.3. Its createFunction() method
+            // replaces PDO::sqliteCreateFunction() which is deprecated in 8.5.
+            $this->pdo = new \Pdo\Sqlite('sqlite:' . $this->path);
             $this->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
             $this->pdo->exec('PRAGMA journal_mode=WAL');
             $this->pdo->exec('PRAGMA foreign_keys=ON');
@@ -136,10 +139,14 @@ final class SqliteDriver extends AbstractDriver
 
     /**
      * Register MySQL-compatible user-defined functions for SQLite.
+     *
+     * Uses Pdo\Sqlite::createFunction() — native on PHP 8.4+, polyfilled by
+     * symfony/polyfill-php84 on 8.2–8.3 — so we never touch
+     * PDO::sqliteCreateFunction() deprecated in 8.5.
      */
-    private function registerFunctions(\PDO $pdo): void
+    private function registerFunctions(\Pdo\Sqlite $pdo): void
     {
-        $pdo->sqliteCreateFunction('REGEXP', static function (?string $pattern, ?string $value): int {
+        $pdo->createFunction('REGEXP', static function (?string $pattern, ?string $value): int {
             if ($pattern === null || $value === null) {
                 return 0;
             }
@@ -147,19 +154,19 @@ final class SqliteDriver extends AbstractDriver
             return @preg_match('/' . str_replace('/', '\\/', $pattern) . '/iu', $value) ? 1 : 0;
         }, 2);
 
-        $pdo->sqliteCreateFunction('CONCAT', static function (...$args): string {
+        $pdo->createFunction('CONCAT', static function (...$args): string {
             return implode('', array_map(static fn($v) => (string) ($v ?? ''), $args));
         });
 
-        $pdo->sqliteCreateFunction('CONCAT_WS', static function (string $separator, ...$args): string {
+        $pdo->createFunction('CONCAT_WS', static function (string $separator, ...$args): string {
             return implode($separator, array_filter(array_map(static fn($v) => $v === null ? null : (string) $v, $args), static fn($v) => $v !== null));
         });
 
-        $pdo->sqliteCreateFunction('CHAR_LENGTH', static function (?string $value): int {
+        $pdo->createFunction('CHAR_LENGTH', static function (?string $value): int {
             return $value === null ? 0 : mb_strlen($value);
         }, 1);
 
-        $pdo->sqliteCreateFunction('FIELD', static function (mixed $search, ...$values): int {
+        $pdo->createFunction('FIELD', static function (mixed $search, ...$values): int {
             foreach ($values as $i => $val) {
                 if ((string) $val === (string) $search) {
                     return $i + 1;
@@ -169,11 +176,11 @@ final class SqliteDriver extends AbstractDriver
             return 0;
         });
 
-        $pdo->sqliteCreateFunction('MD5', static function (?string $value): ?string {
+        $pdo->createFunction('MD5', static function (?string $value): ?string {
             return $value === null ? null : md5($value);
         }, 1);
 
-        $pdo->sqliteCreateFunction('LOG', static function (null|int|float|string ...$args): null|float {
+        $pdo->createFunction('LOG', static function (null|int|float|string ...$args): null|float {
             if ($args === [] || $args[0] === null) {
                 return null;
             }
@@ -191,7 +198,7 @@ final class SqliteDriver extends AbstractDriver
                 : null;
         });
 
-        $pdo->sqliteCreateFunction('UNHEX', static function (?string $hex): ?string {
+        $pdo->createFunction('UNHEX', static function (?string $hex): ?string {
             if ($hex === null) {
                 return null;
             }
@@ -201,7 +208,7 @@ final class SqliteDriver extends AbstractDriver
             return $result === false ? null : $result;
         }, 1);
 
-        $pdo->sqliteCreateFunction('FROM_BASE64', static function (?string $str): ?string {
+        $pdo->createFunction('FROM_BASE64', static function (?string $str): ?string {
             if ($str === null) {
                 return null;
             }
@@ -211,11 +218,11 @@ final class SqliteDriver extends AbstractDriver
             return $result === false ? null : $result;
         }, 1);
 
-        $pdo->sqliteCreateFunction('TO_BASE64', static function (?string $str): ?string {
+        $pdo->createFunction('TO_BASE64', static function (?string $str): ?string {
             return $str === null ? null : base64_encode($str);
         }, 1);
 
-        $pdo->sqliteCreateFunction('INET_ATON', static function (?string $ip): ?int {
+        $pdo->createFunction('INET_ATON', static function (?string $ip): ?int {
             if ($ip === null) {
                 return null;
             }
@@ -230,7 +237,7 @@ final class SqliteDriver extends AbstractDriver
             return $long < 0 ? (int) sprintf('%u', $long) : $long;
         }, 1);
 
-        $pdo->sqliteCreateFunction('INET_NTOA', static function (null|int|float|string $num): ?string {
+        $pdo->createFunction('INET_NTOA', static function (null|int|float|string $num): ?string {
             if ($num === null) {
                 return null;
             }
@@ -240,7 +247,7 @@ final class SqliteDriver extends AbstractDriver
 
         // Note: CHECK → INSERT is not atomic across processes (TOCTOU).
         // Acceptable for SQLite's typical single-server/dev usage.
-        $pdo->sqliteCreateFunction('GET_LOCK', static function (?string $name, ?int $timeout) use ($pdo): int {
+        $pdo->createFunction('GET_LOCK', static function (?string $name, ?int $timeout) use ($pdo): int {
             if ($name === null) {
                 return 0;
             }
@@ -258,7 +265,7 @@ final class SqliteDriver extends AbstractDriver
             return (int) (bool) $pdo->query('SELECT changes()')->fetchColumn();
         }, 2);
 
-        $pdo->sqliteCreateFunction('RELEASE_LOCK', static function (?string $name) use ($pdo): int {
+        $pdo->createFunction('RELEASE_LOCK', static function (?string $name) use ($pdo): int {
             if ($name === null) {
                 return 0;
             }
@@ -269,7 +276,7 @@ final class SqliteDriver extends AbstractDriver
             return (int) (bool) $pdo->query('SELECT changes()')->fetchColumn();
         }, 1);
 
-        $pdo->sqliteCreateFunction('IS_FREE_LOCK', static function (?string $name) use ($pdo): int {
+        $pdo->createFunction('IS_FREE_LOCK', static function (?string $name) use ($pdo): int {
             if ($name === null) {
                 return 1;
             }
