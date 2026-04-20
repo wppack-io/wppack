@@ -18,12 +18,112 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WPPack\Component\Security\Bridge\OAuth\Multisite\CrossSiteRedirector;
 use WPPack\Component\Site\BlogContext;
+use WPPack\Component\Site\BlogContextInterface;
 use WPPack\Component\Site\SiteRepository;
+use WPPack\Component\Site\SiteRepositoryInterface;
 use WPPack\Component\Transient\TransientManager;
 
 #[CoversClass(CrossSiteRedirector::class)]
 final class CrossSiteRedirectorTest extends TestCase
 {
+    private function multisiteContext(): BlogContextInterface
+    {
+        return new class implements BlogContextInterface {
+            public function getCurrentBlogId(): int
+            {
+                return 1;
+            }
+
+            public function isMultisite(): bool
+            {
+                return true;
+            }
+
+            public function getMainSiteId(): int
+            {
+                return 1;
+            }
+
+            public function isSwitched(): bool
+            {
+                return false;
+            }
+
+            public function isMainSite(): bool
+            {
+                return true;
+            }
+
+            public function isSubdomainInstall(): bool
+            {
+                return false;
+            }
+        };
+    }
+
+    /**
+     * @param array<string, \WP_Site> $sitesByUrl
+     * @param list<string> $domains
+     */
+    private function fixtureSiteRepository(array $sitesByUrl = [], array $domains = []): SiteRepositoryInterface
+    {
+        return new class ($sitesByUrl, $domains) implements SiteRepositoryInterface {
+            /**
+             * @param array<string, \WP_Site> $sitesByUrl
+             * @param list<string> $domains
+             */
+            public function __construct(
+                private array $sitesByUrl,
+                private array $domains,
+            ) {}
+
+            public function findAll(array $args = []): array
+            {
+                return [];
+            }
+
+            public function find(int $blogId): ?\WP_Site
+            {
+                return null;
+            }
+
+            public function findByUrl(string $domain, string $path = '/'): ?\WP_Site
+            {
+                return $this->sitesByUrl[$domain . '|' . $path] ?? null;
+            }
+
+            public function findBySlug(string $slug): ?\WP_Site
+            {
+                return null;
+            }
+
+            public function getAllDomains(): array
+            {
+                return $this->domains;
+            }
+
+            public function getMeta(int $blogId, string $key = '', bool $single = false): mixed
+            {
+                return $single ? '' : [];
+            }
+
+            public function addMeta(int $blogId, string $key, mixed $value, bool $unique = false): ?int
+            {
+                return null;
+            }
+
+            public function updateMeta(int $blogId, string $key, mixed $value, mixed $previousValue = ''): int|bool
+            {
+                return false;
+            }
+
+            public function deleteMeta(int $blogId, string $key, mixed $value = ''): bool
+            {
+                return false;
+            }
+        };
+    }
+
     #[Test]
     public function needsRedirectReturnsFalseForSameHost(): void
     {
@@ -369,5 +469,68 @@ final class CrossSiteRedirectorTest extends TestCase
 
         // Clean up
         delete_transient('_wppack_oauth_xsite_' . hash('sha256', $token));
+    }
+
+    #[Test]
+    public function resolveBlogIdReturnsBlogIdFromSiteRepositoryOnMultisite(): void
+    {
+        if (!class_exists(\WP_Site::class)) {
+            self::markTestSkipped('WP_Site is not loaded in this runtime.');
+        }
+
+        $site = new \WP_Site((object) ['blog_id' => '11']);
+        $repo = $this->fixtureSiteRepository(['sub.example.com|/app' => $site]);
+
+        $redirector = new CrossSiteRedirector(
+            $this->multisiteContext(),
+            $repo,
+            new TransientManager(),
+        );
+
+        self::assertSame(11, $redirector->resolveBlogId('https://sub.example.com/app'));
+    }
+
+    #[Test]
+    public function resolveBlogIdReturnsNullWhenSiteRepositoryFindsNothing(): void
+    {
+        if (!class_exists(\WP_Site::class)) {
+            self::markTestSkipped('WP_Site is not loaded in this runtime.');
+        }
+
+        $redirector = new CrossSiteRedirector(
+            $this->multisiteContext(),
+            $this->fixtureSiteRepository(),
+            new TransientManager(),
+        );
+
+        self::assertNull($redirector->resolveBlogId('https://sub.example.com/unknown'));
+    }
+
+    #[Test]
+    public function resolveBlogIdReturnsNullForUrlWithoutHostOnMultisite(): void
+    {
+        $redirector = new CrossSiteRedirector(
+            $this->multisiteContext(),
+            $this->fixtureSiteRepository(),
+            new TransientManager(),
+        );
+
+        self::assertNull($redirector->resolveBlogId('/relative/path'));
+    }
+
+    #[Test]
+    public function isHostAllowedAcceptsNetworkDomainsOnMultisite(): void
+    {
+        $redirector = new CrossSiteRedirector(
+            $this->multisiteContext(),
+            $this->fixtureSiteRepository(domains: ['a.example.com', 'b.example.com']),
+            new TransientManager(),
+        );
+
+        $method = new \ReflectionMethod($redirector, 'isHostAllowed');
+
+        self::assertTrue($method->invoke($redirector, 'a.example.com'));
+        self::assertTrue($method->invoke($redirector, 'b.example.com'));
+        self::assertFalse($method->invoke($redirector, 'unknown.example.com'));
     }
 }
