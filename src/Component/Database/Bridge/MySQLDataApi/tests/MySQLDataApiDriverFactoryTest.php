@@ -15,7 +15,11 @@ namespace WPPack\Component\Database\Bridge\MySQLDataApi\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WPPack\Component\Database\Bridge\MySQLDataApi\MySQLDataApiDriver;
 use WPPack\Component\Database\Bridge\MySQLDataApi\MySQLDataApiDriverFactory;
+use WPPack\Component\Database\Driver\Driver;
+use WPPack\Component\Database\Driver\MySQLDriver;
+use WPPack\Component\Database\Exception\UnsupportedSchemeException;
 use WPPack\Component\Dsn\Dsn;
 
 final class MySQLDataApiDriverFactoryTest extends TestCase
@@ -64,5 +68,32 @@ final class MySQLDataApiDriverFactoryTest extends TestCase
         $driver = $factory->create(Dsn::fromString('mysql+dataapi://arn:aws:rds:us-east-1:123:cluster:my-cluster/mydb?secret_arn=arn:secret'));
 
         self::assertSame('mysql+dataapi', $driver->getName());
+    }
+
+    /**
+     * Regression guard: mysql+dataapi must route to THIS bridge and
+     * must never fall back to the plain MySQLDriverFactory. Observable
+     * behaviour depends on whether async-aws/rds-data-service is
+     * available at runtime:
+     *   - installed → Driver::fromDsn() resolves to MySQLDataApiDriver
+     *   - absent    → this factory's supports() returns false and the
+     *                 router raises UnsupportedSchemeException (no silent
+     *                 degradation into a real MySQL connection).
+     */
+    #[Test]
+    public function mysqlDataApiSchemeIsNotShadowedByPlainMySQL(): void
+    {
+        if (class_exists(\AsyncAws\RdsDataService\RdsDataServiceClient::class)) {
+            $driver = Driver::fromDsn('mysql+dataapi://arn:aws:rds:us-east-1:000:cluster/wp');
+
+            self::assertInstanceOf(MySQLDataApiDriver::class, $driver);
+            self::assertNotInstanceOf(MySQLDriver::class, $driver);
+
+            return;
+        }
+
+        $this->expectException(UnsupportedSchemeException::class);
+
+        Driver::fromDsn('mysql+dataapi://arn:aws:rds:us-east-1:000:cluster/wp');
     }
 }

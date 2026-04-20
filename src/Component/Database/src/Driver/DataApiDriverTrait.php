@@ -82,14 +82,7 @@ trait DataApiDriverTrait
         return $this->transactionId !== null;
     }
 
-    /**
-     * HTTP-based driver — no native PDO/mysqli/pgsql handle. Returning
-     * mixed instead of RdsDataServiceClient keeps the trait compatible
-     * with both MySQLDriver::getNativeConnection(): \mysqli and
-     * PostgreSQLDriver::getNativeConnection(): \PgSql\Connection when
-     * the Data API drivers subclass them for platform/translator reuse.
-     */
-    public function getNativeConnection(): mixed
+    public function getNativeConnection(): RdsDataServiceClient
     {
         return $this->dataApiClient;
     }

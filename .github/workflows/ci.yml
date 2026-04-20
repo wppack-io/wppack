@@ -95,10 +95,7 @@ jobs:
         with:
           php-version: ${{ matrix.php }}
           extensions: redis, relay, memcached, apcu, pgsql, pdo_sqlite
-          # xdebug.mode=coverage is what PHPUnit 11 checks for before it
-          # will honour --coverage-clover; setting it here keeps the
-          # coverage-related configuration next to the xdebug install.
-          ini-values: apc.enable_cli=1, xdebug.mode=coverage
+          ini-values: apc.enable_cli=1
           tools: composer:v2
           coverage: xdebug
 
@@ -164,6 +161,7 @@ jobs:
         env:
           DATABASE_DSN: ${{ steps.dsn.outputs.value }}
           WPPACK_TEST_DB_PORT: '3306'
+          XDEBUG_MODE: coverage
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5

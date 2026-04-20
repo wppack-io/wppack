@@ -14,16 +14,22 @@ declare(strict_types=1);
 namespace WPPack\Component\Database\Bridge\PostgreSQLDataApi;
 
 use AsyncAws\RdsDataService\RdsDataServiceClient;
-use WPPack\Component\Database\Bridge\PostgreSQL\PostgreSQLDriver;
+use WPPack\Component\Database\Bridge\PostgreSQL\PostgreSQLPlatform;
 use WPPack\Component\Database\Bridge\PostgreSQL\Translator\PostgreSQLQueryTranslator;
+use WPPack\Component\Database\Driver\AbstractDriver;
 use WPPack\Component\Database\Driver\DataApiDriverTrait;
+use WPPack\Component\Database\Platform\PlatformInterface;
 use WPPack\Component\Database\Translator\QueryTranslatorInterface;
 
 /**
  * Aurora PostgreSQL Data API driver.
  *
- * HTTP-based, stateless driver using RDS Data API. Extends PostgreSQLDriver
- * for platform/translator compatibility, overrides all I/O with HTTP calls.
+ * HTTP-based, stateless driver that talks to RDS Data API. It reuses
+ * PostgreSQLPlatform / PostgreSQLQueryTranslator for SQL dialect parity
+ * with the native PostgreSQL driver but does NOT extend PostgreSQLDriver —
+ * there is no PgSql\Connection here, only an RdsDataServiceClient, so
+ * getNativeConnection() returns the HTTP client rather than any legacy
+ * database resource.
  *
  * DSN: pgsql+dataapi://cluster-arn/dbname?secret_arn=xxx&region=us-east-1
  *
@@ -40,13 +46,14 @@ use WPPack\Component\Database\Translator\QueryTranslatorInterface;
  *     issue `SET search_path` once as the first statement —
  *     `DataApiDriverTrait::$transactionId` carries across calls within
  *     a single BEGIN / COMMIT boundary, so the SET persists there.
- * WPPack's `PostgreSQLDriver::$searchPath` accordingly has no effect here.
  *
  * @see \WPPack\Component\Database\Driver\DataApiDriverTrait::$transactionId
  */
-class PostgreSQLDataApiDriver extends PostgreSQLDriver
+class PostgreSQLDataApiDriver extends AbstractDriver
 {
     use DataApiDriverTrait;
+
+    private ?PlatformInterface $platform = null;
 
     public function __construct(
         RdsDataServiceClient $client,
@@ -59,18 +66,16 @@ class PostgreSQLDataApiDriver extends PostgreSQLDriver
         $this->resourceArn = $resourceArn;
         $this->secretArn = $secretArn;
         $this->dataApiDatabase = $database;
-
-        parent::__construct(
-            host: '',
-            username: '',
-            password: '',
-            database: $database,
-        );
     }
 
     public function getName(): string
     {
         return 'pgsql+dataapi';
+    }
+
+    public function getPlatform(): PlatformInterface
+    {
+        return $this->platform ??= new PostgreSQLPlatform();
     }
 
     public function getQueryTranslator(): QueryTranslatorInterface
