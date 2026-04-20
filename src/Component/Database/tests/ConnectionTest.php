@@ -93,6 +93,132 @@ final class ConnectionTest extends TestCase
     }
 
     #[Test]
+    public function executeQueryReturnsResultFromDriver(): void
+    {
+        $result = new Result([['id' => 1]]);
+        $driver = $this->createMock(DriverInterface::class);
+        $driver->method('executeQuery')->willReturn($result);
+
+        $connection = new Connection($driver);
+
+        self::assertSame($result, $connection->executeQuery('SELECT 1'));
+    }
+
+    #[Test]
+    public function lastInsertIdDelegatesToDriver(): void
+    {
+        $driver = $this->createMock(DriverInterface::class);
+        $driver->method('lastInsertId')->willReturn(42);
+
+        self::assertSame(42, (new Connection($driver))->lastInsertId());
+    }
+
+    #[Test]
+    public function inTransactionDelegatesToDriver(): void
+    {
+        $driver = $this->createMock(DriverInterface::class);
+        $driver->method('inTransaction')->willReturn(true);
+
+        self::assertTrue((new Connection($driver))->inTransaction());
+    }
+
+    #[Test]
+    public function driverExceptionIsWrappedInQueryException(): void
+    {
+        $driver = $this->createMock(DriverInterface::class);
+        $driver->method('executeQuery')->willThrowException(
+            new \WPPack\Component\Database\Exception\DriverException('native driver error'),
+        );
+
+        $connection = new Connection($driver);
+
+        $this->expectException(\WPPack\Component\Database\Exception\QueryException::class);
+        $this->expectExceptionMessage('native driver error');
+
+        $connection->executeQuery('SELECT 1');
+    }
+
+    #[Test]
+    public function translatorReturningEmptyStopsExecutionWithZeroRowsAffected(): void
+    {
+        $translator = new class implements \WPPack\Component\Database\Translator\QueryTranslatorInterface {
+            public function translate(string $sql): array
+            {
+                return [];
+            }
+        };
+
+        $driver = $this->createMock(DriverInterface::class);
+        $driver->expects(self::never())->method('executeStatement');
+
+        $connection = new Connection($driver, translator: $translator);
+
+        self::assertSame(0, $connection->executeStatement('DROP TABLE throw_away'));
+    }
+
+    #[Test]
+    public function getDriverReturnsInjectedDriver(): void
+    {
+        $driver = $this->createMock(DriverInterface::class);
+
+        self::assertSame($driver, (new Connection($driver))->getDriver());
+    }
+
+    #[Test]
+    public function prepareDelegatesToDriver(): void
+    {
+        $stmt = new Statement(
+            static fn(array $p): Result => new Result([]),
+            static fn(array $p): int => 0,
+            static function (): void {},
+        );
+
+        $driver = $this->createMock(DriverInterface::class);
+        $driver->method('prepare')->with('SELECT 1')->willReturn($stmt);
+
+        self::assertSame($stmt, (new Connection($driver))->prepare('SELECT 1'));
+    }
+
+    #[Test]
+    public function translatorExpandingToMultipleStatementsRunsEachAndReturnsLastResult(): void
+    {
+        $translator = new class implements \WPPack\Component\Database\Translator\QueryTranslatorInterface {
+            public function translate(string $sql): array
+            {
+                // Translator that splits one input into two native statements:
+                // the first without placeholders (params stripped) and the
+                // second with them retained.
+                return [
+                    'CREATE SEQUENCE seq_id',
+                    'INSERT INTO t (x) VALUES (?)',
+                ];
+            }
+        };
+
+        $received = [];
+
+        $driver = $this->createMock(DriverInterface::class);
+        $driver->method('executeStatement')
+            ->willReturnCallback(function (string $sql, array $params) use (&$received): int {
+                $received[] = ['sql' => $sql, 'params' => $params];
+
+                return \count($received);
+            });
+
+        $connection = new Connection($driver, translator: $translator);
+
+        $result = $connection->executeStatement('CREATE TABLE t (x INT AUTO_INCREMENT PRIMARY KEY)', [1]);
+
+        // Last statement's result is returned (2)
+        self::assertSame(2, $result);
+        self::assertCount(2, $received);
+        // First statement has no placeholder → params trimmed to []
+        self::assertSame([], $received[0]['params']);
+        // Second retains the original params
+        self::assertSame([1], $received[1]['params']);
+    }
+
+    #[Test]
     public function transactionalCommitsOnSuccess(): void
     {
         $driver = $this->createMock(DriverInterface::class);

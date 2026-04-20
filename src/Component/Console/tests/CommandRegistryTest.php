@@ -159,6 +159,22 @@ final class CommandRegistryTest extends TestCase
         self::assertSame($first, $all[0]);
         self::assertSame($second, $all[1]);
     }
+
+    #[Test]
+    public function registerPassesUsageAsLongdescToWpCli(): void
+    {
+        if (!class_exists(\WP_CLI::class, false)) {
+            self::markTestSkipped('WP-CLI is not available.');
+        }
+
+        $registry = new CommandRegistry();
+        $registry->add(new CommandWithUsage());
+
+        // Doesn't throw — WP_CLI::add_command accepts the longdesc entry.
+        $registry->register();
+
+        self::assertCount(1, $registry->all());
+    }
 }
 
 #[AsCommand(name: 'test dummy', description: 'A dummy command')]
@@ -172,6 +188,15 @@ final class DummyCommand extends AbstractCommand
 
 #[AsCommand(name: 'test another', description: 'Another dummy')]
 final class AnotherDummyCommand extends AbstractCommand
+{
+    protected function execute(InputInterface $input, OutputStyle $output): int
+    {
+        return self::SUCCESS;
+    }
+}
+
+#[AsCommand(name: 'test withusage', description: 'Has usage', usage: 'Run with --flag to do the thing.')]
+final class CommandWithUsage extends AbstractCommand
 {
     protected function execute(InputInterface $input, OutputStyle $output): int
     {
