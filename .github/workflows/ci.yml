@@ -161,7 +161,6 @@ jobs:
         env:
           DATABASE_DSN: ${{ steps.dsn.outputs.value }}
           WPPACK_TEST_DB_PORT: '3306'
-          XDEBUG_MODE: coverage
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
