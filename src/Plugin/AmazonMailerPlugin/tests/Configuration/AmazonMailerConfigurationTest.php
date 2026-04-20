@@ -14,11 +14,18 @@ declare(strict_types=1);
 namespace WPPack\Plugin\AmazonMailerPlugin\Tests\Configuration;
 
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\PreserveGlobalState;
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WPPack\Plugin\AmazonMailerPlugin\Configuration\AmazonMailerConfiguration;
 
+// Each test runs in its own process so defining the MAILER_DSN constant
+// in one test does not permanently short-circuit subsequent tests that
+// need to exercise the env / wp_options fallbacks.
 #[CoversClass(AmazonMailerConfiguration::class)]
+#[RunTestsInSeparateProcesses]
+#[PreserveGlobalState(false)]
 final class AmazonMailerConfigurationTest extends TestCase
 {
     protected function tearDown(): void
@@ -191,5 +198,23 @@ final class AmazonMailerConfigurationTest extends TestCase
         update_option(AmazonMailerConfiguration::OPTION_NAME, ['dsn' => '']);
 
         self::assertFalse(AmazonMailerConfiguration::hasConfiguration());
+    }
+
+    #[Test]
+    public function fromEnvironmentOrOptionsReadsConstantWhenDefined(): void
+    {
+        \define('MAILER_DSN', 'ses+api://key:secret@default?region=ap-northeast-1');
+
+        $config = AmazonMailerConfiguration::fromEnvironmentOrOptions();
+
+        self::assertSame('ses+api://key:secret@default?region=ap-northeast-1', $config->dsn);
+    }
+
+    #[Test]
+    public function hasConfigurationReturnsTrueWhenConstantIsDefined(): void
+    {
+        \define('MAILER_DSN', 'ses+api://default?region=us-east-1');
+
+        self::assertTrue(AmazonMailerConfiguration::hasConfiguration());
     }
 }
