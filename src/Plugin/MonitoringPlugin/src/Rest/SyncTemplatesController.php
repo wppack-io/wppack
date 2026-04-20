@@ -53,7 +53,12 @@ final class SyncTemplatesController extends AbstractRestController
                 continue;
             }
 
-            if ($this->store->syncMetrics($provider->id, $template->metrics)) {
+            $metrics = array_map(
+                static fn(array $metric): array => $metric + ['namespace' => $template->namespace],
+                $template->metrics,
+            );
+
+            if ($this->store->syncMetrics($provider->id, $metrics)) {
                 $updated++;
             }
         }
