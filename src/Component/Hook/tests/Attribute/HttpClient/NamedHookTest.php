@@ -17,8 +17,6 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WPPack\Component\Hook\Attribute\Action;
 use WPPack\Component\Hook\Attribute\Filter;
-use WPPack\Component\Hook\Hook;
-use WPPack\Component\Hook\HookType;
 use WPPack\Component\Hook\Attribute\HttpClient\Action\HttpApiDebugAction;
 use WPPack\Component\Hook\Attribute\HttpClient\Filter\HttpApiCurlFilter;
 use WPPack\Component\Hook\Attribute\HttpClient\Filter\HttpApiTransportsFilter;
@@ -31,6 +29,8 @@ use WPPack\Component\Hook\Attribute\HttpClient\Filter\HttpResponseFilter;
 use WPPack\Component\Hook\Attribute\HttpClient\Filter\HttpsLocalSslVerifyFilter;
 use WPPack\Component\Hook\Attribute\HttpClient\Filter\HttpsSslVerifyFilter;
 use WPPack\Component\Hook\Attribute\HttpClient\Filter\PreHttpRequestFilter;
+use WPPack\Component\Hook\Hook;
+use WPPack\Component\Hook\HookType;
 
 final class NamedHookTest extends TestCase
 {

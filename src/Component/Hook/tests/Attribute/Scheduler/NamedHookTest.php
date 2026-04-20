@@ -17,8 +17,6 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WPPack\Component\Hook\Attribute\Action;
 use WPPack\Component\Hook\Attribute\Filter;
-use WPPack\Component\Hook\Hook;
-use WPPack\Component\Hook\HookType;
 use WPPack\Component\Hook\Attribute\Scheduler\Action\ScheduledEventAction;
 use WPPack\Component\Hook\Attribute\Scheduler\Action\WpCronAction;
 use WPPack\Component\Hook\Attribute\Scheduler\Filter\CronSchedulesFilter;
@@ -27,6 +25,8 @@ use WPPack\Component\Hook\Attribute\Scheduler\Filter\PreDoEventFilter;
 use WPPack\Component\Hook\Attribute\Scheduler\Filter\PreScheduleEventFilter;
 use WPPack\Component\Hook\Attribute\Scheduler\Filter\PreUnscheduleEventFilter;
 use WPPack\Component\Hook\Attribute\Scheduler\Filter\ScheduleEventFilter;
+use WPPack\Component\Hook\Hook;
+use WPPack\Component\Hook\HookType;
 
 final class NamedHookTest extends TestCase
 {

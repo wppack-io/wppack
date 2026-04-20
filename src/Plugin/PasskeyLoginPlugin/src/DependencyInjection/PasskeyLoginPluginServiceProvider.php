@@ -34,11 +34,11 @@ use WPPack\Component\Security\Bridge\Passkey\Storage\DatabaseCredentialRepositor
 use WPPack\Component\Site\BlogContext;
 use WPPack\Component\Site\BlogContextInterface;
 use WPPack\Component\Transient\TransientManager;
+use WPPack\Plugin\PasskeyLoginPlugin\Activation\PasskeyActivationController;
+use WPPack\Plugin\PasskeyLoginPlugin\Activation\PasskeyActivationPrompt;
 use WPPack\Plugin\PasskeyLoginPlugin\Admin\PasskeyLoginSettingsController;
 use WPPack\Plugin\PasskeyLoginPlugin\Admin\PasskeyLoginSettingsPage;
 use WPPack\Plugin\PasskeyLoginPlugin\Configuration\PasskeyLoginConfiguration;
-use WPPack\Plugin\PasskeyLoginPlugin\Activation\PasskeyActivationController;
-use WPPack\Plugin\PasskeyLoginPlugin\Activation\PasskeyActivationPrompt;
 use WPPack\Plugin\PasskeyLoginPlugin\LoginForm\PasskeyLoginForm;
 use WPPack\Plugin\PasskeyLoginPlugin\Migration\PasskeyCredentialTable;
 use WPPack\Plugin\PasskeyLoginPlugin\Profile\PasskeyProfileSection;

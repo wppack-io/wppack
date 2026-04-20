@@ -13,20 +13,20 @@ declare(strict_types=1);
 
 namespace WPPack\Component\Monitoring\DependencyInjection;
 
+use Psr\Log\LoggerInterface;
 use WPPack\Component\DependencyInjection\ContainerBuilder;
 use WPPack\Component\DependencyInjection\Reference;
 use WPPack\Component\DependencyInjection\ServiceProviderInterface;
 use WPPack\Component\Monitoring\Bridge\Cloudflare\CloudflareMetricProvider;
-use WPPack\Component\Monitoring\Bridge\CloudWatch\CloudWatchMetricProvider;
-use WPPack\Component\Monitoring\MockMetricProvider;
-use WPPack\Component\Monitoring\Bridge\CloudWatch\MockCloudWatchMonitoringProvider;
 use WPPack\Component\Monitoring\Bridge\Cloudflare\MockCloudflareMonitoringProvider;
+use WPPack\Component\Monitoring\Bridge\CloudWatch\CloudWatchMetricProvider;
+use WPPack\Component\Monitoring\Bridge\CloudWatch\MockCloudWatchMonitoringProvider;
+use WPPack\Component\Monitoring\MockMetricProvider;
 use WPPack\Component\Monitoring\MonitoringCollector;
 use WPPack\Component\Monitoring\MonitoringRegistry;
 use WPPack\Component\Monitoring\MonitoringStore;
 use WPPack\Component\Monitoring\Rest\MonitoringController;
 use WPPack\Component\Monitoring\Rest\MonitoringSettingsController;
-use Psr\Log\LoggerInterface;
 use WPPack\Component\Option\OptionManager;
 use WPPack\Component\Transient\TransientManager;
 

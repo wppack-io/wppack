@@ -16,8 +16,8 @@ namespace WPPack\Component\Cache\Tests\Exception;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WPPack\Component\Dsn\Dsn;
 use WPPack\Component\Cache\Exception\UnsupportedSchemeException;
+use WPPack\Component\Dsn\Dsn;
 
 #[CoversClass(UnsupportedSchemeException::class)]
 final class UnsupportedSchemeExceptionTest extends TestCase

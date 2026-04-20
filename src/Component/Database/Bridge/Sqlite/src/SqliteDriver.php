@@ -13,11 +13,11 @@ declare(strict_types=1);
 
 namespace WPPack\Component\Database\Bridge\Sqlite;
 
+use WPPack\Component\Database\Bridge\Sqlite\SqlitePlatform;
 use WPPack\Component\Database\Driver\AbstractDriver;
 use WPPack\Component\Database\Exception\ConnectionException;
 use WPPack\Component\Database\Exception\DriverException;
 use WPPack\Component\Database\Platform\PlatformInterface;
-use WPPack\Component\Database\Bridge\Sqlite\SqlitePlatform;
 use WPPack\Component\Database\Result;
 use WPPack\Component\Database\Statement;
 

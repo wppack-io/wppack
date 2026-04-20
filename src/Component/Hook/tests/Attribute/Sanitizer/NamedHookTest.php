@@ -16,8 +16,6 @@ namespace WPPack\Component\Hook\Tests\Attribute\Sanitizer;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WPPack\Component\Hook\Attribute\Filter;
-use WPPack\Component\Hook\Hook;
-use WPPack\Component\Hook\HookType;
 use WPPack\Component\Hook\Attribute\Sanitizer\Filter\PreInsertTermFilter;
 use WPPack\Component\Hook\Attribute\Sanitizer\Filter\PreUserLoginFilter;
 use WPPack\Component\Hook\Attribute\Sanitizer\Filter\SanitizeCommentMetaFilter;
@@ -29,6 +27,8 @@ use WPPack\Component\Hook\Attribute\Sanitizer\Filter\SanitizeTermMetaFilter;
 use WPPack\Component\Hook\Attribute\Sanitizer\Filter\SanitizeTextFieldFilter;
 use WPPack\Component\Hook\Attribute\Sanitizer\Filter\SanitizeTitleFilter;
 use WPPack\Component\Hook\Attribute\Sanitizer\Filter\SanitizeUserMetaFilter;
+use WPPack\Component\Hook\Hook;
+use WPPack\Component\Hook\HookType;
 
 final class NamedHookTest extends TestCase
 {

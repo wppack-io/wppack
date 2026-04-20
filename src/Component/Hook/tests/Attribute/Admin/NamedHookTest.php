@@ -16,12 +16,8 @@ namespace WPPack\Component\Hook\Tests\Attribute\Admin;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WPPack\Component\Hook\Attribute\Action;
-use WPPack\Component\Hook\Attribute\Filter;
-use WPPack\Component\Hook\Hook;
-use WPPack\Component\Hook\HookType;
 use WPPack\Component\Hook\Attribute\Admin\Action\AdminBarMenuAction;
 use WPPack\Component\Hook\Attribute\Admin\Action\AdminEnqueueScriptsAction;
-use WPPack\Component\Hook\Attribute\Admin\Action\CheckAdminRefererAction;
 use WPPack\Component\Hook\Attribute\Admin\Action\AdminFooterAction;
 use WPPack\Component\Hook\Attribute\Admin\Action\AdminHeadAction;
 use WPPack\Component\Hook\Attribute\Admin\Action\AdminMenuAction;
@@ -30,6 +26,7 @@ use WPPack\Component\Hook\Attribute\Admin\Action\AdminPrintFooterScriptsAction;
 use WPPack\Component\Hook\Attribute\Admin\Action\AdminPrintScriptsAction;
 use WPPack\Component\Hook\Attribute\Admin\Action\AdminPrintStylesAction;
 use WPPack\Component\Hook\Attribute\Admin\Action\AllAdminNoticesAction;
+use WPPack\Component\Hook\Attribute\Admin\Action\CheckAdminRefererAction;
 use WPPack\Component\Hook\Attribute\Admin\Action\CurrentScreenAction;
 use WPPack\Component\Hook\Attribute\Admin\Action\ManagePostsCustomColumnAction;
 use WPPack\Component\Hook\Attribute\Admin\Action\NetworkAdminMenuAction;
@@ -43,6 +40,9 @@ use WPPack\Component\Hook\Attribute\Admin\Filter\AdminTitleFilter;
 use WPPack\Component\Hook\Attribute\Admin\Filter\ManagePagesColumnsFilter;
 use WPPack\Component\Hook\Attribute\Admin\Filter\ManagePostsColumnsFilter;
 use WPPack\Component\Hook\Attribute\Admin\Filter\ManageUsersColumnsFilter;
+use WPPack\Component\Hook\Attribute\Filter;
+use WPPack\Component\Hook\Hook;
+use WPPack\Component\Hook\HookType;
 
 final class NamedHookTest extends TestCase
 {

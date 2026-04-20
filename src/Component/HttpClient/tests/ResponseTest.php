@@ -16,8 +16,8 @@ namespace WPPack\Component\HttpClient\Tests;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WPPack\Component\HttpClient\Exception\RequestException;
-use WPPack\Component\HttpClient\Stream;
 use WPPack\Component\HttpClient\Response;
+use WPPack\Component\HttpClient\Stream;
 
 final class ResponseTest extends TestCase
 {

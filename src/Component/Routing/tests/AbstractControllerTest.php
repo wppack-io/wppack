@@ -19,10 +19,10 @@ use WPPack\Component\HttpFoundation\BinaryFileResponse;
 use WPPack\Component\HttpFoundation\JsonResponse;
 use WPPack\Component\HttpFoundation\RedirectResponse;
 use WPPack\Component\HttpFoundation\Response;
+use WPPack\Component\Role\Exception\AccessDeniedException;
 use WPPack\Component\Routing\AbstractController;
 use WPPack\Component\Routing\Response\BlockTemplateResponse;
 use WPPack\Component\Routing\Response\TemplateResponse;
-use WPPack\Component\Role\Exception\AccessDeniedException;
 use WPPack\Component\Security\Tests\SecurityTestTrait;
 use WPPack\Component\Templating\TemplateRendererInterface;
 

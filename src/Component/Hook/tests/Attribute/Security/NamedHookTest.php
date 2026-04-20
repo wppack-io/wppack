@@ -17,20 +17,20 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WPPack\Component\Hook\Attribute\Action;
 use WPPack\Component\Hook\Attribute\Filter;
-use WPPack\Component\Hook\Hook;
-use WPPack\Component\Hook\HookType;
 use WPPack\Component\Hook\Attribute\Security\Action\PasswordResetAction;
 use WPPack\Component\Hook\Attribute\Security\Action\RetrievePasswordAction;
 use WPPack\Component\Hook\Attribute\Security\Action\WpLoginAction;
 use WPPack\Component\Hook\Attribute\Security\Action\WpLoginFailedAction;
 use WPPack\Component\Hook\Attribute\Security\Action\WpLogoutAction;
-use WPPack\Component\Security\Attribute\AsAuthenticator;
-use WPPack\Component\Security\Attribute\AsVoter;
 use WPPack\Component\Hook\Attribute\Security\Filter\AuthenticateFilter;
 use WPPack\Component\Hook\Attribute\Security\Filter\CheckPasswordFilter;
 use WPPack\Component\Hook\Attribute\Security\Filter\DetermineCurrentUserFilter;
 use WPPack\Component\Hook\Attribute\Security\Filter\MapMetaCapFilter;
 use WPPack\Component\Hook\Attribute\Security\Filter\UserHasCapFilter;
+use WPPack\Component\Hook\Hook;
+use WPPack\Component\Hook\HookType;
+use WPPack\Component\Security\Attribute\AsAuthenticator;
+use WPPack\Component\Security\Attribute\AsVoter;
 
 final class NamedHookTest extends TestCase
 {

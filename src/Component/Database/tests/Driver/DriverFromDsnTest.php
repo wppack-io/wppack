@@ -13,10 +13,11 @@ declare(strict_types=1);
 
 namespace WPPack\Component\Database\Tests\Driver;
 
+use AsyncAws\RdsDataService\RdsDataServiceClient;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WPPack\Component\Database\Driver\Driver;
 use WPPack\Component\Database\Bridge\MySQLDataApi\MySQLDataApiDriver;
+use WPPack\Component\Database\Driver\Driver;
 use WPPack\Component\Database\Driver\MySQLDriver;
 use WPPack\Component\Database\Exception\UnsupportedSchemeException;
 
@@ -57,16 +58,28 @@ final class DriverFromDsnTest extends TestCase
     #[Test]
     public function dataApiSchemeIsNotShadowedByMySQL(): void
     {
-        // The critical safety property: `mysql+dataapi` must NOT be
-        // routed through MySQLDriverFactory. With an explicit
-        // scheme→factory map a future factory claiming 'mysql' via
-        // loose matching cannot shadow this; the DSN therefore resolves
-        // to MySQLDataApiDriver and never degrades into a plain-MySQL
-        // connection attempt with a malformed host.
-        $driver = Driver::fromDsn('mysql+dataapi://arn:aws:rds:us-east-1:000:cluster/wp');
+        // The critical safety property: mysql+dataapi must NEVER fall
+        // through to MySQLDriverFactory. The explicit scheme→factory
+        // map guarantees exact dispatch — the observable behaviour
+        // differs by whether async-aws/rds-data-service is present:
+        //   - installed   → resolves to MySQLDataApiDriver
+        //   - not installed → MySQLDataApiDriverFactory::supports()
+        //                     returns false, router throws
+        //                     UnsupportedSchemeException (not a silent
+        //                     degradation into MySQL).
+        // Either way the route NEVER lands on MySQLDriver.
+        if (class_exists(RdsDataServiceClient::class)) {
+            $driver = Driver::fromDsn('mysql+dataapi://arn:aws:rds:us-east-1:000:cluster/wp');
 
-        self::assertInstanceOf(MySQLDataApiDriver::class, $driver);
-        self::assertSame('mysql+dataapi', $driver->getName());
+            self::assertInstanceOf(MySQLDataApiDriver::class, $driver);
+            self::assertSame('mysql+dataapi', $driver->getName());
+
+            return;
+        }
+
+        $this->expectException(UnsupportedSchemeException::class);
+
+        Driver::fromDsn('mysql+dataapi://arn:aws:rds:us-east-1:000:cluster/wp');
     }
 
     #[Test]

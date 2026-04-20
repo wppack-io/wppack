@@ -13,12 +13,12 @@ declare(strict_types=1);
 
 namespace WPPack\Component\Storage\Bridge\Gcs;
 
+use Google\Cloud\Core\Exception\NotFoundException;
 use Google\Cloud\Storage\Bucket;
 use WPPack\Component\Storage\Adapter\AbstractStorageAdapter;
 use WPPack\Component\Storage\Exception\ObjectNotFoundException;
 use WPPack\Component\Storage\ObjectMetadata;
 use WPPack\Component\Storage\Visibility;
-use Google\Cloud\Core\Exception\NotFoundException;
 
 final class GcsStorageAdapter extends AbstractStorageAdapter
 {

@@ -17,13 +17,13 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WPPack\Component\Hook\Attribute\Action;
 use WPPack\Component\Hook\Attribute\Filter;
-use WPPack\Component\Hook\Hook;
-use WPPack\Component\Hook\HookType;
 use WPPack\Component\Hook\Attribute\Role\Action\GrantSuperAdminAction;
 use WPPack\Component\Hook\Attribute\Role\Action\RevokeSuperAdminAction;
 use WPPack\Component\Hook\Attribute\Role\Action\SetUserRoleAction;
 use WPPack\Component\Hook\Attribute\Role\Filter\MapMetaCapFilter;
 use WPPack\Component\Hook\Attribute\Role\Filter\UserHasCapFilter;
+use WPPack\Component\Hook\Hook;
+use WPPack\Component\Hook\HookType;
 
 final class NamedHookTest extends TestCase
 {

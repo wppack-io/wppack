@@ -16,8 +16,8 @@ namespace WPPack\Component\Mailer\Bridge\SendGrid\Transport;
 use WPPack\Component\HttpClient\Exception\ConnectionException;
 use WPPack\Component\HttpClient\HttpClient;
 use WPPack\Component\Mailer\Exception\TransportException;
-use WPPack\Component\Mailer\Transport\AbstractApiTransport;
 use WPPack\Component\Mailer\PhpMailer;
+use WPPack\Component\Mailer\Transport\AbstractApiTransport;
 use WPPack\Component\Serializer\Encoder\JsonEncoder;
 
 final class SendGridApiTransport extends AbstractApiTransport

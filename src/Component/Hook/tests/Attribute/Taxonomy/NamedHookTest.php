@@ -17,8 +17,6 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WPPack\Component\Hook\Attribute\Action;
 use WPPack\Component\Hook\Attribute\Filter;
-use WPPack\Component\Hook\Hook;
-use WPPack\Component\Hook\HookType;
 use WPPack\Component\Hook\Attribute\Taxonomy\Action\CreateTermAction;
 use WPPack\Component\Hook\Attribute\Taxonomy\Action\DeleteTermAction;
 use WPPack\Component\Hook\Attribute\Taxonomy\Action\EditTermAction;
@@ -27,6 +25,8 @@ use WPPack\Component\Hook\Attribute\Taxonomy\Action\RegisteredTaxonomyAction;
 use WPPack\Component\Hook\Attribute\Taxonomy\Filter\GetTermsFilter;
 use WPPack\Component\Hook\Attribute\Taxonomy\Filter\TermLinkFilter;
 use WPPack\Component\Hook\Attribute\Taxonomy\Filter\TermsClausesFilter;
+use WPPack\Component\Hook\Hook;
+use WPPack\Component\Hook\HookType;
 
 final class NamedHookTest extends TestCase
 {

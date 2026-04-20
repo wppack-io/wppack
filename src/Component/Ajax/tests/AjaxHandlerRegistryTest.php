@@ -21,8 +21,8 @@ use WPPack\Component\Ajax\AjaxHandlerRegistry;
 use WPPack\Component\Ajax\Attribute\Ajax;
 use WPPack\Component\HttpFoundation\JsonResponse;
 use WPPack\Component\HttpFoundation\Request;
-use WPPack\Component\Security\Attribute\CurrentUser;
 use WPPack\Component\Role\Attribute\IsGranted;
+use WPPack\Component\Security\Attribute\CurrentUser;
 use WPPack\Component\Security\Tests\SecurityTestTrait;
 
 final class AjaxHandlerRegistryTest extends TestCase

@@ -17,8 +17,6 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WPPack\Component\Hook\Attribute\Action;
 use WPPack\Component\Hook\Attribute\Filter;
-use WPPack\Component\Hook\Hook;
-use WPPack\Component\Hook\HookType;
 use WPPack\Component\Hook\Attribute\Transient\Action\DeletedTransientAction;
 use WPPack\Component\Hook\Attribute\Transient\Action\SetSiteTransientAction;
 use WPPack\Component\Hook\Attribute\Transient\Action\SetTransientAction;
@@ -28,6 +26,8 @@ use WPPack\Component\Hook\Attribute\Transient\Filter\PreTransientFilter;
 use WPPack\Component\Hook\Attribute\Transient\Filter\SiteTransientFilter;
 use WPPack\Component\Hook\Attribute\Transient\Filter\TransientFilter;
 use WPPack\Component\Hook\Attribute\Transient\Filter\TransientTimeoutFilter;
+use WPPack\Component\Hook\Hook;
+use WPPack\Component\Hook\HookType;
 
 final class NamedHookTest extends TestCase
 {

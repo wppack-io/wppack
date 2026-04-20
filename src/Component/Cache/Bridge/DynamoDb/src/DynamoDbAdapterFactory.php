@@ -18,8 +18,8 @@ use WPPack\Component\Cache\Adapter\AdapterDefinition;
 use WPPack\Component\Cache\Adapter\AdapterFactoryInterface;
 use WPPack\Component\Cache\Adapter\AdapterField;
 use WPPack\Component\Cache\Adapter\AdapterInterface;
-use WPPack\Component\Dsn\Dsn;
 use WPPack\Component\Cache\Exception\AdapterException;
+use WPPack\Component\Dsn\Dsn;
 
 final class DynamoDbAdapterFactory implements AdapterFactoryInterface
 {

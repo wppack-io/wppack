@@ -15,8 +15,8 @@ namespace WPPack\Component\HttpClient\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WPPack\Component\HttpClient\Stream;
 use WPPack\Component\HttpClient\Request;
+use WPPack\Component\HttpClient\Stream;
 use WPPack\Component\HttpClient\Uri;
 
 final class RequestTest extends TestCase

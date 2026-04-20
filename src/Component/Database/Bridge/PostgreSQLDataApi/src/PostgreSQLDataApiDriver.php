@@ -14,9 +14,9 @@ declare(strict_types=1);
 namespace WPPack\Component\Database\Bridge\PostgreSQLDataApi;
 
 use AsyncAws\RdsDataService\RdsDataServiceClient;
-use WPPack\Component\Database\Driver\DataApiDriverTrait;
 use WPPack\Component\Database\Bridge\PostgreSQL\PostgreSQLDriver;
 use WPPack\Component\Database\Bridge\PostgreSQL\Translator\PostgreSQLQueryTranslator;
+use WPPack\Component\Database\Driver\DataApiDriverTrait;
 use WPPack\Component\Database\Translator\QueryTranslatorInterface;
 
 /**

@@ -17,8 +17,6 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WPPack\Component\Hook\Attribute\Action;
 use WPPack\Component\Hook\Attribute\Filter;
-use WPPack\Component\Hook\Hook;
-use WPPack\Component\Hook\HookType;
 use WPPack\Component\Hook\Attribute\Query\Action\ParseQueryAction;
 use WPPack\Component\Hook\Attribute\Query\Action\PreGetPostsAction;
 use WPPack\Component\Hook\Attribute\Query\Filter\FoundPostsFilter;
@@ -40,6 +38,8 @@ use WPPack\Component\Hook\Attribute\Query\Filter\PostsWherePagedFilter;
 use WPPack\Component\Hook\Attribute\Query\Filter\ThePostsFilter;
 use WPPack\Component\Hook\Attribute\Query\Filter\UpdatePostMetaCacheFilter;
 use WPPack\Component\Hook\Attribute\Query\Filter\UpdatePostTermCacheFilter;
+use WPPack\Component\Hook\Hook;
+use WPPack\Component\Hook\HookType;
 
 final class NamedHookTest extends TestCase
 {

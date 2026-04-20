@@ -16,9 +16,9 @@ namespace WPPack\Component\Mailer\Bridge\Azure\Tests\Transport;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WPPack\Component\Dsn\Dsn;
 use WPPack\Component\Mailer\Bridge\Azure\Transport\AzureApiTransport;
 use WPPack\Component\Mailer\Bridge\Azure\Transport\AzureTransportFactory;
-use WPPack\Component\Dsn\Dsn;
 
 final class AzureTransportFactoryTest extends TestCase
 {

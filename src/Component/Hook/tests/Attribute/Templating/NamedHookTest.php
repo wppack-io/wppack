@@ -16,10 +16,10 @@ namespace WPPack\Component\Hook\Tests\Attribute\Templating;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WPPack\Component\Hook\Attribute\Filter;
-use WPPack\Component\Hook\Hook;
-use WPPack\Component\Hook\HookType;
 use WPPack\Component\Hook\Attribute\Templating\Filter\TheContentFilter;
 use WPPack\Component\Hook\Attribute\Templating\Filter\TheTitleFilter;
+use WPPack\Component\Hook\Hook;
+use WPPack\Component\Hook\HookType;
 
 final class NamedHookTest extends TestCase
 {

@@ -23,8 +23,8 @@ use WPPack\Component\Rest\Attribute\RestRoute;
 use WPPack\Component\Rest\Exception\RouteNotFoundException;
 use WPPack\Component\Rest\HttpMethod;
 use WPPack\Component\Rest\RestRegistry;
-use WPPack\Component\Security\Attribute\CurrentUser;
 use WPPack\Component\Role\Attribute\IsGranted;
+use WPPack\Component\Security\Attribute\CurrentUser;
 use WPPack\Component\Security\Tests\SecurityTestTrait;
 
 final class RestRegistryTest extends TestCase

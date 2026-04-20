@@ -17,10 +17,8 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WPPack\Component\Hook\Attribute\Action;
 use WPPack\Component\Hook\Attribute\Filter;
-use WPPack\Component\Hook\Hook;
-use WPPack\Component\Hook\HookType;
-use WPPack\Component\Hook\Attribute\User\Action\DeleteUserAction;
 use WPPack\Component\Hook\Attribute\User\Action\DeletedUserAction;
+use WPPack\Component\Hook\Attribute\User\Action\DeleteUserAction;
 use WPPack\Component\Hook\Attribute\User\Action\EditUserProfileAction;
 use WPPack\Component\Hook\Attribute\User\Action\EditUserProfileUpdateAction;
 use WPPack\Component\Hook\Attribute\User\Action\PersonalOptionsUpdateAction;
@@ -29,6 +27,8 @@ use WPPack\Component\Hook\Attribute\User\Action\RemoveUserFromBlogAction;
 use WPPack\Component\Hook\Attribute\User\Action\ShowUserProfileAction;
 use WPPack\Component\Hook\Attribute\User\Action\UserRegisterAction;
 use WPPack\Component\Hook\Attribute\User\Filter\RegistrationErrorsFilter;
+use WPPack\Component\Hook\Hook;
+use WPPack\Component\Hook\HookType;
 
 final class NamedHookTest extends TestCase
 {

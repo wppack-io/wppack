@@ -17,21 +17,21 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WPPack\Component\Hook\Attribute\Action;
 use WPPack\Component\Hook\Attribute\Filter;
-use WPPack\Component\Hook\Hook;
-use WPPack\Component\Hook\HookType;
 use WPPack\Component\Hook\Attribute\NavigationMenu\Action\WpCreateNavMenuAction;
 use WPPack\Component\Hook\Attribute\NavigationMenu\Action\WpDeleteNavMenuAction;
 use WPPack\Component\Hook\Attribute\NavigationMenu\Action\WpNavMenuItemCustomFieldsAction;
 use WPPack\Component\Hook\Attribute\NavigationMenu\Action\WpUpdateNavMenuAction;
 use WPPack\Component\Hook\Attribute\NavigationMenu\Action\WpUpdateNavMenuItemAction;
 use WPPack\Component\Hook\Attribute\NavigationMenu\Filter\NavMenuCssClassFilter;
-use WPPack\Component\Hook\Attribute\NavigationMenu\Filter\PreWpNavMenuFilter;
 use WPPack\Component\Hook\Attribute\NavigationMenu\Filter\NavMenuItemIdFilter;
 use WPPack\Component\Hook\Attribute\NavigationMenu\Filter\NavMenuLinkAttributesFilter;
+use WPPack\Component\Hook\Attribute\NavigationMenu\Filter\PreWpNavMenuFilter;
 use WPPack\Component\Hook\Attribute\NavigationMenu\Filter\WpNavMenuArgsFilter;
 use WPPack\Component\Hook\Attribute\NavigationMenu\Filter\WpNavMenuItemsFilter;
 use WPPack\Component\Hook\Attribute\NavigationMenu\Filter\WpNavMenuObjectsFilter;
 use WPPack\Component\Hook\Attribute\NavigationMenu\Filter\WpSetupNavMenuItemFilter;
+use WPPack\Component\Hook\Hook;
+use WPPack\Component\Hook\HookType;
 
 final class NamedHookTest extends TestCase
 {

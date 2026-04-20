@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace WPPack\Component\Storage\Bridge\Gcs\Tests;
 
+use Google\Cloud\Core\Exception\NotFoundException;
 use Google\Cloud\Storage\Bucket;
 use Google\Cloud\Storage\StorageObject;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -21,7 +22,6 @@ use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\StreamInterface;
 use WPPack\Component\Storage\Bridge\Gcs\GcsStorageAdapter;
 use WPPack\Component\Storage\Exception\ObjectNotFoundException;
-use Google\Cloud\Core\Exception\NotFoundException;
 
 #[CoversClass(GcsStorageAdapter::class)]
 final class GcsStorageAdapterTest extends TestCase

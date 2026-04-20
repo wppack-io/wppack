@@ -24,10 +24,10 @@ use WPPack\Component\Rest\RestRegistry;
 use WPPack\Component\Role\RoleProvider;
 use WPPack\Component\Site\BlogContext;
 use WPPack\Component\Site\BlogContextInterface;
+use WPPack\Component\User\UserRepositoryInterface;
 use WPPack\Plugin\RoleProvisioningPlugin\Admin\RoleProvisioningSettingsController;
 use WPPack\Plugin\RoleProvisioningPlugin\Admin\RoleProvisioningSettingsPage;
 use WPPack\Plugin\RoleProvisioningPlugin\Configuration\RoleProvisioningConfiguration;
-use WPPack\Component\User\UserRepositoryInterface;
 use WPPack\Plugin\RoleProvisioningPlugin\Provisioning\RoleProvisioner;
 
 final class RoleProvisioningPluginServiceProvider implements ServiceProviderInterface

@@ -16,9 +16,9 @@ namespace WPPack\Component\Hook\Tests\Attribute\Shortcode\Filter;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WPPack\Component\Hook\Attribute\Filter;
+use WPPack\Component\Hook\Attribute\Shortcode\Filter\NoTexturizeShortcodesFilter;
 use WPPack\Component\Hook\Hook;
 use WPPack\Component\Hook\HookType;
-use WPPack\Component\Hook\Attribute\Shortcode\Filter\NoTexturizeShortcodesFilter;
 
 final class NoTexturizeShortcodesFilterTest extends TestCase
 {

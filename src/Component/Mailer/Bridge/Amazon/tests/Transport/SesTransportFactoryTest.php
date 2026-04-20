@@ -16,11 +16,11 @@ namespace WPPack\Component\Mailer\Bridge\Amazon\Tests\Transport;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WPPack\Component\Dsn\Dsn;
 use WPPack\Component\Mailer\Bridge\Amazon\Transport\SesApiTransport;
 use WPPack\Component\Mailer\Bridge\Amazon\Transport\SesHttpTransport;
 use WPPack\Component\Mailer\Bridge\Amazon\Transport\SesSmtpTransport;
 use WPPack\Component\Mailer\Bridge\Amazon\Transport\SesTransportFactory;
-use WPPack\Component\Dsn\Dsn;
 
 final class SesTransportFactoryTest extends TestCase
 {

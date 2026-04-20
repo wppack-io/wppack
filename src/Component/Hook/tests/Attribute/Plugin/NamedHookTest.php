@@ -17,8 +17,6 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WPPack\Component\Hook\Attribute\Action;
 use WPPack\Component\Hook\Attribute\Filter;
-use WPPack\Component\Hook\Hook;
-use WPPack\Component\Hook\HookType;
 use WPPack\Component\Hook\Attribute\Plugin\Action\ActivatedPluginAction;
 use WPPack\Component\Hook\Attribute\Plugin\Action\AfterPluginRowAction;
 use WPPack\Component\Hook\Attribute\Plugin\Action\DeactivatedPluginAction;
@@ -31,6 +29,8 @@ use WPPack\Component\Hook\Attribute\Plugin\Filter\PluginActionLinksFilter;
 use WPPack\Component\Hook\Attribute\Plugin\Filter\PluginRowMetaFilter;
 use WPPack\Component\Hook\Attribute\Plugin\Filter\PluginsApiFilter;
 use WPPack\Component\Hook\Attribute\Plugin\Filter\PreSetSiteTransientUpdatePluginsFilter;
+use WPPack\Component\Hook\Hook;
+use WPPack\Component\Hook\HookType;
 
 final class NamedHookTest extends TestCase
 {

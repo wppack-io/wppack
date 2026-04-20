@@ -16,14 +16,14 @@ namespace WPPack\Component\Hook\Tests\Attribute\DashboardWidget;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WPPack\Component\Hook\Attribute\Action;
-use WPPack\Component\Hook\Hook;
-use WPPack\Component\Hook\HookType;
 use WPPack\Component\Hook\Attribute\DashboardWidget\Action\ActivityBoxEndAction;
 use WPPack\Component\Hook\Attribute\DashboardWidget\Action\UpdateUserOptionAction;
 use WPPack\Component\Hook\Attribute\DashboardWidget\Action\WpDashboardSetupAction;
 use WPPack\Component\Hook\Attribute\DashboardWidget\Action\WpNetworkDashboardSetupAction;
 use WPPack\Component\Hook\Attribute\DashboardWidget\Filter\DashboardGlanceItemsFilter;
 use WPPack\Component\Hook\Attribute\Filter;
+use WPPack\Component\Hook\Hook;
+use WPPack\Component\Hook\HookType;
 
 final class NamedHookTest extends TestCase
 {

@@ -15,12 +15,12 @@ namespace WPPack\Plugin\MonitoringPlugin\Rest;
 
 use Psr\Log\LoggerInterface;
 use WPPack\Component\HttpFoundation\JsonResponse;
+use WPPack\Component\Monitoring\MonitoringProvider;
 use WPPack\Component\Monitoring\MonitoringStore;
 use WPPack\Component\Rest\AbstractRestController;
 use WPPack\Component\Rest\Attribute\RestRoute;
 use WPPack\Component\Rest\HttpMethod;
 use WPPack\Component\Role\Attribute\IsGranted;
-use WPPack\Component\Monitoring\MonitoringProvider;
 use WPPack\Plugin\MonitoringPlugin\Template\MetricTemplate;
 use WPPack\Plugin\MonitoringPlugin\Template\MetricTemplateRegistry;
 

@@ -15,8 +15,8 @@ namespace WPPack\Component\Mailer\Tests\Exception;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WPPack\Component\Mailer\Exception\UnsupportedSchemeException;
 use WPPack\Component\Dsn\Dsn;
+use WPPack\Component\Mailer\Exception\UnsupportedSchemeException;
 
 final class UnsupportedSchemeExceptionTest extends TestCase
 {

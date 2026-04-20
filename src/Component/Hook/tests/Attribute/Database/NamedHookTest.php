@@ -16,15 +16,15 @@ namespace WPPack\Component\Hook\Tests\Attribute\Database;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WPPack\Component\Hook\Attribute\Action;
-use WPPack\Component\Hook\Attribute\Filter;
-use WPPack\Component\Hook\Hook;
-use WPPack\Component\Hook\HookType;
 use WPPack\Component\Hook\Attribute\Database\Action\WpUpgradeAction;
 use WPPack\Component\Hook\Attribute\Database\Filter\DbDeltaCreateQueriesFilter;
 use WPPack\Component\Hook\Attribute\Database\Filter\DbDeltaInsertQueriesFilter;
 use WPPack\Component\Hook\Attribute\Database\Filter\DbDeltaQueriesFilter;
 use WPPack\Component\Hook\Attribute\Database\Filter\DbprepareFilter;
 use WPPack\Component\Hook\Attribute\Database\Filter\QueryFilter;
+use WPPack\Component\Hook\Attribute\Filter;
+use WPPack\Component\Hook\Hook;
+use WPPack\Component\Hook\HookType;
 
 final class NamedHookTest extends TestCase
 {

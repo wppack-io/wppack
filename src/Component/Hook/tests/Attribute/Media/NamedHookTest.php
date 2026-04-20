@@ -16,8 +16,6 @@ namespace WPPack\Component\Hook\Tests\Attribute\Media;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WPPack\Component\Hook\Attribute\Filter;
-use WPPack\Component\Hook\Hook;
-use WPPack\Component\Hook\HookType;
 use WPPack\Component\Hook\Attribute\Media\Filter\AjaxQueryAttachmentsArgsFilter;
 use WPPack\Component\Hook\Attribute\Media\Filter\IntermediateSizesAdvancedFilter;
 use WPPack\Component\Hook\Attribute\Media\Filter\MediaUploadTabsFilter;
@@ -27,6 +25,8 @@ use WPPack\Component\Hook\Attribute\Media\Filter\WpGetAttachmentImageAttributesF
 use WPPack\Component\Hook\Attribute\Media\Filter\WpHandleUploadFilter;
 use WPPack\Component\Hook\Attribute\Media\Filter\WpHandleUploadPrefilterFilter;
 use WPPack\Component\Hook\Attribute\Media\Filter\WpImageEditorsFilter;
+use WPPack\Component\Hook\Hook;
+use WPPack\Component\Hook\HookType;
 
 final class NamedHookTest extends TestCase
 {

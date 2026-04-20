@@ -15,9 +15,9 @@ namespace WPPack\Component\Setting\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WPPack\Component\Escaper\Escaper;
 use WPPack\Component\Setting\AbstractSettingsPage;
 use WPPack\Component\Setting\Attribute\AsSettingsPage;
-use WPPack\Component\Escaper\Escaper;
 use WPPack\Component\Setting\SettingsConfigurator;
 use WPPack\Component\Setting\SettingsRenderer;
 

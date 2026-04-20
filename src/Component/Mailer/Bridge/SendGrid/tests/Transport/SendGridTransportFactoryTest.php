@@ -16,10 +16,10 @@ namespace WPPack\Component\Mailer\Bridge\SendGrid\Tests\Transport;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WPPack\Component\Dsn\Dsn;
 use WPPack\Component\Mailer\Bridge\SendGrid\Transport\SendGridApiTransport;
 use WPPack\Component\Mailer\Bridge\SendGrid\Transport\SendGridSmtpTransport;
 use WPPack\Component\Mailer\Bridge\SendGrid\Transport\SendGridTransportFactory;
-use WPPack\Component\Dsn\Dsn;
 
 final class SendGridTransportFactoryTest extends TestCase
 {

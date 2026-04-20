@@ -16,10 +16,10 @@ namespace WPPack\Component\Hook\Tests\Attribute\Setting;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WPPack\Component\Hook\Attribute\Action;
-use WPPack\Component\Hook\Hook;
-use WPPack\Component\Hook\HookType;
 use WPPack\Component\Hook\Attribute\Setting\Action\SettingsErrorsAction;
 use WPPack\Component\Hook\Attribute\Setting\Action\SettingsPageAction;
+use WPPack\Component\Hook\Hook;
+use WPPack\Component\Hook\HookType;
 
 final class NamedHookTest extends TestCase
 {

@@ -16,8 +16,6 @@ namespace WPPack\Component\Hook\Tests\Attribute\OEmbed;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WPPack\Component\Hook\Attribute\Filter;
-use WPPack\Component\Hook\Hook;
-use WPPack\Component\Hook\HookType;
 use WPPack\Component\Hook\Attribute\OEmbed\Filter\EmbedDefaultsFilter;
 use WPPack\Component\Hook\Attribute\OEmbed\Filter\EmbedHandlersFilter;
 use WPPack\Component\Hook\Attribute\OEmbed\Filter\EmbedOembedHtmlFilter;
@@ -30,6 +28,8 @@ use WPPack\Component\Hook\Attribute\OEmbed\Filter\OembedResultFilter;
 use WPPack\Component\Hook\Attribute\OEmbed\Filter\OembedTtlFilter;
 use WPPack\Component\Hook\Attribute\OEmbed\Filter\OembedWhitelistFilter;
 use WPPack\Component\Hook\Attribute\OEmbed\Filter\PreOembedResultFilter;
+use WPPack\Component\Hook\Hook;
+use WPPack\Component\Hook\HookType;
 
 final class NamedHookTest extends TestCase
 {

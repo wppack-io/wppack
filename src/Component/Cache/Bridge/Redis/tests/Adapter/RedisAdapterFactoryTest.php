@@ -15,7 +15,6 @@ namespace WPPack\Component\Cache\Bridge\Redis\Tests\Adapter;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WPPack\Component\Dsn\Dsn;
 use WPPack\Component\Cache\Bridge\Redis\Adapter\PredisAdapter;
 use WPPack\Component\Cache\Bridge\Redis\Adapter\RedisAdapter;
 use WPPack\Component\Cache\Bridge\Redis\Adapter\RedisAdapterFactory;
@@ -24,6 +23,7 @@ use WPPack\Component\Cache\Bridge\Redis\Adapter\RelayAdapter;
 use WPPack\Component\Cache\Bridge\Redis\Adapter\RelayClusterAdapter;
 use WPPack\Component\Cache\Exception\AdapterException;
 use WPPack\Component\Cache\Exception\UnsupportedSchemeException;
+use WPPack\Component\Dsn\Dsn;
 
 final class RedisAdapterFactoryTest extends TestCase
 {

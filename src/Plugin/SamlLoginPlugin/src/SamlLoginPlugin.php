@@ -13,11 +13,11 @@ declare(strict_types=1);
 
 namespace WPPack\Plugin\SamlLoginPlugin;
 
+use WPPack\Component\Admin\AdminPageRegistry;
 use WPPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use WPPack\Component\DependencyInjection\Container;
 use WPPack\Component\DependencyInjection\ContainerBuilder;
 use WPPack\Component\EventDispatcher\DependencyInjection\RegisterEventListenersPass;
-use WPPack\Component\Admin\AdminPageRegistry;
 use WPPack\Component\Kernel\AbstractPlugin;
 use WPPack\Component\Kernel\Attribute\TextDomain;
 use WPPack\Component\Rest\RestRegistry;

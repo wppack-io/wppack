@@ -17,13 +17,13 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WPPack\Component\Hook\Attribute\Action;
 use WPPack\Component\Hook\Attribute\Filter;
-use WPPack\Component\Hook\Hook;
-use WPPack\Component\Hook\HookType;
 use WPPack\Component\Hook\Attribute\Translation\Action\LoadTextdomainAction;
 use WPPack\Component\Hook\Attribute\Translation\Action\UnloadTextdomainAction;
 use WPPack\Component\Hook\Attribute\Translation\Filter\DetermineLocaleFilter;
 use WPPack\Component\Hook\Attribute\Translation\Filter\GettextFilter;
 use WPPack\Component\Hook\Attribute\Translation\Filter\LocaleFilter;
+use WPPack\Component\Hook\Hook;
+use WPPack\Component\Hook\HookType;
 
 final class NamedHookTest extends TestCase
 {

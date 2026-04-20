@@ -161,6 +161,11 @@ jobs:
         env:
           DATABASE_DSN: ${{ steps.dsn.outputs.value }}
           WPPACK_TEST_DB_PORT: '3306'
+          # PHPUnit 11 emits a runner warning when --coverage-* is asked
+          # for but Xdebug is not in coverage mode. shivammathur/setup-php
+          # installs Xdebug for us but leaves the mode on the default
+          # ('develop,debug'), so flip it here.
+          XDEBUG_MODE: coverage
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5

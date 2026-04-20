@@ -13,8 +13,8 @@ declare(strict_types=1);
 
 namespace WPPack\Component\Mailer\Bridge\Azure\Transport;
 
-use WPPack\Component\HttpClient\HttpClient;
 use WPPack\Component\HttpClient\Exception\ConnectionException;
+use WPPack\Component\HttpClient\HttpClient;
 use WPPack\Component\Mailer\Exception\TransportException;
 use WPPack\Component\Mailer\PhpMailer;
 

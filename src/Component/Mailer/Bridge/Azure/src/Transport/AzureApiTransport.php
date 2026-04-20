@@ -15,8 +15,8 @@ namespace WPPack\Component\Mailer\Bridge\Azure\Transport;
 
 use WPPack\Component\HttpClient\HttpClient;
 use WPPack\Component\Mailer\Exception\TransportException;
-use WPPack\Component\Mailer\Transport\AbstractApiTransport;
 use WPPack\Component\Mailer\PhpMailer;
+use WPPack\Component\Mailer\Transport\AbstractApiTransport;
 use WPPack\Component\Serializer\Encoder\JsonEncoder;
 
 final class AzureApiTransport extends AbstractApiTransport

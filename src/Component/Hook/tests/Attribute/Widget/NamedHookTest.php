@@ -17,8 +17,6 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WPPack\Component\Hook\Attribute\Action;
 use WPPack\Component\Hook\Attribute\Filter;
-use WPPack\Component\Hook\Hook;
-use WPPack\Component\Hook\HookType;
 use WPPack\Component\Hook\Attribute\Widget\Action\DynamicSidebarAfterAction;
 use WPPack\Component\Hook\Attribute\Widget\Action\DynamicSidebarBeforeAction;
 use WPPack\Component\Hook\Attribute\Widget\Action\WidgetsInitAction;
@@ -33,6 +31,8 @@ use WPPack\Component\Hook\Attribute\Widget\Filter\WidgetsPrefetchingFilter;
 use WPPack\Component\Hook\Attribute\Widget\Filter\WidgetTextFilter;
 use WPPack\Component\Hook\Attribute\Widget\Filter\WidgetTitleFilter;
 use WPPack\Component\Hook\Attribute\Widget\Filter\WidgetUpdateCallbackFilter;
+use WPPack\Component\Hook\Hook;
+use WPPack\Component\Hook\HookType;
 
 final class NamedHookTest extends TestCase
 {

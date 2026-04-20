@@ -18,9 +18,9 @@ use PHPUnit\Framework\TestCase;
 use WPPack\Component\SiteHealth\Attribute\AsDebugInfo;
 use WPPack\Component\SiteHealth\Attribute\AsHealthCheck;
 use WPPack\Component\SiteHealth\DebugSectionInterface;
-use WPPack\Component\SiteHealth\HealthCheckInterface;
 use WPPack\Component\SiteHealth\Exception\InvalidArgumentException;
 use WPPack\Component\SiteHealth\Exception\LogicException;
+use WPPack\Component\SiteHealth\HealthCheckInterface;
 use WPPack\Component\SiteHealth\Result;
 use WPPack\Component\SiteHealth\SiteHealthRegistry;
 

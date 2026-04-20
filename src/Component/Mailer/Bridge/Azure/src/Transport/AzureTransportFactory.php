@@ -13,9 +13,9 @@ declare(strict_types=1);
 
 namespace WPPack\Component\Mailer\Bridge\Azure\Transport;
 
+use WPPack\Component\Dsn\Dsn;
 use WPPack\Component\Mailer\Exception\InvalidArgumentException;
 use WPPack\Component\Mailer\Exception\UnsupportedSchemeException;
-use WPPack\Component\Dsn\Dsn;
 use WPPack\Component\Mailer\Transport\TransportDefinition;
 use WPPack\Component\Mailer\Transport\TransportFactoryInterface;
 use WPPack\Component\Mailer\Transport\TransportField;

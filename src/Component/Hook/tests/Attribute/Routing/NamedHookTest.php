@@ -17,8 +17,6 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WPPack\Component\Hook\Attribute\Action;
 use WPPack\Component\Hook\Attribute\Filter;
-use WPPack\Component\Hook\Hook;
-use WPPack\Component\Hook\HookType;
 use WPPack\Component\Hook\Attribute\Routing\Action\ParseRequestAction;
 use WPPack\Component\Hook\Attribute\Routing\Action\TemplateRedirectAction;
 use WPPack\Component\Hook\Attribute\Routing\Filter\PageRewriteRulesFilter;
@@ -28,6 +26,8 @@ use WPPack\Component\Hook\Attribute\Routing\Filter\RequestFilter;
 use WPPack\Component\Hook\Attribute\Routing\Filter\RewriteRulesArrayFilter;
 use WPPack\Component\Hook\Attribute\Routing\Filter\RootRewriteRulesFilter;
 use WPPack\Component\Hook\Attribute\Routing\Filter\TemplateIncludeFilter;
+use WPPack\Component\Hook\Hook;
+use WPPack\Component\Hook\HookType;
 
 final class NamedHookTest extends TestCase
 {

@@ -17,8 +17,6 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WPPack\Component\Hook\Attribute\Action;
 use WPPack\Component\Hook\Attribute\Filter;
-use WPPack\Component\Hook\Hook;
-use WPPack\Component\Hook\HookType;
 use WPPack\Component\Hook\Attribute\SiteHealth\Action\SiteHealthCheckCompleteAction;
 use WPPack\Component\Hook\Attribute\SiteHealth\Action\SiteHealthScheduledCheckAction;
 use WPPack\Component\Hook\Attribute\SiteHealth\Filter\PreSiteHealthCheckFilter;
@@ -30,6 +28,8 @@ use WPPack\Component\Hook\Attribute\SiteHealth\Filter\SiteHealthPhpVersionTestFi
 use WPPack\Component\Hook\Attribute\SiteHealth\Filter\SiteHealthSqlServerTestFilter;
 use WPPack\Component\Hook\Attribute\SiteHealth\Filter\SiteHealthStatusFilter;
 use WPPack\Component\Hook\Attribute\SiteHealth\Filter\SiteHealthTestsFilter;
+use WPPack\Component\Hook\Hook;
+use WPPack\Component\Hook\HookType;
 
 final class NamedHookTest extends TestCase
 {

@@ -13,10 +13,10 @@ declare(strict_types=1);
 
 namespace WPPack\Component\Monitoring\Bridge\CloudWatch\Discovery;
 
+use WPPack\Component\Monitoring\Bridge\CloudWatch\AwsProviderSettings;
 use WPPack\Component\Monitoring\MetricDefinition;
 use WPPack\Component\Monitoring\MonitoringProvider;
 use WPPack\Component\Monitoring\MonitoringProviderInterface;
-use WPPack\Component\Monitoring\Bridge\CloudWatch\AwsProviderSettings;
 use WPPack\Plugin\S3StoragePlugin\Configuration\S3StorageConfiguration;
 
 final class S3Discovery implements MonitoringProviderInterface

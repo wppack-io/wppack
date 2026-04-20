@@ -17,8 +17,6 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WPPack\Component\Hook\Attribute\Action;
 use WPPack\Component\Hook\Attribute\Filter;
-use WPPack\Component\Hook\Hook;
-use WPPack\Component\Hook\HookType;
 use WPPack\Component\Hook\Attribute\Option\Action\AddOptionAction;
 use WPPack\Component\Hook\Attribute\Option\Action\DeleteOptionAction;
 use WPPack\Component\Hook\Attribute\Option\Action\UpdateOptionAction;
@@ -29,6 +27,8 @@ use WPPack\Component\Hook\Attribute\Option\Filter\PreOptionFilter;
 use WPPack\Component\Hook\Attribute\Option\Filter\PreSiteOptionFilter;
 use WPPack\Component\Hook\Attribute\Option\Filter\PreUpdateOptionFilter;
 use WPPack\Component\Hook\Attribute\Option\Filter\SiteOptionFilter;
+use WPPack\Component\Hook\Hook;
+use WPPack\Component\Hook\HookType;
 
 final class NamedHookTest extends TestCase
 {

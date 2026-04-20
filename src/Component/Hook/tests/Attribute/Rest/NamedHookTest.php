@@ -17,14 +17,14 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WPPack\Component\Hook\Attribute\Action;
 use WPPack\Component\Hook\Attribute\Filter;
-use WPPack\Component\Hook\Hook;
-use WPPack\Component\Hook\HookType;
 use WPPack\Component\Hook\Attribute\Rest\Action\RestApiInitAction;
 use WPPack\Component\Hook\Attribute\Rest\Filter\RestAuthenticationErrorsFilter;
 use WPPack\Component\Hook\Attribute\Rest\Filter\RestPreDispatchFilter;
-use WPPack\Component\Hook\Attribute\Rest\Filter\RestPreServeRequestFilter;
 use WPPack\Component\Hook\Attribute\Rest\Filter\RestPreparePostFilter;
+use WPPack\Component\Hook\Attribute\Rest\Filter\RestPreServeRequestFilter;
 use WPPack\Component\Hook\Attribute\Rest\Filter\RestRequestAfterCallbacksFilter;
+use WPPack\Component\Hook\Hook;
+use WPPack\Component\Hook\HookType;
 
 final class NamedHookTest extends TestCase
 {

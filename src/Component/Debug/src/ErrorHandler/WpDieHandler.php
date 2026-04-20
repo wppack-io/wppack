@@ -14,9 +14,9 @@ declare(strict_types=1);
 namespace WPPack\Component\Debug\ErrorHandler;
 
 use Psr\Log\LoggerInterface;
+use WPPack\Component\Debug\DataCollector\WpErrorDataCollector;
 use WPPack\Component\Debug\DebugConfig;
 use WPPack\Component\Debug\Profiler\Profile;
-use WPPack\Component\Debug\DataCollector\WpErrorDataCollector;
 use WPPack\Component\Debug\Toolbar\ToolbarRenderer;
 
 /**

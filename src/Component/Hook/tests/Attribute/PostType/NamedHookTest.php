@@ -16,11 +16,11 @@ namespace WPPack\Component\Hook\Tests\Attribute\PostType;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WPPack\Component\Hook\Attribute\Action;
-use WPPack\Component\Hook\Hook;
-use WPPack\Component\Hook\HookType;
 use WPPack\Component\Hook\Attribute\PostType\Action\DeletePostAction;
 use WPPack\Component\Hook\Attribute\PostType\Action\SavePostAction;
 use WPPack\Component\Hook\Attribute\PostType\Action\TransitionPostStatusAction;
+use WPPack\Component\Hook\Hook;
+use WPPack\Component\Hook\HookType;
 
 final class NamedHookTest extends TestCase
 {

@@ -15,10 +15,10 @@ namespace WPPack\Component\Security\Bridge\Passkey\Controller;
 
 use WPPack\Component\HttpFoundation\JsonResponse;
 use WPPack\Component\Rest\AbstractRestController;
+use WPPack\Component\Rest\Attribute\Permission;
 use WPPack\Component\Rest\Attribute\RestRoute;
 use WPPack\Component\Rest\HttpMethod;
 use WPPack\Component\Security\AuthenticationSession;
-use WPPack\Component\Rest\Attribute\Permission;
 use WPPack\Component\Security\Bridge\Passkey\Storage\CredentialRepositoryInterface;
 use WPPack\Component\Security\Bridge\Passkey\Storage\PasskeyCredential;
 

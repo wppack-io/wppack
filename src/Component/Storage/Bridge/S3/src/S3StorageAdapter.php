@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace WPPack\Component\Storage\Bridge\S3;
 
+use AsyncAws\S3\Exception\NoSuchKeyException;
 use AsyncAws\S3\Input\CopyObjectRequest;
 use AsyncAws\S3\Input\DeleteObjectRequest;
 use AsyncAws\S3\Input\DeleteObjectsRequest;
@@ -21,7 +22,6 @@ use AsyncAws\S3\Input\HeadObjectRequest;
 use AsyncAws\S3\Input\ListObjectsV2Request;
 use AsyncAws\S3\Input\PutObjectAclRequest;
 use AsyncAws\S3\Input\PutObjectRequest;
-use AsyncAws\S3\Exception\NoSuchKeyException;
 use AsyncAws\S3\S3Client;
 use AsyncAws\S3\ValueObject\Delete;
 use AsyncAws\S3\ValueObject\ObjectIdentifier;

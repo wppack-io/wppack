@@ -19,6 +19,10 @@ return (new PhpCsFixer\Config())
         '@PER-CS2.0' => true,
         '@PER-CS2.0:risky' => true,
         'declare_strict_types' => true,
+        'ordered_imports' => [
+            'imports_order' => ['class', 'function', 'const'],
+            'sort_algorithm' => 'alpha',
+        ],
         'header_comment' => [
             'header' => <<<'EOF'
 This file is part of the WPPack package.

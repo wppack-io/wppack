@@ -17,8 +17,6 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WPPack\Component\Hook\Attribute\Action;
 use WPPack\Component\Hook\Attribute\Filter;
-use WPPack\Component\Hook\Hook;
-use WPPack\Component\Hook\HookType;
 use WPPack\Component\Hook\Attribute\Theme\Action\CustomizePreviewInitAction;
 use WPPack\Component\Hook\Attribute\Theme\Action\CustomizeRegisterAction;
 use WPPack\Component\Hook\Attribute\Theme\Action\WpBodyOpenAction;
@@ -31,6 +29,8 @@ use WPPack\Component\Hook\Attribute\Theme\Filter\BodyClassFilter;
 use WPPack\Component\Hook\Attribute\Theme\Filter\PostClassFilter;
 use WPPack\Component\Hook\Attribute\Theme\Filter\ScriptLoaderTagFilter;
 use WPPack\Component\Hook\Attribute\Theme\Filter\StyleLoaderTagFilter;
+use WPPack\Component\Hook\Hook;
+use WPPack\Component\Hook\HookType;
 
 final class NamedHookTest extends TestCase
 {

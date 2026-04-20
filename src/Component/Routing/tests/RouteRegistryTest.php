@@ -19,8 +19,8 @@ use WPPack\Component\HttpFoundation\ArgumentResolver;
 use WPPack\Component\HttpFoundation\Exception\ForbiddenException;
 use WPPack\Component\HttpFoundation\Request;
 use WPPack\Component\HttpFoundation\RequestValueResolver;
+use WPPack\Component\Role\Attribute\IsGranted;
 use WPPack\Component\Routing\AbstractController;
-use WPPack\Component\Security\ValueResolver\CurrentUserValueResolver;
 use WPPack\Component\Routing\Attribute\RewriteTag;
 use WPPack\Component\Routing\Attribute\Route;
 use WPPack\Component\Routing\Exception\RouteNotFoundException;
@@ -29,8 +29,8 @@ use WPPack\Component\Routing\RouteEntry;
 use WPPack\Component\Routing\RoutePosition;
 use WPPack\Component\Routing\RouteRegistry;
 use WPPack\Component\Security\Attribute\CurrentUser;
-use WPPack\Component\Role\Attribute\IsGranted;
 use WPPack\Component\Security\Tests\SecurityTestTrait;
+use WPPack\Component\Security\ValueResolver\CurrentUserValueResolver;
 use WPPack\Component\Templating\TemplateRendererInterface;
 
 final class RouteRegistryTest extends TestCase

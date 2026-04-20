@@ -16,8 +16,8 @@ namespace WPPack\Component\Mailer\Bridge\Amazon\Transport;
 use AsyncAws\Ses\Input\SendEmailRequest;
 use AsyncAws\Ses\SesClient;
 use WPPack\Component\Mailer\Exception\TransportException;
-use WPPack\Component\Mailer\Transport\AbstractTransport;
 use WPPack\Component\Mailer\PhpMailer;
+use WPPack\Component\Mailer\Transport\AbstractTransport;
 
 final class SesHttpTransport extends AbstractTransport
 {

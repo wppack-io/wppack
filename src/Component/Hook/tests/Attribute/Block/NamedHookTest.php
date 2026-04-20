@@ -16,9 +16,6 @@ namespace WPPack\Component\Hook\Tests\Attribute\Block;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WPPack\Component\Hook\Attribute\Action;
-use WPPack\Component\Hook\Attribute\Filter;
-use WPPack\Component\Hook\Hook;
-use WPPack\Component\Hook\HookType;
 use WPPack\Component\Hook\Attribute\Block\Action\EnqueueBlockAssetsAction;
 use WPPack\Component\Hook\Attribute\Block\Action\EnqueueBlockEditorAssetsAction;
 use WPPack\Component\Hook\Attribute\Block\Filter\BlockCategoriesAllFilter;
@@ -31,6 +28,9 @@ use WPPack\Component\Hook\Attribute\Block\Filter\RenderBlockDataFilter;
 use WPPack\Component\Hook\Attribute\Block\Filter\RenderBlockFilter;
 use WPPack\Component\Hook\Attribute\Block\Filter\RestPreInsertBlockFilter;
 use WPPack\Component\Hook\Attribute\Block\Filter\RestPrepareBlockFilter;
+use WPPack\Component\Hook\Attribute\Filter;
+use WPPack\Component\Hook\Hook;
+use WPPack\Component\Hook\HookType;
 
 final class NamedHookTest extends TestCase
 {

@@ -19,14 +19,14 @@ use AsyncAws\CloudWatch\ValueObject\Dimension;
 use AsyncAws\CloudWatch\ValueObject\Metric;
 use AsyncAws\CloudWatch\ValueObject\MetricDataQuery;
 use AsyncAws\CloudWatch\ValueObject\MetricStat;
+use Psr\Log\LoggerInterface;
+use WPPack\Component\Monitoring\Bridge\CloudWatch\AwsProviderSettings;
 use WPPack\Component\Monitoring\MetricDefinition;
 use WPPack\Component\Monitoring\MetricPoint;
 use WPPack\Component\Monitoring\MetricProviderInterface;
 use WPPack\Component\Monitoring\MetricResult;
 use WPPack\Component\Monitoring\MetricTimeRange;
 use WPPack\Component\Monitoring\MonitoringProvider;
-use Psr\Log\LoggerInterface;
-use WPPack\Component\Monitoring\Bridge\CloudWatch\AwsProviderSettings;
 
 final class CloudWatchMetricProvider implements MetricProviderInterface
 {

@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace WPPack\Plugin\ScimPlugin\DependencyInjection;
 
+use WPPack\Component\Admin\AdminPageRegistry;
 use WPPack\Component\DependencyInjection\ContainerBuilder;
 use WPPack\Component\DependencyInjection\Reference;
 use WPPack\Component\DependencyInjection\ServiceProviderInterface;
@@ -20,6 +21,7 @@ use WPPack\Component\EventDispatcher\DependencyInjection\EventDispatcherServiceP
 use WPPack\Component\EventDispatcher\EventDispatcher;
 use WPPack\Component\HttpFoundation\Request;
 use WPPack\Component\Rest\RestRegistry;
+use WPPack\Component\Role\RoleProvider;
 use WPPack\Component\Scim\Authentication\ScimBearerAuthenticator;
 use WPPack\Component\Scim\Controller\GroupController;
 use WPPack\Component\Scim\Controller\ResourceTypeController;
@@ -40,8 +42,6 @@ use WPPack\Component\Site\SiteRepository;
 use WPPack\Component\Site\SiteRepositoryInterface;
 use WPPack\Component\User\UserRepository;
 use WPPack\Component\User\UserRepositoryInterface;
-use WPPack\Component\Admin\AdminPageRegistry;
-use WPPack\Component\Role\RoleProvider;
 use WPPack\Plugin\ScimPlugin\Admin\ScimSettingsController;
 use WPPack\Plugin\ScimPlugin\Admin\ScimSettingsPage;
 use WPPack\Plugin\ScimPlugin\Configuration\ScimConfiguration;

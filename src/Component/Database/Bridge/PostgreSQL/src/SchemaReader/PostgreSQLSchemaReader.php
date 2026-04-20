@@ -13,11 +13,11 @@ declare(strict_types=1);
 
 namespace WPPack\Component\Database\Bridge\PostgreSQL\SchemaReader;
 
+use WPPack\Component\Database\Bridge\PostgreSQL\TypeMapper\PostgreSQLTypeMapper;
 use WPPack\Component\Database\DatabaseManager;
 use WPPack\Component\Database\Schema\ColumnSchema;
 use WPPack\Component\Database\Schema\TableSchema;
 use WPPack\Component\Database\SchemaReader\SchemaReaderInterface;
-use WPPack\Component\Database\Bridge\PostgreSQL\TypeMapper\PostgreSQLTypeMapper;
 
 /**
  * Schema reader for PostgreSQL databases.

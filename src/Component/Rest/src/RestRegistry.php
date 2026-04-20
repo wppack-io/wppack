@@ -18,9 +18,9 @@ use WPPack\Component\Rest\Attribute\Param;
 use WPPack\Component\Rest\Attribute\Permission;
 use WPPack\Component\Rest\Attribute\RestRoute;
 use WPPack\Component\Rest\Exception\RouteNotFoundException;
-use WPPack\Component\Security\Attribute\CurrentUser;
 use WPPack\Component\Role\Attribute\IsGranted;
 use WPPack\Component\Role\Authorization\IsGrantedChecker;
+use WPPack\Component\Security\Attribute\CurrentUser;
 use WPPack\Component\Security\Security;
 
 final class RestRegistry

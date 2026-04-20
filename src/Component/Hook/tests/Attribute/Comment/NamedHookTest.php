@@ -16,15 +16,15 @@ namespace WPPack\Component\Hook\Tests\Attribute\Comment;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WPPack\Component\Hook\Attribute\Action;
-use WPPack\Component\Hook\Attribute\Filter;
-use WPPack\Component\Hook\Hook;
-use WPPack\Component\Hook\HookType;
 use WPPack\Component\Hook\Attribute\Comment\Action\CommentPostAction;
 use WPPack\Component\Hook\Attribute\Comment\Action\DeleteCommentAction;
 use WPPack\Component\Hook\Attribute\Comment\Action\EditCommentAction;
 use WPPack\Component\Hook\Attribute\Comment\Action\TransitionCommentStatusAction;
 use WPPack\Component\Hook\Attribute\Comment\Action\WpInsertCommentAction;
 use WPPack\Component\Hook\Attribute\Comment\Filter\PreCommentApprovedFilter;
+use WPPack\Component\Hook\Attribute\Filter;
+use WPPack\Component\Hook\Hook;
+use WPPack\Component\Hook\HookType;
 
 final class NamedHookTest extends TestCase
 {

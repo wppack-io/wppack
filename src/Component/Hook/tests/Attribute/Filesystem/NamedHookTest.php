@@ -16,9 +16,6 @@ namespace WPPack\Component\Hook\Tests\Attribute\Filesystem;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WPPack\Component\Hook\Attribute\Action;
-use WPPack\Component\Hook\Attribute\Filter;
-use WPPack\Component\Hook\Hook;
-use WPPack\Component\Hook\HookType;
 use WPPack\Component\Hook\Attribute\Filesystem\Action\WpFilesystemInitAction;
 use WPPack\Component\Hook\Attribute\Filesystem\Filter\FileIsDisplayableImageFilter;
 use WPPack\Component\Hook\Attribute\Filesystem\Filter\FilesystemMethodFileFilter;
@@ -30,6 +27,9 @@ use WPPack\Component\Hook\Attribute\Filesystem\Filter\WpHandleSideloadPrefilterF
 use WPPack\Component\Hook\Attribute\Filesystem\Filter\WpMkdirModeFilter;
 use WPPack\Component\Hook\Attribute\Filesystem\Filter\WpUniqueFilenameFilter;
 use WPPack\Component\Hook\Attribute\Filesystem\Filter\WpUploadBitsFilter;
+use WPPack\Component\Hook\Attribute\Filter;
+use WPPack\Component\Hook\Hook;
+use WPPack\Component\Hook\HookType;
 
 final class NamedHookTest extends TestCase
 {

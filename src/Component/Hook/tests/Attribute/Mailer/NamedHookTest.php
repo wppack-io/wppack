@@ -17,8 +17,6 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WPPack\Component\Hook\Attribute\Action;
 use WPPack\Component\Hook\Attribute\Filter;
-use WPPack\Component\Hook\Hook;
-use WPPack\Component\Hook\HookType;
 use WPPack\Component\Hook\Attribute\Mailer\Action\PhpMailerInitAction;
 use WPPack\Component\Hook\Attribute\Mailer\Action\WpMailFailedAction;
 use WPPack\Component\Hook\Attribute\Mailer\Action\WpMailSucceededAction;
@@ -28,6 +26,8 @@ use WPPack\Component\Hook\Attribute\Mailer\Filter\WpMailContentTypeFilter;
 use WPPack\Component\Hook\Attribute\Mailer\Filter\WpMailFilter;
 use WPPack\Component\Hook\Attribute\Mailer\Filter\WpMailFromFilter;
 use WPPack\Component\Hook\Attribute\Mailer\Filter\WpMailFromNameFilter;
+use WPPack\Component\Hook\Hook;
+use WPPack\Component\Hook\HookType;
 
 final class NamedHookTest extends TestCase
 {

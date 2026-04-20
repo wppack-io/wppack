@@ -16,9 +16,6 @@ namespace WPPack\Component\Hook\Tests\Attribute\Feed;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WPPack\Component\Hook\Attribute\Action;
-use WPPack\Component\Hook\Attribute\Filter;
-use WPPack\Component\Hook\Hook;
-use WPPack\Component\Hook\HookType;
 use WPPack\Component\Hook\Attribute\Feed\Action\AtomEntryAction;
 use WPPack\Component\Hook\Attribute\Feed\Action\AtomHeadAction;
 use WPPack\Component\Hook\Attribute\Feed\Action\CommentFeedRssAction;
@@ -29,12 +26,15 @@ use WPPack\Component\Hook\Attribute\Feed\Action\RssChannelAction;
 use WPPack\Component\Hook\Attribute\Feed\Action\RssItemAction;
 use WPPack\Component\Hook\Attribute\Feed\Filter\BloginfoRssFilter;
 use WPPack\Component\Hook\Attribute\Feed\Filter\FeedContentTypeFilter;
-use WPPack\Component\Hook\Attribute\Feed\Filter\FeedLinksExtraFilter;
 use WPPack\Component\Hook\Attribute\Feed\Filter\FeedLinkFilter;
+use WPPack\Component\Hook\Attribute\Feed\Filter\FeedLinksExtraFilter;
 use WPPack\Component\Hook\Attribute\Feed\Filter\SelfLinkFilter;
 use WPPack\Component\Hook\Attribute\Feed\Filter\TheContentFeedFilter;
 use WPPack\Component\Hook\Attribute\Feed\Filter\TheExcerptRssFilter;
 use WPPack\Component\Hook\Attribute\Feed\Filter\TheTitleRssFilter;
+use WPPack\Component\Hook\Attribute\Filter;
+use WPPack\Component\Hook\Hook;
+use WPPack\Component\Hook\HookType;
 
 final class NamedHookTest extends TestCase
 {
