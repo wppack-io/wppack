@@ -21,6 +21,7 @@ use WPPack\Component\Hook\Attribute\Filesystem\Filter\FileIsDisplayableImageFilt
 use WPPack\Component\Hook\Attribute\Filesystem\Filter\FilesystemMethodFileFilter;
 use WPPack\Component\Hook\Attribute\Filesystem\Filter\FilesystemMethodFilter;
 use WPPack\Component\Hook\Attribute\Filesystem\Filter\LoadImageToEditPathFilter;
+use WPPack\Component\Hook\Attribute\Filesystem\Filter\PreWpUniqueFilenameFileListFilter;
 use WPPack\Component\Hook\Attribute\Filesystem\Filter\UploadDirFilter;
 use WPPack\Component\Hook\Attribute\Filesystem\Filter\WpDeleteFileFilter;
 use WPPack\Component\Hook\Attribute\Filesystem\Filter\WpHandleSideloadPrefilterFilter;
@@ -134,6 +135,15 @@ final class NamedHookTest extends TestCase
     }
 
     #[Test]
+    public function preWpUniqueFilenameFileListFilterHasCorrectHookName(): void
+    {
+        $filter = new PreWpUniqueFilenameFileListFilter();
+
+        self::assertSame('pre_wp_unique_filename_file_list', $filter->hook);
+        self::assertSame(HookType::Filter, $filter->type);
+    }
+
+    #[Test]
     public function allActionsExtendAction(): void
     {
         self::assertInstanceOf(Action::class, new WpFilesystemInitAction());
@@ -152,6 +162,7 @@ final class NamedHookTest extends TestCase
         self::assertInstanceOf(Filter::class, new WpMkdirModeFilter());
         self::assertInstanceOf(Filter::class, new WpUniqueFilenameFilter());
         self::assertInstanceOf(Filter::class, new WpUploadBitsFilter());
+        self::assertInstanceOf(Filter::class, new PreWpUniqueFilenameFileListFilter());
     }
 
     #[Test]
