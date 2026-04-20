@@ -103,6 +103,40 @@ final class SecurityAwareTraitTest extends TestCase
         $controller->callDenyAccessUnlessGranted('edit_posts');
     }
 
+    #[Test]
+    public function getUserIdFallsBackToWordPressCurrentUserWhenSecurityUnavailable(): void
+    {
+        $controller = $this->createTraitUser();
+
+        // Without a Security instance, the trait falls back to
+        // get_current_user_id(). In the test runtime this is 0 (no user
+        // is logged in), which is still the value the trait returns.
+        self::assertSame(get_current_user_id(), $controller->callGetUserId());
+    }
+
+    #[Test]
+    public function getUserIdReturnsUserIdFromSecurityWhenUserLoggedIn(): void
+    {
+        $user = new \WP_User();
+        $user->ID = 42;
+
+        $security = $this->createSecurity(user: $user);
+        $controller = $this->createTraitUser();
+        $controller->setSecurity($security);
+
+        self::assertSame(42, $controller->callGetUserId());
+    }
+
+    #[Test]
+    public function getUserIdReturnsZeroWhenSecurityHasNoUser(): void
+    {
+        $security = $this->createSecurity(user: null);
+        $controller = $this->createTraitUser();
+        $controller->setSecurity($security);
+
+        self::assertSame(0, $controller->callGetUserId());
+    }
+
     private function createTraitUser(): object
     {
         return new class {
@@ -111,6 +145,11 @@ final class SecurityAwareTraitTest extends TestCase
             public function callGetUser(): ?\WP_User
             {
                 return $this->getUser();
+            }
+
+            public function callGetUserId(): int
+            {
+                return $this->getUserId();
             }
 
             public function callIsGranted(string $attribute, mixed $subject = null): bool
