@@ -45,7 +45,7 @@ final class OAuthLoginSettingsController extends AbstractRestController
     #[RestRoute(route: '/settings', methods: HttpMethod::GET)]
     public function getSettings(): JsonResponse
     {
-        return $this->json($this->buildResponse($this->resolveMainBlogId()));
+        return $this->json($this->buildResponse());
     }
 
     #[RestRoute(route: '/settings', methods: HttpMethod::POST)]
@@ -62,19 +62,16 @@ final class OAuthLoginSettingsController extends AbstractRestController
         // Reload configuration so buildResponse() reflects the persisted options
         $this->configuration = OAuthLoginConfiguration::fromEnvironmentOrOptions();
 
-        return $this->json($this->buildResponse($this->resolveMainBlogId()));
-    }
-
-    private function resolveMainBlogId(): ?int
-    {
-        return $this->blogContext->isMultisite() ? $this->blogContext->getMainSiteId() : null;
+        return $this->json($this->buildResponse());
     }
 
     /**
      * @return array<string, mixed>
      */
-    private function buildResponse(?int $blogId): array
+    private function buildResponse(): array
     {
+        $blogId = $this->blogContext->isMultisite() ? $this->blogContext->getMainSiteId() : null;
+
         $icons = [];
         $styles = [];
         foreach (ProviderIcons::providers() as $type) {
