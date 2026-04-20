@@ -47,11 +47,21 @@ final class MonitoringCollectorTest extends TestCase
     {
         global $wpdb;
         // Drop anything our collector might have stored so the next
-        // test boot starts with a cold cache.
-        $wpdb->query($wpdb->prepare(
-            "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
-            '%wppack_monitoring_metrics%',
+        // test boot starts with a cold cache. Scrape wp_options first,
+        // then purge the object cache so the next get_transient() won't
+        // see a stale in-memory value (transients are double-cached).
+        $transientNames = $wpdb->get_col($wpdb->prepare(
+            "SELECT REPLACE(option_name, '_transient_', '') FROM {$wpdb->options}"
+            . " WHERE option_name LIKE %s AND option_name NOT LIKE %s",
+            '_transient_wppack_monitoring_metrics%',
+            '_transient_timeout_%',
         ));
+
+        foreach ((array) $transientNames as $name) {
+            delete_transient($name);
+        }
+
+        wp_cache_flush();
     }
 
     private function registryWith(MonitoringProvider ...$providers): MonitoringRegistry
