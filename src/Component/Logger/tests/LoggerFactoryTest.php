@@ -78,4 +78,31 @@ final class LoggerFactoryTest extends TestCase
         self::assertTrue($handler1->hasInfo('Test message'));
         self::assertTrue($handler2->hasInfo('Test message'));
     }
+
+    #[Test]
+    public function pushHandlerAddsToDefaultsAndRetroactivelyAttachesToExistingLoggers(): void
+    {
+        $initial = new TestHandler();
+        $factory = new LoggerFactory([$initial]);
+
+        // Create a logger *before* pushHandler is called so we can verify
+        // the handler is attached retroactively.
+        $existing = $factory->create('app');
+
+        $added = new TestHandler();
+        $factory->pushHandler($added);
+
+        // Existing logger should route to both the initial handler and
+        // the newly-pushed one.
+        $existing->info('hello');
+        self::assertTrue($initial->hasInfo('hello'));
+        self::assertTrue($added->hasInfo('hello'));
+
+        // Loggers created after pushHandler inherit the augmented
+        // default-handlers list.
+        $fresh = $factory->create('fresh');
+        $fresh->warning('watch out');
+        self::assertTrue($initial->hasWarning('watch out'));
+        self::assertTrue($added->hasWarning('watch out'));
+    }
 }

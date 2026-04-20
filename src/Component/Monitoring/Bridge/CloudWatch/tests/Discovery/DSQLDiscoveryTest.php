@@ -43,7 +43,15 @@ final class DSQLDiscoveryTest extends TestCase
     #[Test]
     public function returnsProviderForDsqlDsn(): void
     {
-        \define('DATABASE_DSN', 'dsql://abc123xyz.dsql.us-east-1.on.aws/postgres');
+        // CI matrix cells export DATABASE_DSN via env → wp-config defines
+        // the constant during bootstrap, so our define() is a no-op there.
+        // Skip when we can't control the constant value.
+        if (\defined('DATABASE_DSN') && \constant('DATABASE_DSN') !== 'dsql://abc123xyz.dsql.us-east-1.on.aws/postgres') {
+            self::markTestSkipped('DATABASE_DSN already defined by bootstrap; cannot override in-process.');
+        }
+        if (!\defined('DATABASE_DSN')) {
+            \define('DATABASE_DSN', 'dsql://abc123xyz.dsql.us-east-1.on.aws/postgres');
+        }
 
         $providers = (new DSQLDiscovery())->getProviders();
 
@@ -60,7 +68,12 @@ final class DSQLDiscoveryTest extends TestCase
     #[Test]
     public function returnsEmptyWhenDatabaseDsnHasWrongScheme(): void
     {
-        \define('DATABASE_DSN', 'mysql://root:x@127.0.0.1/test');
+        if (\defined('DATABASE_DSN') && \constant('DATABASE_DSN') !== 'mysql://root:x@127.0.0.1/test') {
+            self::markTestSkipped('DATABASE_DSN already defined by bootstrap; cannot override in-process.');
+        }
+        if (!\defined('DATABASE_DSN')) {
+            \define('DATABASE_DSN', 'mysql://root:x@127.0.0.1/test');
+        }
 
         self::assertSame([], (new DSQLDiscovery())->getProviders());
     }
@@ -68,8 +81,13 @@ final class DSQLDiscoveryTest extends TestCase
     #[Test]
     public function returnsEmptyWhenDatabaseDsnIsMalformed(): void
     {
-        // An unparseable DSN triggers the InvalidDsnException branch
-        \define('DATABASE_DSN', '!!!invalid%%%');
+        if (\defined('DATABASE_DSN') && \constant('DATABASE_DSN') !== '!!!invalid%%%') {
+            self::markTestSkipped('DATABASE_DSN already defined by bootstrap; cannot override in-process.');
+        }
+        if (!\defined('DATABASE_DSN')) {
+            // An unparseable DSN triggers the InvalidDsnException branch
+            \define('DATABASE_DSN', '!!!invalid%%%');
+        }
 
         self::assertSame([], (new DSQLDiscovery())->getProviders());
     }
