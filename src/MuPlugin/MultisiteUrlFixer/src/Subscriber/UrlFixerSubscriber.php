@@ -13,6 +13,9 @@ declare(strict_types=1);
 
 namespace WPPack\MuPlugin\MultisiteUrlFixer\Subscriber;
 
+use WPPack\Component\Site\BlogContext;
+use WPPack\Component\Site\BlogContextInterface;
+
 /**
  * Fix asset and content URLs for WordPress Multisite on Bedrock structure.
  *
@@ -23,6 +26,7 @@ final readonly class UrlFixerSubscriber
 {
     public function __construct(
         private string $wpPath,
+        private BlogContextInterface $blogContext = new BlogContext(),
     ) {}
 
     public function register(): void
@@ -75,7 +79,7 @@ final readonly class UrlFixerSubscriber
             return $value;
         }
 
-        if (!is_main_site() && !(\function_exists('is_subdomain_install') && is_subdomain_install())) {
+        if (!$this->blogContext->isMainSite() && !$this->blogContext->isSubdomainInstall()) {
             return $value;
         }
 
@@ -106,7 +110,7 @@ final readonly class UrlFixerSubscriber
     {
         global $current_blog;
 
-        if (!isset($current_blog->path) || is_main_site()) {
+        if (!isset($current_blog->path) || $this->blogContext->isMainSite()) {
             return '';
         }
 
@@ -126,7 +130,7 @@ final readonly class UrlFixerSubscriber
             return $url;
         }
 
-        if (\function_exists('is_subdomain_install') && is_subdomain_install()) {
+        if ($this->blogContext->isSubdomainInstall()) {
             return $url;
         }
 

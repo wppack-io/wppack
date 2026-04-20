@@ -38,4 +38,18 @@ final readonly class BlogContext implements BlogContextInterface
 
         return ms_is_switched();
     }
+
+    public function isMainSite(): bool
+    {
+        return is_main_site();
+    }
+
+    public function isSubdomainInstall(): bool
+    {
+        if (!\function_exists('is_subdomain_install')) {
+            return false;
+        }
+
+        return is_subdomain_install();
+    }
 }

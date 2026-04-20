@@ -22,4 +22,8 @@ interface BlogContextInterface
     public function getMainSiteId(): int;
 
     public function isSwitched(): bool;
+
+    public function isMainSite(): bool;
+
+    public function isSubdomainInstall(): bool;
 }

@@ -45,4 +45,24 @@ final class BlogContextTest extends TestCase
     {
         self::assertFalse($this->context->isSwitched());
     }
+
+    #[Test]
+    public function getMainSiteIdReturnsOneInSingleSite(): void
+    {
+        self::assertSame(1, $this->context->getMainSiteId());
+    }
+
+    #[Test]
+    public function isMainSiteReturnsTrueInSingleSite(): void
+    {
+        self::assertTrue($this->context->isMainSite());
+    }
+
+    #[Test]
+    public function isSubdomainInstallReturnsFalseInSingleSite(): void
+    {
+        // `is_subdomain_install()` exists in the test environment but
+        // returns false for a non-multisite install.
+        self::assertFalse($this->context->isSubdomainInstall());
+    }
 }
