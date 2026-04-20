@@ -134,4 +134,39 @@ final class PasskeyProfileSectionTest extends TestCase
 
         wp_delete_user($admin);
     }
+
+    #[Test]
+    public function enqueueRegistersScriptAndStyleWhenAssetFileExists(): void
+    {
+        // Simulate a plugin layout with js/build/profile.asset.php on disk.
+        $pluginDir = sys_get_temp_dir() . '/wppack-passkey-profile-' . uniqid();
+        $buildDir = $pluginDir . '/js/build';
+        mkdir($buildDir, 0o755, true);
+        file_put_contents(
+            $buildDir . '/profile.asset.php',
+            "<?php return ['dependencies' => ['wp-element'], 'version' => '1.2.3'];",
+        );
+        $pluginFile = $pluginDir . '/wppack-passkey-login.php';
+        file_put_contents($pluginFile, '<?php // test plugin entrypoint');
+
+        try {
+            $section = $this->section();
+            $section->setPluginFile($pluginFile);
+
+            $section->enqueueOnProfilePage('profile.php');
+
+            self::assertTrue(wp_script_is('wppack-passkey-login-profile', 'enqueued'));
+            self::assertTrue(wp_style_is('wppack-passkey-login-profile', 'enqueued'));
+        } finally {
+            wp_dequeue_script('wppack-passkey-login-profile');
+            wp_dequeue_style('wppack-passkey-login-profile');
+            wp_deregister_script('wppack-passkey-login-profile');
+            wp_deregister_style('wppack-passkey-login-profile');
+            @unlink($buildDir . '/profile.asset.php');
+            @unlink($pluginFile);
+            @rmdir($buildDir);
+            @rmdir($pluginDir . '/js');
+            @rmdir($pluginDir);
+        }
+    }
 }

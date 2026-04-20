@@ -14,13 +14,21 @@ declare(strict_types=1);
 namespace WPPack\Plugin\OAuthLoginPlugin\Tests\Configuration;
 
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\PreserveGlobalState;
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WPPack\Plugin\OAuthLoginPlugin\Configuration\OAuthLoginConfiguration;
 use WPPack\Plugin\OAuthLoginPlugin\Configuration\ProviderConfiguration;
 
+// Several tests define OAUTH_* PHP constants to exercise the constant
+// branch of fromEnvironment / fromEnvironmentOrOptions. Running each
+// test in its own process prevents one test's define() from silently
+// short-circuiting the next test's wp_options fallback.
 #[CoversClass(OAuthLoginConfiguration::class)]
 #[CoversClass(ProviderConfiguration::class)]
+#[RunTestsInSeparateProcesses]
+#[PreserveGlobalState(false)]
 final class OAuthLoginConfigurationTest extends TestCase
 {
     #[Test]
@@ -121,16 +129,7 @@ final class OAuthLoginConfigurationTest extends TestCase
     #[Test]
     public function fromEnvironmentParsesProviders(): void
     {
-        // Since PHP constants cannot be undefined once defined, we use
-        // runkit or a separate process. Instead, test via constructor for
-        // most logic and use fromEnvironment() only in one dedicated test.
-        // We use a child process to define OAUTH_PROVIDERS.
-        $script = <<<'PHP'
-        <?php
-        define('ABSPATH', '%s');
-        require_once '%s';
-
-        define('OAUTH_PROVIDERS', [
+        \define('OAUTH_PROVIDERS', [
             'google' => [
                 'type' => 'google',
                 'client_id' => 'gid',
@@ -140,87 +139,31 @@ final class OAuthLoginConfigurationTest extends TestCase
             ],
         ]);
 
-        $config = \WPPack\Plugin\OAuthLoginPlugin\Configuration\OAuthLoginConfiguration::fromEnvironment();
-        echo json_encode([
-            'count' => count($config->providers),
-            'google_type' => $config->providers['google']->type,
-            'google_client_id' => $config->providers['google']->clientId,
-            'google_label' => $config->providers['google']->label,
-            'google_hosted_domain' => $config->providers['google']->hostedDomain,
-            'sso_only' => $config->ssoOnly,
-            'auto_provision' => $config->autoProvision,
-            'authorize_path' => $config->authorizePath,
-        ]);
-        PHP;
+        $config = OAuthLoginConfiguration::fromEnvironment();
 
-        $abspath = \defined('ABSPATH') ? ABSPATH : '/tmp/';
-        $autoloader = \dirname(__DIR__, 5) . '/vendor/autoload.php';
-        $script = \sprintf($script, addslashes($abspath), addslashes($autoloader));
-
-        $tmpFile = tempnam(sys_get_temp_dir(), 'oauth_test_');
-        self::assertNotFalse($tmpFile);
-        file_put_contents($tmpFile, $script);
-
-        try {
-            $output = shell_exec('php ' . escapeshellarg($tmpFile) . ' 2>&1');
-            self::assertNotNull($output);
-            $result = json_decode($output, true);
-            self::assertIsArray($result, 'Script output: ' . ($output ?? ''));
-
-            self::assertSame(1, $result['count']);
-            self::assertSame('google', $result['google_type']);
-            self::assertSame('gid', $result['google_client_id']);
-            self::assertSame('Google SSO', $result['google_label']);
-            self::assertSame('example.com', $result['google_hosted_domain']);
-            self::assertFalse($result['sso_only']);
-            self::assertFalse($result['auto_provision']);
-            self::assertSame('/oauth/{provider}/authorize', $result['authorize_path']);
-        } finally {
-            unlink($tmpFile);
-        }
+        self::assertCount(1, $config->providers);
+        self::assertSame('google', $config->providers['google']->type);
+        self::assertSame('gid', $config->providers['google']->clientId);
+        self::assertSame('Google SSO', $config->providers['google']->label);
+        self::assertSame('example.com', $config->providers['google']->hostedDomain);
+        self::assertFalse($config->ssoOnly);
+        self::assertFalse($config->autoProvision);
+        self::assertSame('/oauth/{provider}/authorize', $config->authorizePath);
     }
 
     #[Test]
     public function fromEnvironmentThrowsWhenConstantNotDefined(): void
     {
-        $script = <<<'PHP'
-        <?php
-        define('ABSPATH', '%s');
-        require_once '%s';
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('OAUTH_PROVIDERS is not configured');
 
-        try {
-            \WPPack\Plugin\OAuthLoginPlugin\Configuration\OAuthLoginConfiguration::fromEnvironment();
-            echo 'NO_EXCEPTION';
-        } catch (\RuntimeException $e) {
-            echo $e->getMessage();
-        }
-        PHP;
-
-        $abspath = \defined('ABSPATH') ? ABSPATH : '/tmp/';
-        $autoloader = \dirname(__DIR__, 5) . '/vendor/autoload.php';
-        $script = \sprintf($script, addslashes($abspath), addslashes($autoloader));
-
-        $tmpFile = tempnam(sys_get_temp_dir(), 'oauth_test_');
-        self::assertNotFalse($tmpFile);
-        file_put_contents($tmpFile, $script);
-
-        try {
-            $output = shell_exec('php ' . escapeshellarg($tmpFile) . ' 2>&1');
-            self::assertStringContainsString('OAUTH_PROVIDERS is not configured', $output ?? '');
-        } finally {
-            unlink($tmpFile);
-        }
+        OAuthLoginConfiguration::fromEnvironment();
     }
 
     #[Test]
     public function fromEnvironmentRejectsInvalidProviderName(): void
     {
-        $script = <<<'PHP'
-        <?php
-        define('ABSPATH', '%s');
-        require_once '%s';
-
-        define('OAUTH_PROVIDERS', [
+        \define('OAUTH_PROVIDERS', [
             'Invalid Name!' => [
                 'type' => 'google',
                 'client_id' => 'id',
@@ -228,79 +171,33 @@ final class OAuthLoginConfigurationTest extends TestCase
             ],
         ]);
 
-        try {
-            \WPPack\Plugin\OAuthLoginPlugin\Configuration\OAuthLoginConfiguration::fromEnvironment();
-            echo 'NO_EXCEPTION';
-        } catch (\RuntimeException $e) {
-            echo $e->getMessage();
-        }
-        PHP;
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('is invalid');
 
-        $abspath = \defined('ABSPATH') ? ABSPATH : '/tmp/';
-        $autoloader = \dirname(__DIR__, 5) . '/vendor/autoload.php';
-        $script = \sprintf($script, addslashes($abspath), addslashes($autoloader));
-
-        $tmpFile = tempnam(sys_get_temp_dir(), 'oauth_test_');
-        self::assertNotFalse($tmpFile);
-        file_put_contents($tmpFile, $script);
-
-        try {
-            $output = shell_exec('php ' . escapeshellarg($tmpFile) . ' 2>&1');
-            self::assertStringContainsString('is invalid', $output ?? '');
-        } finally {
-            unlink($tmpFile);
-        }
+        OAuthLoginConfiguration::fromEnvironment();
     }
 
     #[Test]
     public function fromEnvironmentRejectsMissingRequiredFields(): void
     {
-        $script = <<<'PHP'
-        <?php
-        define('ABSPATH', '%s');
-        require_once '%s';
-
-        define('OAUTH_PROVIDERS', [
+        \define('OAUTH_PROVIDERS', [
             'google' => [
                 'type' => 'google',
                 // missing client_id and client_secret
             ],
         ]);
 
-        try {
-            \WPPack\Plugin\OAuthLoginPlugin\Configuration\OAuthLoginConfiguration::fromEnvironment();
-            echo 'NO_EXCEPTION';
-        } catch (\RuntimeException $e) {
-            echo $e->getMessage();
-        }
-        PHP;
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('missing required fields');
 
-        $abspath = \defined('ABSPATH') ? ABSPATH : '/tmp/';
-        $autoloader = \dirname(__DIR__, 5) . '/vendor/autoload.php';
-        $script = \sprintf($script, addslashes($abspath), addslashes($autoloader));
-
-        $tmpFile = tempnam(sys_get_temp_dir(), 'oauth_test_');
-        self::assertNotFalse($tmpFile);
-        file_put_contents($tmpFile, $script);
-
-        try {
-            $output = shell_exec('php ' . escapeshellarg($tmpFile) . ' 2>&1');
-            self::assertStringContainsString('missing required fields', $output ?? '');
-        } finally {
-            unlink($tmpFile);
-        }
+        OAuthLoginConfiguration::fromEnvironment();
     }
 
     #[Test]
     public function fromEnvironmentGlobalAutoProvisionWithProviderOverride(): void
     {
-        $script = <<<'PHP'
-        <?php
-        define('ABSPATH', '%s');
-        require_once '%s';
-
-        define('OAUTH_AUTO_PROVISION', true);
-        define('OAUTH_PROVIDERS', [
+        \define('OAUTH_AUTO_PROVISION', true);
+        \define('OAUTH_PROVIDERS', [
             'google' => [
                 'type' => 'google',
                 'client_id' => 'gid',
@@ -315,51 +212,18 @@ final class OAuthLoginConfigurationTest extends TestCase
             ],
         ]);
 
-        $config = \WPPack\Plugin\OAuthLoginPlugin\Configuration\OAuthLoginConfiguration::fromEnvironment();
-        echo json_encode([
-            'global_auto_provision' => $config->autoProvision,
-            'google_auto_provision' => $config->providers['google']->autoProvision,
-            'azure_auto_provision' => $config->providers['azure']->autoProvision,
-        ]);
-        PHP;
+        $config = OAuthLoginConfiguration::fromEnvironment();
 
-        $abspath = \defined('ABSPATH') ? ABSPATH : '/tmp/';
-        $autoloader = \dirname(__DIR__, 5) . '/vendor/autoload.php';
-        $script = \sprintf($script, addslashes($abspath), addslashes($autoloader));
-
-        $tmpFile = tempnam(sys_get_temp_dir(), 'oauth_test_');
-        self::assertNotFalse($tmpFile);
-        file_put_contents($tmpFile, $script);
-
-        try {
-            $output = shell_exec('php ' . escapeshellarg($tmpFile) . ' 2>&1');
-            self::assertNotNull($output);
-            $result = json_decode($output, true);
-            self::assertIsArray($result, 'Script output: ' . ($output ?? ''));
-
-            // Global values
-            self::assertTrue($result['global_auto_provision']);
-
-            // Google inherits global
-            self::assertTrue($result['google_auto_provision']);
-
-            // Azure overrides global
-            self::assertFalse($result['azure_auto_provision']);
-        } finally {
-            unlink($tmpFile);
-        }
+        self::assertTrue($config->autoProvision);
+        self::assertTrue($config->providers['google']->autoProvision);
+        self::assertFalse($config->providers['azure']->autoProvision);
     }
 
     #[Test]
     public function fromEnvironmentCustomPaths(): void
     {
-        $script = <<<'PHP'
-        <?php
-        define('ABSPATH', '%s');
-        require_once '%s';
-
-        define('OAUTH_AUTHORIZE_PATH', '/sso/{provider}/login');
-        define('OAUTH_PROVIDERS', [
+        \define('OAUTH_AUTHORIZE_PATH', '/sso/{provider}/login');
+        \define('OAUTH_PROVIDERS', [
             'google' => [
                 'type' => 'google',
                 'client_id' => 'gid',
@@ -367,23 +231,51 @@ final class OAuthLoginConfigurationTest extends TestCase
             ],
         ]);
 
-        $config = \WPPack\Plugin\OAuthLoginPlugin\Configuration\OAuthLoginConfiguration::fromEnvironment();
-        echo $config->authorizePath;
-        PHP;
+        $config = OAuthLoginConfiguration::fromEnvironment();
 
-        $abspath = \defined('ABSPATH') ? ABSPATH : '/tmp/';
-        $autoloader = \dirname(__DIR__, 5) . '/vendor/autoload.php';
-        $script = \sprintf($script, addslashes($abspath), addslashes($autoloader));
+        self::assertSame('/sso/{provider}/login', $config->authorizePath);
+    }
 
-        $tmpFile = tempnam(sys_get_temp_dir(), 'oauth_test_');
-        self::assertNotFalse($tmpFile);
-        file_put_contents($tmpFile, $script);
+    #[Test]
+    public function fromEnvironmentOrOptionsPrefersConstantsOverOptions(): void
+    {
+        \define('OAUTH_PROVIDERS', [
+            'google' => [
+                'type' => 'google',
+                'client_id' => 'const-id',
+                'client_secret' => 'const-secret',
+            ],
+        ]);
+        \define('OAUTH_SSO_ONLY', true);
+        \define('OAUTH_AUTO_PROVISION', true);
+        \define('OAUTH_AUTHORIZE_PATH', '/custom/{provider}/go');
+        \define('OAUTH_CALLBACK_PATH', '/custom/{provider}/back');
+        \define('OAUTH_VERIFY_PATH', '/custom/{provider}/check');
+        \define('OAUTH_BUTTON_DISPLAY', 'icon-only');
+
+        update_option(OAuthLoginConfiguration::OPTION_NAME, [
+            'providers' => [
+                'google' => [
+                    'type' => 'google',
+                    'client_id' => 'option-id',
+                    'client_secret' => 'option-secret',
+                ],
+            ],
+            'ssoOnly' => false,
+        ]);
 
         try {
-            $output = shell_exec('php ' . escapeshellarg($tmpFile) . ' 2>&1');
-            self::assertSame('/sso/{provider}/login', trim($output ?? ''));
+            $config = OAuthLoginConfiguration::fromEnvironmentOrOptions();
+
+            self::assertSame('const-id', $config->providers['google']->clientId);
+            self::assertTrue($config->ssoOnly);
+            self::assertTrue($config->autoProvision);
+            self::assertSame('/custom/{provider}/go', $config->authorizePath);
+            self::assertSame('/custom/{provider}/back', $config->callbackPath);
+            self::assertSame('/custom/{provider}/check', $config->verifyPath);
+            self::assertSame('icon-only', $config->buttonDisplay);
         } finally {
-            unlink($tmpFile);
+            delete_option(OAuthLoginConfiguration::OPTION_NAME);
         }
     }
 
