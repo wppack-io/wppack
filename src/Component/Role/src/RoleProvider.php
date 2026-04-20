@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace WPPack\Component\Role;
 
-final readonly class RoleProvider
+readonly class RoleProvider
 {
     /**
      * @return array{name: string, capabilities: array<string, bool>}|null

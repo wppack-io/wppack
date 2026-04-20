@@ -20,7 +20,7 @@ use WPPack\Component\Site\BlogSwitcherInterface;
 use WPPack\Component\Site\SiteRepositoryInterface;
 use WPPack\Component\User\UserRepositoryInterface;
 
-final readonly class ScimGroupRepository
+readonly class ScimGroupRepository
 {
     use MultisiteAwareTrait;
 
