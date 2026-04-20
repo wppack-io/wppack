@@ -70,4 +70,26 @@ final class UploadPathTest extends TestCase
             rmdir($subdirPath);
         }
     }
+
+    #[Test]
+    public function subdirRejectsParentTraversal(): void
+    {
+        $uploadPath = new UploadPath();
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid subdirectory name');
+
+        $uploadPath->subdir('../escape');
+    }
+
+    #[Test]
+    public function subdirRejectsNullByte(): void
+    {
+        $uploadPath = new UploadPath();
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid subdirectory name');
+
+        $uploadPath->subdir("valid\0name");
+    }
 }

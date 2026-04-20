@@ -137,4 +137,51 @@ final class TemplateLocatorTest extends TestCase
 
         self::assertNull($locator->locate('anything'));
     }
+
+    #[Test]
+    public function locateRejectsParentTraversalInTemplateName(): void
+    {
+        $locator = new TemplateLocator();
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid template name');
+
+        $locator->locate('../etc/passwd');
+    }
+
+    #[Test]
+    public function locateRejectsNullByteInTemplateName(): void
+    {
+        $locator = new TemplateLocator();
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid template name');
+
+        $locator->locate("page\0shell");
+    }
+
+    #[Test]
+    public function locateReturnsThemeTemplateWhenWordpressLocatesIt(): void
+    {
+        // Drop a template into the active theme's directory so
+        // locate_template() returns its absolute path, exercising the
+        // early-return at line 51-53.
+        $themeDir = get_stylesheet_directory();
+        if (!is_dir($themeDir) || !is_writable($themeDir)) {
+            self::markTestSkipped('Active theme directory is not writable.');
+        }
+
+        $name = 'wppack-locator-test-' . uniqid();
+        $templateFile = $themeDir . '/' . $name . '.php';
+        file_put_contents($templateFile, '<?php // fixture');
+
+        try {
+            $locator = new TemplateLocator();
+            $result = $locator->locate($name);
+
+            self::assertSame($templateFile, $result);
+        } finally {
+            @unlink($templateFile);
+        }
+    }
 }

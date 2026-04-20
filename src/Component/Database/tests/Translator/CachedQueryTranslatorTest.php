@@ -120,4 +120,32 @@ final class CachedQueryTranslatorTest extends TestCase
 
         self::assertSame(2, $inner->calls);
     }
+
+    #[Test]
+    public function sizeReportsEntryCount(): void
+    {
+        $inner = new class implements QueryTranslatorInterface {
+            public function translate(string $sql): array
+            {
+                return [$sql];
+            }
+        };
+
+        $cached = new CachedQueryTranslator($inner);
+
+        self::assertSame(0, $cached->size());
+
+        $cached->translate('SELECT 1');
+        self::assertSame(1, $cached->size());
+
+        $cached->translate('SELECT 2');
+        self::assertSame(2, $cached->size());
+
+        // Repeated SQL does not grow the cache
+        $cached->translate('SELECT 1');
+        self::assertSame(2, $cached->size());
+
+        $cached->clear();
+        self::assertSame(0, $cached->size());
+    }
 }
