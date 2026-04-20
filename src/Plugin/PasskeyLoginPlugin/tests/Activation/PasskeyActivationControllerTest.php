@@ -270,4 +270,40 @@ final class PasskeyActivationControllerTest extends TestCase
 
         self::assertNotNull($repo->findByCredentialId('dup'));
     }
+
+    #[Test]
+    public function resolveRpIdUsesConfigValueWhenSet(): void
+    {
+        $controller = $this->makeControllerWithConfig(new PasskeyConfiguration(rpId: 'configured.test'));
+
+        $result = (new \ReflectionMethod($controller, 'resolveRpId'))->invoke($controller);
+
+        self::assertSame('configured.test', $result);
+    }
+
+    #[Test]
+    public function resolveRpIdFallsBackToHomeUrlHostWhenConfigEmpty(): void
+    {
+        $controller = $this->makeControllerWithConfig(new PasskeyConfiguration(rpId: ''));
+
+        $result = (new \ReflectionMethod($controller, 'resolveRpId'))->invoke($controller);
+
+        // Should resolve to the host of get_home_url() — which varies by env
+        // but is guaranteed to be a non-empty string.
+        self::assertIsString($result);
+        self::assertNotSame('', $result);
+    }
+
+    private function makeControllerWithConfig(PasskeyConfiguration $config): PasskeyActivationController
+    {
+        $repo = new InMemoryCredentialRepository();
+
+        return new PasskeyActivationController(
+            new CeremonyManager($config, $repo, $this->transients),
+            $repo,
+            $config,
+            new PasskeyActivationPrompt($this->transients),
+            new NullLogger(),
+        );
+    }
 }
