@@ -157,4 +157,56 @@ final class GenericOidcProviderTest extends TestCase
 
         self::assertTrue($provider->supportsOidc());
     }
+
+    #[Test]
+    public function definitionReturnsGenericOidcMetadata(): void
+    {
+        $def = GenericOidcProvider::definition();
+
+        self::assertSame('oidc', $def->type);
+        self::assertSame('OIDC', $def->label);
+        self::assertTrue($def->oidc);
+        self::assertContains('discovery_url', $def->requiredFields);
+    }
+
+    #[Test]
+    public function validateClaimsIsNoop(): void
+    {
+        $provider = new GenericOidcProvider($this->configuration);
+
+        $this->expectNotToPerformAssertions();
+        $provider->validateClaims([]);
+    }
+
+    #[Test]
+    public function getAuthorizationUrlThrowsWhenEndpointIsNotConfigured(): void
+    {
+        $bareConfig = new OAuthConfiguration(
+            clientId: 'id',
+            clientSecret: 'secret',
+            redirectUri: 'https://example.com/callback',
+        );
+        $provider = new GenericOidcProvider($bareConfig);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Authorization endpoint is not configured');
+
+        $provider->getAuthorizationUrl('s', 'n');
+    }
+
+    #[Test]
+    public function getTokenEndpointThrowsWhenNotConfigured(): void
+    {
+        $bareConfig = new OAuthConfiguration(
+            clientId: 'id',
+            clientSecret: 'secret',
+            redirectUri: 'https://example.com/callback',
+        );
+        $provider = new GenericOidcProvider($bareConfig);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Token endpoint is not configured');
+
+        $provider->getTokenEndpoint();
+    }
 }

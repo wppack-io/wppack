@@ -270,4 +270,35 @@ final class GoogleProviderTest extends TestCase
         $url = $provider->getAuthorizationUrl('state', 'nonce');
         self::assertStringStartsWith('https://config.example.com/authorize?', $url);
     }
+
+    #[Test]
+    public function definitionReturnsGoogleMetadata(): void
+    {
+        $def = GoogleProvider::definition();
+
+        self::assertSame('google', $def->type);
+        self::assertTrue($def->oidc);
+        self::assertContains('hosted_domain', $def->optionalFields);
+    }
+
+    #[Test]
+    public function validateClaimsDelegatesToHostedDomainCheck(): void
+    {
+        $provider = new GoogleProvider($this->configuration, hostedDomain: 'example.com');
+
+        // No exception when claim matches allowed hosted domain.
+        $this->expectNotToPerformAssertions();
+        $provider->validateClaims(['hd' => 'example.com']);
+    }
+
+    #[Test]
+    public function validateClaimsThrowsWhenHostedDomainMismatch(): void
+    {
+        $provider = new GoogleProvider($this->configuration, hostedDomain: 'example.com');
+
+        $this->expectException(AuthenticationException::class);
+        $this->expectExceptionMessage('hosted domain');
+
+        $provider->validateClaims(['hd' => 'evil.com']);
+    }
 }

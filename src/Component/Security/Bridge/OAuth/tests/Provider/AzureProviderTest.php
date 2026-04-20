@@ -314,4 +314,24 @@ final class AzureProviderTest extends TestCase
         self::assertSame('https://discovery.example.com/token', $provider->getTokenEndpoint());
         self::assertSame('https://discovery.example.com/userinfo', $provider->getUserInfoEndpoint());
     }
+
+    #[Test]
+    public function definitionDelegatesToEntraIdMetadata(): void
+    {
+        $def = AzureProvider::definition();
+
+        // AzureProvider is the legacy alias that reuses EntraIdProvider's
+        // definition so the type / label stay consistent.
+        self::assertSame('entra-id', $def->type);
+        self::assertTrue($def->oidc);
+    }
+
+    #[Test]
+    public function validateClaimsIsNoop(): void
+    {
+        $provider = new AzureProvider($this->configuration, $this->tenantId);
+
+        $this->expectNotToPerformAssertions();
+        $provider->validateClaims([]);
+    }
 }

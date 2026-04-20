@@ -175,4 +175,23 @@ final class GitHubProviderTest extends TestCase
         self::assertSame('https://github.com/login/oauth/access_token', $provider->getTokenEndpoint());
         self::assertSame('https://api.github.com/user', $provider->getUserInfoEndpoint());
     }
+
+    #[Test]
+    public function definitionReturnsGitHubMetadata(): void
+    {
+        $def = GitHubProvider::definition();
+
+        self::assertSame('github', $def->type);
+        self::assertFalse($def->oidc);
+        self::assertSame(['user:email'], $def->defaultScopes);
+    }
+
+    #[Test]
+    public function validateClaimsIsNoop(): void
+    {
+        $provider = new GitHubProvider($this->configuration);
+
+        $this->expectNotToPerformAssertions();
+        $provider->validateClaims([]);
+    }
 }
