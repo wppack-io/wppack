@@ -42,7 +42,7 @@ final class SamlLoginSettingsController extends AbstractRestController
 
 
     public function __construct(
-        private readonly SamlLoginConfiguration $configuration,
+        private SamlLoginConfiguration $configuration,
         private readonly Sanitizer $sanitizer,
         private readonly ?SpMetadataExporter $metadataExporter = null,
         private readonly BlogContextInterface $blogContext = new BlogContext(),
@@ -88,11 +88,12 @@ final class SamlLoginSettingsController extends AbstractRestController
 
         $this->optionManager->delete('rewrite_rules');
 
-        $updated = SamlLoginConfiguration::fromEnvironmentOrOptions();
+        // Reload configuration so buildDisplayArray() reflects the persisted options
+        $this->configuration = SamlLoginConfiguration::fromEnvironmentOrOptions();
 
         return $this->json([
             'siteUrl' => get_home_url($this->resolveMainBlogId()),
-            'fields' => $this->buildDisplayArrayFrom($updated),
+            'fields' => $this->buildDisplayArray(),
         ]);
     }
 
@@ -101,19 +102,11 @@ final class SamlLoginSettingsController extends AbstractRestController
      */
     private function buildDisplayArray(): array
     {
-        return $this->buildDisplayArrayFrom($this->configuration);
-    }
-
-    /**
-     * @return array<string, array{value: mixed, source: string, readonly: bool}>
-     */
-    private function buildDisplayArrayFrom(SamlLoginConfiguration $config): array
-    {
         $raw = $this->optionManager->get(self::OPTION_NAME, []);
         $options = \is_array($raw) ? $raw : [];
 
         $result = [];
-        $reflection = new \ReflectionClass($config);
+        $reflection = new \ReflectionClass($this->configuration);
 
         foreach ($reflection->getConstructor()?->getParameters() ?? [] as $param) {
             $name = $param->getName();
@@ -128,7 +121,7 @@ final class SamlLoginSettingsController extends AbstractRestController
                 $source = 'env';
             }
 
-            $value = $config->{$name};
+            $value = $this->configuration->{$name};
             if (\in_array($name, self::SENSITIVE_FIELDS, true) && $value !== null && $value !== '') {
                 $value = self::MASKED_VALUE;
             }

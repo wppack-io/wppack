@@ -36,7 +36,7 @@ final class OAuthLoginSettingsController extends AbstractRestController
     private const PROVIDER_URL_FIELDS = ['discovery_url'];
 
     public function __construct(
-        private readonly OAuthLoginConfiguration $configuration,
+        private OAuthLoginConfiguration $configuration,
         private readonly Sanitizer $sanitizer,
         private readonly BlogContextInterface $blogContext = new BlogContext(),
         private readonly OptionManager $optionManager = new OptionManager(),
@@ -59,12 +59,10 @@ final class OAuthLoginSettingsController extends AbstractRestController
         // Flush rewrite rules so route changes take effect
         $this->optionManager->delete('rewrite_rules');
 
-        $updated = OAuthLoginConfiguration::fromEnvironmentOrOptions();
+        // Reload configuration so buildResponse() reflects the persisted options
+        $this->configuration = OAuthLoginConfiguration::fromEnvironmentOrOptions();
 
-        // Rebuild display from updated config
-        $ctrl = new self($updated, $this->sanitizer, $this->blogContext, $this->optionManager);
-
-        return $this->json($ctrl->buildResponse($this->resolveMainBlogId()));
+        return $this->json($this->buildResponse($this->resolveMainBlogId()));
     }
 
     private function resolveMainBlogId(): ?int
