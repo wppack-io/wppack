@@ -1754,20 +1754,23 @@ SQL;
     }
 
     #[Test]
-    public function groupConcatWithOrderByPreservesKeywordSpacing(): void
+    public function groupConcatWithOrderByHoistsToAggregateOrderByClause(): void
     {
+        // MySQL accepts `ORDER BY` inside the aggregate expression position;
+        // PostgreSQL's STRING_AGG requires it *after* the delimiter, so the
+        // translator hoists it out of the expression into the aggregate's
+        // own ORDER BY slot.
         $result = $this->translator->translate("SELECT GROUP_CONCAT(name ORDER BY id SEPARATOR '|') FROM t");
 
-        self::assertStringContainsString('name ORDER BY id', $result[0]);
-        self::assertStringNotContainsString('nameORDER BYid', $result[0]);
+        self::assertStringContainsString("STRING_AGG(name::text, '|' ORDER BY id)", $result[0]);
     }
 
     #[Test]
-    public function groupConcatWithDistinctAndOrderByAndDescSpacing(): void
+    public function groupConcatWithDistinctAndOrderByHoistsDescModifier(): void
     {
         $result = $this->translator->translate("SELECT GROUP_CONCAT(DISTINCT name ORDER BY id DESC SEPARATOR '|') FROM t");
 
-        self::assertStringContainsString('DISTINCT name ORDER BY id DESC', $result[0]);
+        self::assertStringContainsString("STRING_AGG(DISTINCT name::text, '|' ORDER BY id DESC)", $result[0]);
         self::assertStringNotContainsString('DISTINCTname', $result[0]);
     }
 

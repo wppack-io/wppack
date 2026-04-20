@@ -2536,4 +2536,61 @@ trait WpdbIntegrationTestTrait
         self::assertFalse($result);
         self::assertNotEmpty($wpdb->last_error);
     }
+
+    // ── Translator integration ──
+
+    #[Test]
+    public function deleteJoinUsingRemovesMatchedLeftRowsOnly(): void
+    {
+        $wpdb = $this->getTestWpdb();
+        $p = $wpdb->prefix;
+
+        $wpdb->insert($p . 'posts', ['ID' => 500, 'post_title' => 'keep', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($p . 'posts', ['ID' => 501, 'post_title' => 'drop', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($p . 'postmeta', ['post_id' => 501, 'meta_key' => '_trash', 'meta_value' => '1']);
+
+        $affected = $wpdb->query(
+            "DELETE a FROM {$p}posts a JOIN {$p}postmeta b ON a.ID = b.post_id WHERE b.meta_key = '_trash'",
+        );
+        self::assertSame(1, $affected);
+
+        $remaining = $wpdb->get_col("SELECT post_title FROM {$p}posts WHERE ID IN (500, 501) ORDER BY ID");
+        self::assertSame(['keep'], $remaining);
+    }
+
+    #[Test]
+    public function convertUsingReturnsStringValue(): void
+    {
+        $wpdb = $this->getTestWpdb();
+        $p = $wpdb->prefix;
+
+        $wpdb->insert($p . 'options', ['option_name' => 'convert_test', 'option_value' => 'héllo', 'autoload' => 'yes']);
+
+        $value = $wpdb->get_var(
+            "SELECT CONVERT(option_value USING utf8mb4) FROM {$p}options WHERE option_name = 'convert_test'",
+        );
+
+        self::assertSame('héllo', $value);
+    }
+
+    #[Test]
+    public function groupConcatDistinctDeduplicatesValues(): void
+    {
+        $wpdb = $this->getTestWpdb();
+        $p = $wpdb->prefix;
+
+        $wpdb->insert($p . 'posts', ['ID' => 600, 'post_title' => 'p', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($p . 'postmeta', ['post_id' => 600, 'meta_key' => 'color', 'meta_value' => 'red']);
+        $wpdb->insert($p . 'postmeta', ['post_id' => 600, 'meta_key' => 'color', 'meta_value' => 'blue']);
+        $wpdb->insert($p . 'postmeta', ['post_id' => 600, 'meta_key' => 'color', 'meta_value' => 'red']);
+
+        $concatenated = $wpdb->get_var(
+            "SELECT GROUP_CONCAT(DISTINCT meta_value ORDER BY meta_value SEPARATOR ',') FROM {$p}postmeta WHERE post_id = 600",
+        );
+
+        self::assertNotNull($concatenated);
+        $parts = explode(',', (string) $concatenated);
+        sort($parts);
+        self::assertSame(['blue', 'red'], $parts);
+    }
 }

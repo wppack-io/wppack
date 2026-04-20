@@ -746,13 +746,20 @@ final class PostgreSQLQueryTranslator implements QueryTranslatorInterface
             $whereClause = ' WHERE ' . implode(' AND ', $wrapped);
         }
 
-        return \sprintf(
+        $rewritten = \sprintf(
             'DELETE FROM %s%s USING %s%s',
             $quotedTable,
             $aliasClause,
             implode(', ', $usingParts),
             $whereClause,
         );
+
+        // ON / WHERE fragments above are copied verbatim from the parser's
+        // token strings, so case-sensitive identifiers (e.g. `a.ID`) are
+        // emitted unquoted and PostgreSQL's identifier folding mangles them
+        // into `a.id`. Re-parse so `rewriteTokens` can apply the same
+        // quoting pass that single-table DELETE / UPDATE / SELECT get.
+        return $this->rewriteTokens(new Parser($rewritten));
     }
 
     /**
@@ -1750,7 +1757,12 @@ final class PostgreSQLQueryTranslator implements QueryTranslatorInterface
     }
 
     /**
-     * GROUP_CONCAT(expr [SEPARATOR sep]) → STRING_AGG(expr::text, sep)
+     * GROUP_CONCAT(expr [ORDER BY ...] [SEPARATOR sep])
+     *   → STRING_AGG(expr::text, sep [ORDER BY ...])
+     *
+     * PostgreSQL's STRING_AGG takes ORDER BY *after* the delimiter argument,
+     * not inside the expression position where MySQL accepts it, so the
+     * ORDER BY clause must be hoisted to the aggregate's ORDER BY slot.
      */
     private function transformGroupConcat(QueryRewriter $rw): bool
     {
@@ -1761,18 +1773,30 @@ final class PostgreSQLQueryTranslator implements QueryTranslatorInterface
 
         $allTokens = $args[0];
         $exprTokens = [];
+        $orderByTokens = [];
         $separator = "','";
 
         $foundSep = false;
+        $foundOrderBy = false;
         foreach ($allTokens as $token) {
+            if (!$foundSep && !$foundOrderBy
+                && $token->type === TokenType::Keyword
+                && $token->keyword === 'ORDER BY'
+            ) {
+                $foundOrderBy = true;
+                continue;
+            }
             if (!$foundSep && $token->type === TokenType::Keyword && $token->keyword === 'SEPARATOR') {
                 $foundSep = true;
+                $foundOrderBy = false;
                 continue;
             }
             if ($foundSep) {
                 if ($token->type === TokenType::String) {
                     $separator = $token->token;
                 }
+            } elseif ($foundOrderBy) {
+                $orderByTokens[] = $token;
             } else {
                 $exprTokens[] = $token;
             }
@@ -1793,7 +1817,12 @@ final class PostgreSQLQueryTranslator implements QueryTranslatorInterface
         $expr = $exprTokens !== []
             ? $this->joinTokensWithSpaces($exprTokens)
             : $this->transformArgExpression($args[0]);
-        $rw->add(\sprintf('STRING_AGG(%s::text, %s)', $expr, $separator));
+
+        $orderByClause = $orderByTokens !== []
+            ? ' ORDER BY ' . $this->joinTokensWithSpaces($orderByTokens)
+            : '';
+
+        $rw->add(\sprintf('STRING_AGG(%s::text, %s%s)', $expr, $separator, $orderByClause));
 
         return true;
     }
