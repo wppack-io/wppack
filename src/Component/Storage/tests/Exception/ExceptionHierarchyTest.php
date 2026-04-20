@@ -16,12 +16,12 @@ namespace WPPack\Component\Storage\Tests\Exception;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WPPack\Component\Dsn\Dsn;
 use WPPack\Component\Storage\Exception\ExceptionInterface;
 use WPPack\Component\Storage\Exception\InvalidArgumentException;
 use WPPack\Component\Storage\Exception\ObjectNotFoundException;
 use WPPack\Component\Storage\Exception\StorageException;
 use WPPack\Component\Storage\Exception\UnsupportedOperationException;
-use WPPack\Component\Dsn\Dsn;
 use WPPack\Component\Storage\Exception\UnsupportedSchemeException;
 
 #[CoversClass(InvalidArgumentException::class)]

@@ -46,7 +46,7 @@ final class DatabaseCredentialRepositoryTest extends TestCase
                 created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 last_used_at datetime DEFAULT NULL,
                 PRIMARY KEY (id)
-            )"
+            )",
         );
         $this->db->wpdb()->query("DELETE FROM {$this->tableName}");
     }

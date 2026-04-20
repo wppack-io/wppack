@@ -138,17 +138,50 @@ final class InMemoryAbstractHashableAdapter extends AbstractHashableAdapter
     }
 
     // Minimal AbstractAdapter stubs (unused here but required)
-    protected function doGet(string $key): ?string { return null; }
-    protected function doGetMultiple(array $keys): array { return []; }
-    protected function doSet(string $key, string $value, int $ttl = 0): bool { return true; }
-    protected function doSetMultiple(array $values, int $ttl = 0): array { return []; }
-    protected function doAdd(string $key, string $value, int $ttl = 0): bool { return true; }
-    protected function doDelete(string $key): bool { return true; }
-    protected function doDeleteMultiple(array $keys): array { return []; }
-    protected function doIncrement(string $key, int $offset = 1): ?int { return null; }
-    protected function doDecrement(string $key, int $offset = 1): ?int { return null; }
-    protected function doFlush(string $prefix = ''): bool { return true; }
-    public function isAvailable(): bool { return true; }
+    protected function doGet(string $key): ?string
+    {
+        return null;
+    }
+    protected function doGetMultiple(array $keys): array
+    {
+        return [];
+    }
+    protected function doSet(string $key, string $value, int $ttl = 0): bool
+    {
+        return true;
+    }
+    protected function doSetMultiple(array $values, int $ttl = 0): array
+    {
+        return [];
+    }
+    protected function doAdd(string $key, string $value, int $ttl = 0): bool
+    {
+        return true;
+    }
+    protected function doDelete(string $key): bool
+    {
+        return true;
+    }
+    protected function doDeleteMultiple(array $keys): array
+    {
+        return [];
+    }
+    protected function doIncrement(string $key, int $offset = 1): ?int
+    {
+        return null;
+    }
+    protected function doDecrement(string $key, int $offset = 1): ?int
+    {
+        return null;
+    }
+    protected function doFlush(string $prefix = ''): bool
+    {
+        return true;
+    }
+    public function isAvailable(): bool
+    {
+        return true;
+    }
     public function close(): void {}
 }
 
@@ -178,20 +211,62 @@ final class ThrowingHashableAdapter extends AbstractHashableAdapter
         throw new \RuntimeException('backend down');
     }
 
-    protected function doHashSetMultiple(string $key, array $fields): bool { return true; }
-    protected function doHashDeleteMultiple(string $key, array $fields): bool { return true; }
-    protected function doHashDelete(string $key): bool { return true; }
+    protected function doHashSetMultiple(string $key, array $fields): bool
+    {
+        return true;
+    }
+    protected function doHashDeleteMultiple(string $key, array $fields): bool
+    {
+        return true;
+    }
+    protected function doHashDelete(string $key): bool
+    {
+        return true;
+    }
 
-    protected function doGet(string $key): ?string { return null; }
-    protected function doGetMultiple(array $keys): array { return []; }
-    protected function doSet(string $key, string $value, int $ttl = 0): bool { return true; }
-    protected function doSetMultiple(array $values, int $ttl = 0): array { return []; }
-    protected function doAdd(string $key, string $value, int $ttl = 0): bool { return true; }
-    protected function doDelete(string $key): bool { return true; }
-    protected function doDeleteMultiple(array $keys): array { return []; }
-    protected function doIncrement(string $key, int $offset = 1): ?int { return null; }
-    protected function doDecrement(string $key, int $offset = 1): ?int { return null; }
-    protected function doFlush(string $prefix = ''): bool { return true; }
-    public function isAvailable(): bool { return true; }
+    protected function doGet(string $key): ?string
+    {
+        return null;
+    }
+    protected function doGetMultiple(array $keys): array
+    {
+        return [];
+    }
+    protected function doSet(string $key, string $value, int $ttl = 0): bool
+    {
+        return true;
+    }
+    protected function doSetMultiple(array $values, int $ttl = 0): array
+    {
+        return [];
+    }
+    protected function doAdd(string $key, string $value, int $ttl = 0): bool
+    {
+        return true;
+    }
+    protected function doDelete(string $key): bool
+    {
+        return true;
+    }
+    protected function doDeleteMultiple(array $keys): array
+    {
+        return [];
+    }
+    protected function doIncrement(string $key, int $offset = 1): ?int
+    {
+        return null;
+    }
+    protected function doDecrement(string $key, int $offset = 1): ?int
+    {
+        return null;
+    }
+    protected function doFlush(string $prefix = ''): bool
+    {
+        return true;
+    }
+    public function isAvailable(): bool
+    {
+        return true;
+    }
     public function close(): void {}
 }
