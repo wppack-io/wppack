@@ -20,7 +20,7 @@ use WPPack\Component\Scim\Event\ScimUserSerializedEvent;
 use WPPack\Component\Scim\Schema\ScimConstants;
 use WPPack\Component\User\UserRepositoryInterface;
 
-final readonly class UserAttributeMapper implements UserAttributeMapperInterface
+readonly class UserAttributeMapper implements UserAttributeMapperInterface
 {
     /**
      * @param list<ScimAttributeMapping> $customMappings
