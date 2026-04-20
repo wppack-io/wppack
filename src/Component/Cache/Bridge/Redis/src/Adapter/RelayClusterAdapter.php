@@ -15,20 +15,6 @@ namespace WPPack\Component\Cache\Bridge\Redis\Adapter;
 
 final class RelayClusterAdapter extends AbstractNativeClusterAdapter
 {
-    /**
-     * Per-process bootstrap tracker. Relay\Cluster emits a PHP warning
-     * when both `name` (persistent handle key) and `seeds` (bootstrap
-     * nodes) are passed to the constructor, because on reuse of a
-     * named persistent handle the seeds are redundant — Relay prefers
-     * the cached handle and ignores seeds. We still need seeds for the
-     * very first call per handle name, so track which names have
-     * already been bootstrapped in this worker and skip seeds on
-     * subsequent opens.
-     *
-     * @var array<string, true>
-     */
-    private static array $bootstrappedNames = [];
-
     public function getName(): string
     {
         return 'relay-cluster';
@@ -60,30 +46,47 @@ final class RelayClusterAdapter extends AbstractNativeClusterAdapter
             default => \Relay\Cluster::FAILOVER_NONE,
         };
 
-        $name = $persistent ? 'wppack' : null;
-        $seedsForCtor = $seeds;
-        if ($name !== null && isset(self::$bootstrappedNames[$name])) {
-            $seedsForCtor = null;
-        }
-
-        $relay = new \Relay\Cluster(
-            name: $name,
-            seeds: $seedsForCtor,
-            connect_timeout: $timeout,
-            command_timeout: $readTimeout,
-            persistent: $persistent,
-            auth: $password,
+        // Relay emits a benign informational warning — 'Both name and
+        // seeds provided, will use name' — every time its constructor
+        // receives both arguments, even though bootstrapping a fresh
+        // persistent handle requires both. Filter that one specific
+        // message and let every other warning propagate.
+        $relay = self::silenceRelaySeedsWarning(
+            static fn(): \Relay\Cluster => new \Relay\Cluster(
+                name: $persistent ? 'wppack' : null,
+                seeds: $seeds,
+                connect_timeout: $timeout,
+                command_timeout: $readTimeout,
+                persistent: $persistent,
+                auth: $password,
+            ),
         );
-
-        if ($name !== null) {
-            self::$bootstrappedNames[$name] = true;
-        }
 
         $relay->setOption(\Relay\Cluster::OPT_SLAVE_FAILOVER, $failover);
         $relay->setOption(\Relay\Relay::OPT_SERIALIZER, self::resolveRelaySerializer($this->connectionParams['serializer'] ?? 'none'));
         $this->configureCompressor($relay, \Relay\Relay::class);
 
         return $relay;
+    }
+
+    /**
+     * @param callable(): \Relay\Cluster $build
+     */
+    private static function silenceRelaySeedsWarning(callable $build): \Relay\Cluster
+    {
+        $previous = set_error_handler(static function (int $severity, string $message) use (&$previous): bool {
+            if ($severity === \E_WARNING && str_contains($message, 'Both name and seeds provided')) {
+                return true;
+            }
+
+            return \is_callable($previous) ? (bool) $previous(...\func_get_args()) : false;
+        });
+
+        try {
+            return $build();
+        } finally {
+            restore_error_handler();
+        }
     }
 
     private static function resolveRelaySerializer(string $name): int
