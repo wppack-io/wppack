@@ -213,6 +213,7 @@
       "WPPack\\Component\\Scheduler\\Tests\\": "src/Component/Scheduler/tests/",
       "WPPack\\Component\\Security\\Tests\\": "src/Component/Security/tests/",
       "WPPack\\Component\\Security\\Bridge\\SAML\\Tests\\": "src/Component/Security/Bridge/SAML/tests/",
+      "WPPack\\Component\\Security\\Bridge\\Passkey\\Tests\\": "src/Component/Security/Bridge/Passkey/tests/",
       "WPPack\\Component\\Setting\\Tests\\": "src/Component/Setting/tests/",
       "WPPack\\Component\\SiteHealth\\Tests\\": "src/Component/SiteHealth/tests/",
       "WPPack\\Component\\Taxonomy\\Tests\\": "src/Component/Taxonomy/tests/",
