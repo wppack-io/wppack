@@ -64,7 +64,10 @@ $site = $this->siteRepository->find(2);
 | メソッド | 説明 | WordPress 関数 |
 |---------|------|----------------|
 | `getCurrentBlogId(): int` | 現在のブログ ID を取得 | `get_current_blog_id()` |
+| `getMainSiteId(): int` | メインサイト ID を取得 | `get_main_site_id()` |
 | `isMultisite(): bool` | マルチサイト環境かどうか | `is_multisite()` |
+| `isMainSite(): bool` | 現在のブログがメインサイトか | `is_main_site()` |
+| `isSubdomainInstall(): bool` | サブドメインマルチサイト構成か | `is_subdomain_install()` |
 | `isSwitched(): bool` | 別ブログに切替中かどうか | `ms_is_switched()` |
 
 ### 使用例
@@ -76,6 +79,8 @@ $context = new BlogContext();
 
 $blogId = $context->getCurrentBlogId();   // 1
 $context->isMultisite();                  // true / false
+$context->isMainSite();                   // true / false
+$context->isSubdomainInstall();           // true（サブドメイン構成時）
 $context->isSwitched();                   // false（切替中でなければ）
 ```
 
@@ -281,6 +286,8 @@ Site コンポーネントは複数のパッケージから利用されている
 | Media | `UploadDirSubscriber` | マルチサイトのアップロードパス構造を判定 |
 | Security/OAuth | `CrossSiteRedirector` | クロスサイト OAuth リダイレクトの判定 |
 | Security/SAML | `CrossSiteRedirector` | クロスサイト SAML リダイレクトの判定 |
+| MultisiteUrlFixer | `UrlFixerSubscriber` | `/wp` サブディレクトリ環境での URL 書き換え（`isMainSite` / `isSubdomainInstall`） |
+| ScimPlugin | `ScimPlugin` / `ScimSettingsController` | SCIM エンドポイントをメインサイトに限定、REST URL をメインサイト基準で生成 |
 
 ### BlogSwitcherInterface の利用
 
@@ -311,6 +318,6 @@ Site コンポーネントは複数のパッケージから利用されている
 
 | クラス | シングルサイトでの動作 |
 |-------|---------------------|
-| `BlogContext` | `getCurrentBlogId()` → `1`、`isMultisite()` → `false`、`isSwitched()` → `false` |
+| `BlogContext` | `getCurrentBlogId()` → `1`、`isMultisite()` → `false`、`isMainSite()` → `true`、`isSubdomainInstall()` → `false`、`isSwitched()` → `false` |
 | `BlogSwitcher` | `switch_to_blog()` が存在しなければ `switchToBlog()` は何もしない、`restoreCurrentBlog()` も何もしない、コールバック版はそのまま実行 |
 | `SiteRepository` | マルチサイト関数が存在しなければ空配列 / `null` を返す |

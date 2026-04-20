@@ -19,6 +19,8 @@ use WPPack\Component\Rest\Attribute\RestRoute;
 use WPPack\Component\Rest\HttpMethod;
 use WPPack\Component\Role\Attribute\IsGranted;
 use WPPack\Component\Role\RoleProvider;
+use WPPack\Component\Site\BlogContext;
+use WPPack\Component\Site\BlogContextInterface;
 use WPPack\Plugin\ScimPlugin\Configuration\ScimConfiguration;
 
 #[RestRoute(namespace: 'wppack/v1/scim')]
@@ -27,6 +29,7 @@ final class ScimSettingsController extends AbstractRestController
 {
     public function __construct(
         private readonly RoleProvider $roleProvider,
+        private readonly BlogContextInterface $blogContext = new BlogContext(),
     ) {}
 
     #[RestRoute(route: '/settings', methods: HttpMethod::GET)]
@@ -103,7 +106,7 @@ final class ScimSettingsController extends AbstractRestController
             ];
         }
 
-        $blogId = is_multisite() ? get_main_site_id() : null;
+        $blogId = $this->blogContext->isMultisite() ? $this->blogContext->getMainSiteId() : null;
 
         return [
             'settings' => $settings,

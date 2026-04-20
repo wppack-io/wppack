@@ -68,8 +68,14 @@ final class ScimPluginServiceProvider implements ServiceProviderInterface
 
         $builder->register(ScimSettingsPage::class);
 
+        if (!$builder->hasDefinition(BlogContextInterface::class)) {
+            $builder->register(BlogContext::class);
+            $builder->setAlias(BlogContextInterface::class, BlogContext::class);
+        }
+
         $builder->register(ScimSettingsController::class)
-            ->addArgument(new Reference(RoleProvider::class));
+            ->addArgument(new Reference(RoleProvider::class))
+            ->addArgument(new Reference(BlogContextInterface::class));
     }
 
     public function register(ContainerBuilder $builder): void

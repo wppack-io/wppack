@@ -24,6 +24,8 @@ use WPPack\Component\Rest\DependencyInjection\RegisterRestControllersPass;
 use WPPack\Component\Rest\RestRegistry;
 use WPPack\Component\Security\Authentication\AuthenticationManager;
 use WPPack\Component\Security\DependencyInjection\RegisterAuthenticatorsPass;
+use WPPack\Component\Site\BlogContext;
+use WPPack\Component\Site\BlogContextInterface;
 use WPPack\Plugin\ScimPlugin\Admin\ScimSettingsController;
 use WPPack\Plugin\ScimPlugin\Admin\ScimSettingsPage;
 use WPPack\Plugin\ScimPlugin\Configuration\ScimConfiguration;
@@ -34,15 +36,20 @@ final class ScimPlugin extends AbstractPlugin
 {
     private readonly ScimPluginServiceProvider $serviceProvider;
 
-    public function __construct(string $pluginFile)
-    {
+    private readonly BlogContextInterface $blogContext;
+
+    public function __construct(
+        string $pluginFile,
+        ?BlogContextInterface $blogContext = null,
+    ) {
         parent::__construct($pluginFile);
         $this->serviceProvider = new ScimPluginServiceProvider();
+        $this->blogContext = $blogContext ?? new BlogContext();
     }
 
     public function register(ContainerBuilder $builder): void
     {
-        if (!is_main_site()) {
+        if (!$this->blogContext->isMainSite()) {
             return;
         }
 
@@ -80,7 +87,7 @@ final class ScimPlugin extends AbstractPlugin
 
     public function boot(Container $container): void
     {
-        if (!is_main_site()) {
+        if (!$this->blogContext->isMainSite()) {
             return;
         }
 

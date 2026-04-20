@@ -27,6 +27,7 @@ use WPPack\Component\Role\RoleProvider;
 use WPPack\Component\Security\Authentication\AuthenticationManager;
 use WPPack\Component\Security\AuthenticationSession;
 use WPPack\Component\Security\DependencyInjection\RegisterAuthenticatorsPass;
+use WPPack\Component\Site\BlogContextInterface;
 use WPPack\Plugin\ScimPlugin\Admin\ScimSettingsController;
 use WPPack\Plugin\ScimPlugin\Admin\ScimSettingsPage;
 use WPPack\Plugin\ScimPlugin\Configuration\ScimConfiguration;
@@ -178,5 +179,93 @@ final class ScimPluginTest extends TestCase
 
         self::assertTrue($builder->hasDefinition(ScimSettingsPage::class));
         self::assertTrue($builder->hasDefinition(ScimSettingsController::class));
+    }
+
+    #[Test]
+    public function registerSkipsEverythingOnNonMainSite(): void
+    {
+        $builder = new ContainerBuilder();
+        $plugin = new ScimPlugin(__FILE__, $this->makeBlogContext(isMainSite: false));
+
+        $plugin->register($builder);
+
+        // Non-main-site: the plugin bails before registering any service,
+        // including the admin settings page.
+        self::assertFalse($builder->hasDefinition(ScimSettingsPage::class));
+        self::assertFalse($builder->hasDefinition(ScimSettingsController::class));
+    }
+
+    #[Test]
+    public function registerWiresScimServicesWhenTokenIsConfigured(): void
+    {
+        delete_option(ScimConfiguration::OPTION_NAME);
+        update_option(ScimConfiguration::OPTION_NAME, ['bearerToken' => 'test-token-12345678']);
+
+        try {
+            $builder = new ContainerBuilder();
+            $plugin = new ScimPlugin(__FILE__);
+
+            $plugin->register($builder);
+
+            // Token present: SCIM parameters get populated on the builder.
+            self::assertTrue($builder->hasParameter('scim.max_results'));
+            self::assertTrue($builder->hasParameter('scim.default_role'));
+            self::assertTrue($builder->hasParameter('scim.base_url'));
+        } finally {
+            delete_option(ScimConfiguration::OPTION_NAME);
+        }
+    }
+
+    #[Test]
+    public function bootSkipsEverythingOnNonMainSite(): void
+    {
+        $symfonyContainer = new \Symfony\Component\DependencyInjection\Container();
+        $container = new Container($symfonyContainer);
+
+        $plugin = new ScimPlugin(__FILE__, $this->makeBlogContext(isMainSite: false));
+
+        // On a non-main site, boot() returns before looking up any
+        // container service — the empty container is never queried.
+        $plugin->boot($container);
+
+        self::assertFalse(has_action('admin_menu'));
+        self::assertFalse(has_action('rest_api_init'));
+    }
+
+    private function makeBlogContext(bool $isMainSite): BlogContextInterface
+    {
+        return new class ($isMainSite) implements BlogContextInterface {
+            public function __construct(private readonly bool $isMainSite) {}
+
+            public function getCurrentBlogId(): int
+            {
+                return $this->isMainSite ? 1 : 2;
+            }
+
+            public function isMultisite(): bool
+            {
+                return true;
+            }
+
+            public function getMainSiteId(): int
+            {
+                return 1;
+            }
+
+            public function isSwitched(): bool
+            {
+                return false;
+            }
+
+            public function isMainSite(): bool
+            {
+                return $this->isMainSite;
+            }
+
+            public function isSubdomainInstall(): bool
+            {
+                return false;
+            }
+        };
     }
 }
