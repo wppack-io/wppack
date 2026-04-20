@@ -20,6 +20,7 @@ use WPPack\Component\DependencyInjection\Reference;
 use WPPack\Component\DependencyInjection\ServiceProviderInterface;
 use WPPack\Component\HttpFoundation\Request;
 use WPPack\Component\Logger\DependencyInjection\LoggerServiceProvider;
+use WPPack\Component\Option\OptionManager;
 use WPPack\Component\Rest\RestRegistry;
 use WPPack\Component\Role\RoleProvider;
 use WPPack\Component\Site\BlogContext;
@@ -67,6 +68,10 @@ final class RoleProvisioningPluginServiceProvider implements ServiceProviderInte
             $builder->register(SiteRepositoryInterface::class, SiteRepository::class);
         }
 
+        if (!$builder->hasDefinition(OptionManager::class)) {
+            $builder->register(OptionManager::class);
+        }
+
         // Logger
         if (!$builder->hasDefinition(LoggerInterface::class)) {
             (new LoggerServiceProvider())->register($builder);
@@ -83,7 +88,8 @@ final class RoleProvisioningPluginServiceProvider implements ServiceProviderInte
         $builder->register(RoleProvisioningSettingsController::class)
             ->addArgument(new Reference(RoleProvider::class))
             ->addArgument(new Reference(BlogContextInterface::class))
-            ->addArgument(new Reference(SiteRepositoryInterface::class));
+            ->addArgument(new Reference(SiteRepositoryInterface::class))
+            ->addArgument(new Reference(OptionManager::class));
 
         // Role Provisioner
         // User Repository

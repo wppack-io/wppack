@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace WPPack\Plugin\OAuthLoginPlugin\Admin;
 
 use WPPack\Component\HttpFoundation\JsonResponse;
+use WPPack\Component\Option\OptionManager;
 use WPPack\Component\Rest\AbstractRestController;
 use WPPack\Component\Rest\Attribute\RestRoute;
 use WPPack\Component\Rest\HttpMethod;
@@ -38,6 +39,7 @@ final class OAuthLoginSettingsController extends AbstractRestController
         private readonly OAuthLoginConfiguration $configuration,
         private readonly Sanitizer $sanitizer,
         private readonly BlogContextInterface $blogContext = new BlogContext(),
+        private readonly OptionManager $optionManager = new OptionManager(),
     ) {}
 
     #[RestRoute(route: '/settings', methods: HttpMethod::GET)]
@@ -55,12 +57,12 @@ final class OAuthLoginSettingsController extends AbstractRestController
         $this->persistOptions($params);
 
         // Flush rewrite rules so route changes take effect
-        delete_option('rewrite_rules');
+        $this->optionManager->delete('rewrite_rules');
 
         $updated = OAuthLoginConfiguration::fromEnvironmentOrOptions();
 
         // Rebuild display from updated config
-        $ctrl = new self($updated, $this->sanitizer, $this->blogContext);
+        $ctrl = new self($updated, $this->sanitizer, $this->blogContext, $this->optionManager);
 
         return $this->json($ctrl->buildResponse($this->resolveMainBlogId()));
     }
@@ -110,7 +112,7 @@ final class OAuthLoginSettingsController extends AbstractRestController
      */
     private function buildGlobalDisplay(): array
     {
-        $raw = get_option(OAuthLoginConfiguration::OPTION_NAME, []);
+        $raw = $this->optionManager->get(OAuthLoginConfiguration::OPTION_NAME, []);
         $saved = \is_array($raw) ? $raw : [];
 
         $fields = [
@@ -192,7 +194,7 @@ final class OAuthLoginSettingsController extends AbstractRestController
      */
     private function persistOptions(array $input): void
     {
-        $raw = get_option(OAuthLoginConfiguration::OPTION_NAME, []);
+        $raw = $this->optionManager->get(OAuthLoginConfiguration::OPTION_NAME, []);
         $saved = \is_array($raw) ? $raw : [];
 
         // Global settings
@@ -302,7 +304,7 @@ final class OAuthLoginSettingsController extends AbstractRestController
             $saved['providers'] = $providers;
         }
 
-        update_option(OAuthLoginConfiguration::OPTION_NAME, $saved);
+        $this->optionManager->update(OAuthLoginConfiguration::OPTION_NAME, $saved);
 
     }
 }

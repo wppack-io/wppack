@@ -15,6 +15,7 @@ namespace WPPack\Plugin\SamlLoginPlugin\Admin;
 
 use WPPack\Component\HttpFoundation\JsonResponse;
 use WPPack\Component\HttpFoundation\Response;
+use WPPack\Component\Option\OptionManager;
 use WPPack\Component\Rest\AbstractRestController;
 use WPPack\Component\Rest\Attribute\RestRoute;
 use WPPack\Component\Rest\HttpMethod;
@@ -45,6 +46,7 @@ final class SamlLoginSettingsController extends AbstractRestController
         private readonly Sanitizer $sanitizer,
         private readonly ?SpMetadataExporter $metadataExporter = null,
         private readonly BlogContextInterface $blogContext = new BlogContext(),
+        private readonly OptionManager $optionManager = new OptionManager(),
     ) {}
 
     #[RestRoute(route: '/settings', methods: HttpMethod::GET)]
@@ -84,7 +86,7 @@ final class SamlLoginSettingsController extends AbstractRestController
 
         $this->persistOptions($params);
 
-        delete_option('rewrite_rules');
+        $this->optionManager->delete('rewrite_rules');
 
         $updated = SamlLoginConfiguration::fromEnvironmentOrOptions();
 
@@ -107,7 +109,7 @@ final class SamlLoginSettingsController extends AbstractRestController
      */
     private function buildDisplayArrayFrom(SamlLoginConfiguration $config): array
     {
-        $raw = get_option(self::OPTION_NAME, []);
+        $raw = $this->optionManager->get(self::OPTION_NAME, []);
         $options = \is_array($raw) ? $raw : [];
 
         $result = [];
@@ -146,7 +148,7 @@ final class SamlLoginSettingsController extends AbstractRestController
      */
     private function persistOptions(array $input): void
     {
-        $raw = get_option(self::OPTION_NAME, []);
+        $raw = $this->optionManager->get(self::OPTION_NAME, []);
         $options = \is_array($raw) ? $raw : [];
 
         $reflection = new \ReflectionClass(SamlLoginConfiguration::class);
@@ -185,7 +187,7 @@ final class SamlLoginSettingsController extends AbstractRestController
             $options[$name] = $value;
         }
 
-        update_option(self::OPTION_NAME, $options);
+        $this->optionManager->update(self::OPTION_NAME, $options);
     }
 
     private function getEnvValue(string $name): ?string

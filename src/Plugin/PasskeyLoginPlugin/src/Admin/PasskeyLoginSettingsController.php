@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace WPPack\Plugin\PasskeyLoginPlugin\Admin;
 
 use WPPack\Component\HttpFoundation\JsonResponse;
+use WPPack\Component\Option\OptionManager;
 use WPPack\Component\Rest\AbstractRestController;
 use WPPack\Component\Rest\Attribute\RestRoute;
 use WPPack\Component\Rest\HttpMethod;
@@ -28,6 +29,7 @@ final class PasskeyLoginSettingsController extends AbstractRestController
 {
     public function __construct(
         private readonly BlogContextInterface $blogContext = new BlogContext(),
+        private readonly OptionManager $optionManager = new OptionManager(),
     ) {}
 
     #[RestRoute(route: '/settings', methods: HttpMethod::GET)]
@@ -63,7 +65,7 @@ final class PasskeyLoginSettingsController extends AbstractRestController
      */
     private function buildResponse(): array
     {
-        $raw = get_option(PasskeyLoginConfiguration::OPTION_NAME, []);
+        $raw = $this->optionManager->get(PasskeyLoginConfiguration::OPTION_NAME, []);
         $saved = \is_array($raw) ? $raw : [];
 
         $fields = [
@@ -124,7 +126,7 @@ final class PasskeyLoginSettingsController extends AbstractRestController
      */
     private function persistOptions(array $input): void
     {
-        $raw = get_option(PasskeyLoginConfiguration::OPTION_NAME, []);
+        $raw = $this->optionManager->get(PasskeyLoginConfiguration::OPTION_NAME, []);
         $saved = \is_array($raw) ? $raw : [];
 
         $fieldMap = [
@@ -219,6 +221,6 @@ final class PasskeyLoginSettingsController extends AbstractRestController
             $saved[$key] = $input[$key];
         }
 
-        update_option(PasskeyLoginConfiguration::OPTION_NAME, $saved);
+        $this->optionManager->update(PasskeyLoginConfiguration::OPTION_NAME, $saved);
     }
 }

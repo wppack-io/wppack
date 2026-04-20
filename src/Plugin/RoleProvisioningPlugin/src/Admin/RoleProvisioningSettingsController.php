@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace WPPack\Plugin\RoleProvisioningPlugin\Admin;
 
 use WPPack\Component\HttpFoundation\JsonResponse;
+use WPPack\Component\Option\OptionManager;
 use WPPack\Component\Rest\AbstractRestController;
 use WPPack\Component\Rest\Attribute\RestRoute;
 use WPPack\Component\Rest\HttpMethod;
@@ -34,6 +35,7 @@ final class RoleProvisioningSettingsController extends AbstractRestController
         private readonly RoleProvider $roleProvider,
         private readonly BlogContextInterface $blogContext = new BlogContext(),
         private readonly SiteRepositoryInterface $siteRepository = new SiteRepository(),
+        private readonly OptionManager $optionManager = new OptionManager(),
     ) {}
 
     #[RestRoute(route: '/settings', methods: HttpMethod::GET)]
@@ -58,7 +60,7 @@ final class RoleProvisioningSettingsController extends AbstractRestController
      */
     private function buildResponse(): array
     {
-        $raw = get_option(RoleProvisioningConfiguration::OPTION_NAME, []);
+        $raw = $this->optionManager->get(RoleProvisioningConfiguration::OPTION_NAME, []);
         $saved = \is_array($raw) ? $raw : [];
 
         return [
@@ -120,7 +122,7 @@ final class RoleProvisioningSettingsController extends AbstractRestController
      */
     private function persistOptions(array $input): void
     {
-        $raw = get_option(RoleProvisioningConfiguration::OPTION_NAME, []);
+        $raw = $this->optionManager->get(RoleProvisioningConfiguration::OPTION_NAME, []);
         $saved = \is_array($raw) ? $raw : [];
 
         // Boolean fields
@@ -135,7 +137,7 @@ final class RoleProvisioningSettingsController extends AbstractRestController
             $saved['rules'] = $this->validateRules($input['rules']);
         }
 
-        update_option(RoleProvisioningConfiguration::OPTION_NAME, $saved);
+        $this->optionManager->update(RoleProvisioningConfiguration::OPTION_NAME, $saved);
     }
 
     /**

@@ -21,6 +21,7 @@ use WPPack\Component\DependencyInjection\ServiceProviderInterface;
 use WPPack\Component\EventDispatcher\DependencyInjection\EventDispatcherServiceProvider;
 use WPPack\Component\EventDispatcher\EventDispatcher;
 use WPPack\Component\HttpFoundation\Request;
+use WPPack\Component\Option\OptionManager;
 use WPPack\Component\Rest\RestRegistry;
 use WPPack\Component\Routing\RouteRegistry;
 use WPPack\Component\Sanitizer\Sanitizer;
@@ -99,12 +100,17 @@ final class SamlLoginPluginServiceProvider implements ServiceProviderInterface
         // Admin Settings Page
         $builder->register(SamlLoginSettingsPage::class);
 
+        if (!$builder->hasDefinition(OptionManager::class)) {
+            $builder->register(OptionManager::class);
+        }
+
         // REST API Settings Controller
         $builder->register(SamlLoginSettingsController::class)
             ->addArgument(new Reference(SamlLoginConfiguration::class))
             ->addArgument(new Reference(Sanitizer::class))
             ->addArgument(new Reference(SpMetadataExporter::class))
-            ->addArgument(new Reference(BlogContextInterface::class));
+            ->addArgument(new Reference(BlogContextInterface::class))
+            ->addArgument(new Reference(OptionManager::class));
 
         // Role Provider
         if (!$builder->hasDefinition(\WPPack\Component\Role\RoleProvider::class)) {

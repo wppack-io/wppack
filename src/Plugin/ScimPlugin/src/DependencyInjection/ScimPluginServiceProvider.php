@@ -20,6 +20,7 @@ use WPPack\Component\DependencyInjection\ServiceProviderInterface;
 use WPPack\Component\EventDispatcher\DependencyInjection\EventDispatcherServiceProvider;
 use WPPack\Component\EventDispatcher\EventDispatcher;
 use WPPack\Component\HttpFoundation\Request;
+use WPPack\Component\Option\OptionManager;
 use WPPack\Component\Rest\RestRegistry;
 use WPPack\Component\Role\RoleProvider;
 use WPPack\Component\Scim\Authentication\ScimBearerAuthenticator;
@@ -73,9 +74,14 @@ final class ScimPluginServiceProvider implements ServiceProviderInterface
             $builder->setAlias(BlogContextInterface::class, BlogContext::class);
         }
 
+        if (!$builder->hasDefinition(OptionManager::class)) {
+            $builder->register(OptionManager::class);
+        }
+
         $builder->register(ScimSettingsController::class)
             ->addArgument(new Reference(RoleProvider::class))
-            ->addArgument(new Reference(BlogContextInterface::class));
+            ->addArgument(new Reference(BlogContextInterface::class))
+            ->addArgument(new Reference(OptionManager::class));
     }
 
     public function register(ContainerBuilder $builder): void

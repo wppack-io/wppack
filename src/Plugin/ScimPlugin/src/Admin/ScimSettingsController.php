@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace WPPack\Plugin\ScimPlugin\Admin;
 
 use WPPack\Component\HttpFoundation\JsonResponse;
+use WPPack\Component\Option\OptionManager;
 use WPPack\Component\Rest\AbstractRestController;
 use WPPack\Component\Rest\Attribute\RestRoute;
 use WPPack\Component\Rest\HttpMethod;
@@ -30,6 +31,7 @@ final class ScimSettingsController extends AbstractRestController
     public function __construct(
         private readonly RoleProvider $roleProvider,
         private readonly BlogContextInterface $blogContext = new BlogContext(),
+        private readonly OptionManager $optionManager = new OptionManager(),
     ) {}
 
     #[RestRoute(route: '/settings', methods: HttpMethod::GET)]
@@ -46,7 +48,7 @@ final class ScimSettingsController extends AbstractRestController
 
         $this->persistOptions($params);
 
-        delete_option('rewrite_rules');
+        $this->optionManager->delete('rewrite_rules');
 
         return $this->json($this->buildResponse());
     }
@@ -56,7 +58,7 @@ final class ScimSettingsController extends AbstractRestController
      */
     private function buildResponse(): array
     {
-        $raw = get_option(ScimConfiguration::OPTION_NAME, []);
+        $raw = $this->optionManager->get(ScimConfiguration::OPTION_NAME, []);
         $saved = \is_array($raw) ? $raw : [];
 
         $fields = [
@@ -120,7 +122,7 @@ final class ScimSettingsController extends AbstractRestController
      */
     private function persistOptions(array $input): void
     {
-        $raw = get_option(ScimConfiguration::OPTION_NAME, []);
+        $raw = $this->optionManager->get(ScimConfiguration::OPTION_NAME, []);
         $saved = \is_array($raw) ? $raw : [];
 
         $fieldMap = [
@@ -158,6 +160,6 @@ final class ScimSettingsController extends AbstractRestController
             $saved[$key] = $input[$key];
         }
 
-        update_option(ScimConfiguration::OPTION_NAME, $saved);
+        $this->optionManager->update(ScimConfiguration::OPTION_NAME, $saved);
     }
 }

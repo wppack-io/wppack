@@ -22,6 +22,7 @@ use WPPack\Component\DependencyInjection\Reference;
 use WPPack\Component\DependencyInjection\ServiceProviderInterface;
 use WPPack\Component\HttpFoundation\Request;
 use WPPack\Component\Logger\DependencyInjection\LoggerServiceProvider;
+use WPPack\Component\Option\OptionManager;
 use WPPack\Component\Rest\RestRegistry;
 use WPPack\Component\Security\AuthenticationSession;
 use WPPack\Component\Security\Bridge\Passkey\Ceremony\CeremonyManager;
@@ -65,8 +66,13 @@ final class PasskeyLoginPluginServiceProvider implements ServiceProviderInterfac
             $builder->register(BlogContextInterface::class, BlogContext::class);
         }
 
+        if (!$builder->hasDefinition(OptionManager::class)) {
+            $builder->register(OptionManager::class);
+        }
+
         $builder->register(PasskeyLoginSettingsController::class)
-            ->addArgument(new Reference(BlogContextInterface::class));
+            ->addArgument(new Reference(BlogContextInterface::class))
+            ->addArgument(new Reference(OptionManager::class));
 
         $builder->register(PasskeyProfileSection::class)
             ->addArgument(new Reference(PasskeyLoginConfiguration::class));

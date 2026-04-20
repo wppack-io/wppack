@@ -23,6 +23,7 @@ use WPPack\Component\EventDispatcher\EventDispatcher;
 use WPPack\Component\HttpClient\DependencyInjection\HttpClientServiceProvider;
 use WPPack\Component\HttpClient\HttpClient;
 use WPPack\Component\HttpFoundation\Request;
+use WPPack\Component\Option\OptionManager;
 use WPPack\Component\Rest\RestRegistry;
 use WPPack\Component\Role\RoleProvider;
 use WPPack\Component\Routing\RouteRegistry;
@@ -101,6 +102,11 @@ final class OAuthLoginPluginServiceProvider implements ServiceProviderInterface
             $builder->register(BlogContextInterface::class, BlogContext::class);
         }
 
+        // Option Manager
+        if (!$builder->hasDefinition(OptionManager::class)) {
+            $builder->register(OptionManager::class);
+        }
+
         // Site Repository (multisite)
         if (!$builder->hasDefinition(SiteRepositoryInterface::class)) {
             $builder->register(SiteRepositoryInterface::class, SiteRepository::class);
@@ -141,7 +147,8 @@ final class OAuthLoginPluginServiceProvider implements ServiceProviderInterface
         $builder->register(OAuthLoginSettingsController::class)
             ->addArgument(new Reference(OAuthLoginConfiguration::class))
             ->addArgument(new Reference(Sanitizer::class))
-            ->addArgument(new Reference(BlogContextInterface::class));
+            ->addArgument(new Reference(BlogContextInterface::class))
+            ->addArgument(new Reference(OptionManager::class));
 
         // Skip OAuth service registration if no providers configured
         if ($config->providers === []) {
