@@ -18,19 +18,23 @@ use WPPack\Component\Rest\AbstractRestController;
 use WPPack\Component\Rest\Attribute\RestRoute;
 use WPPack\Component\Rest\HttpMethod;
 use WPPack\Component\Role\Attribute\IsGranted;
+use WPPack\Component\Site\BlogContext;
+use WPPack\Component\Site\BlogContextInterface;
 use WPPack\Plugin\PasskeyLoginPlugin\Configuration\PasskeyLoginConfiguration;
 
 #[RestRoute(namespace: 'wppack/v1/passkey-login')]
 #[IsGranted('manage_options')]
 final class PasskeyLoginSettingsController extends AbstractRestController
 {
+    public function __construct(
+        private readonly BlogContextInterface $blogContext = new BlogContext(),
+    ) {}
+
     #[RestRoute(route: '/settings', methods: HttpMethod::GET)]
     public function getSettings(): JsonResponse
     {
-        $blogId = is_multisite() ? get_main_site_id() : null;
-
         return $this->json([
-            'siteUrl' => get_home_url($blogId),
+            'siteUrl' => get_home_url($this->resolveMainBlogId()),
             ...$this->buildResponse(),
         ]);
     }
@@ -43,12 +47,15 @@ final class PasskeyLoginSettingsController extends AbstractRestController
 
         $this->persistOptions($params);
 
-        $blogId = is_multisite() ? get_main_site_id() : null;
-
         return $this->json([
-            'siteUrl' => get_home_url($blogId),
+            'siteUrl' => get_home_url($this->resolveMainBlogId()),
             ...$this->buildResponse(),
         ]);
+    }
+
+    private function resolveMainBlogId(): ?int
+    {
+        return $this->blogContext->isMultisite() ? $this->blogContext->getMainSiteId() : null;
     }
 
     /**

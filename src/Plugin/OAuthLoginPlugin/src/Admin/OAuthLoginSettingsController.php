@@ -21,6 +21,8 @@ use WPPack\Component\Role\Attribute\IsGranted;
 use WPPack\Component\Sanitizer\Sanitizer;
 use WPPack\Component\Security\Bridge\OAuth\Assets\ProviderIcons;
 use WPPack\Component\Security\Bridge\OAuth\Provider\ProviderRegistry;
+use WPPack\Component\Site\BlogContext;
+use WPPack\Component\Site\BlogContextInterface;
 use WPPack\Plugin\OAuthLoginPlugin\Configuration\OAuthLoginConfiguration;
 use WPPack\Plugin\OAuthLoginPlugin\Configuration\ProviderConfiguration;
 
@@ -35,14 +37,13 @@ final class OAuthLoginSettingsController extends AbstractRestController
     public function __construct(
         private readonly OAuthLoginConfiguration $configuration,
         private readonly Sanitizer $sanitizer,
+        private readonly BlogContextInterface $blogContext = new BlogContext(),
     ) {}
 
     #[RestRoute(route: '/settings', methods: HttpMethod::GET)]
     public function getSettings(): JsonResponse
     {
-        $blogId = is_multisite() ? get_main_site_id() : null;
-
-        return $this->json($this->buildResponse($blogId));
+        return $this->json($this->buildResponse($this->resolveMainBlogId()));
     }
 
     #[RestRoute(route: '/settings', methods: HttpMethod::POST)]
@@ -57,12 +58,16 @@ final class OAuthLoginSettingsController extends AbstractRestController
         delete_option('rewrite_rules');
 
         $updated = OAuthLoginConfiguration::fromEnvironmentOrOptions();
-        $blogId = is_multisite() ? get_main_site_id() : null;
 
         // Rebuild display from updated config
-        $ctrl = new self($updated, $this->sanitizer);
+        $ctrl = new self($updated, $this->sanitizer, $this->blogContext);
 
-        return $this->json($ctrl->buildResponse($blogId));
+        return $this->json($ctrl->buildResponse($this->resolveMainBlogId()));
+    }
+
+    private function resolveMainBlogId(): ?int
+    {
+        return $this->blogContext->isMultisite() ? $this->blogContext->getMainSiteId() : null;
     }
 
     /**

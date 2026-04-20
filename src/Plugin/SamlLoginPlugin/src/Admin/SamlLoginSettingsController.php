@@ -21,6 +21,8 @@ use WPPack\Component\Rest\HttpMethod;
 use WPPack\Component\Role\Attribute\IsGranted;
 use WPPack\Component\Sanitizer\Sanitizer;
 use WPPack\Component\Security\Bridge\SAML\Configuration\SpMetadataExporter;
+use WPPack\Component\Site\BlogContext;
+use WPPack\Component\Site\BlogContextInterface;
 use WPPack\Plugin\SamlLoginPlugin\Configuration\SamlLoginConfiguration;
 
 #[RestRoute(namespace: 'wppack/v1/saml-login')]
@@ -42,17 +44,21 @@ final class SamlLoginSettingsController extends AbstractRestController
         private readonly SamlLoginConfiguration $configuration,
         private readonly Sanitizer $sanitizer,
         private readonly ?SpMetadataExporter $metadataExporter = null,
+        private readonly BlogContextInterface $blogContext = new BlogContext(),
     ) {}
 
     #[RestRoute(route: '/settings', methods: HttpMethod::GET)]
     public function getSettings(): JsonResponse
     {
-        $blogId = is_multisite() ? get_main_site_id() : null;
-
         return $this->json([
-            'siteUrl' => get_home_url($blogId),
+            'siteUrl' => get_home_url($this->resolveMainBlogId()),
             'fields' => $this->buildDisplayArray(),
         ]);
+    }
+
+    private function resolveMainBlogId(): ?int
+    {
+        return $this->blogContext->isMultisite() ? $this->blogContext->getMainSiteId() : null;
     }
 
     #[RestRoute(route: '/metadata', methods: HttpMethod::GET)]
@@ -81,10 +87,9 @@ final class SamlLoginSettingsController extends AbstractRestController
         delete_option('rewrite_rules');
 
         $updated = SamlLoginConfiguration::fromEnvironmentOrOptions();
-        $blogId = is_multisite() ? get_main_site_id() : null;
 
         return $this->json([
-            'siteUrl' => get_home_url($blogId),
+            'siteUrl' => get_home_url($this->resolveMainBlogId()),
             'fields' => $this->buildDisplayArrayFrom($updated),
         ]);
     }

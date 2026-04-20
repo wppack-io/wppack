@@ -61,7 +61,12 @@ final class PasskeyLoginPluginServiceProvider implements ServiceProviderInterfac
 
         $builder->register(PasskeyLoginSettingsPage::class);
 
-        $builder->register(PasskeyLoginSettingsController::class);
+        if (!$builder->hasDefinition(BlogContextInterface::class)) {
+            $builder->register(BlogContextInterface::class, BlogContext::class);
+        }
+
+        $builder->register(PasskeyLoginSettingsController::class)
+            ->addArgument(new Reference(BlogContextInterface::class));
 
         $builder->register(PasskeyProfileSection::class)
             ->addArgument(new Reference(PasskeyLoginConfiguration::class));

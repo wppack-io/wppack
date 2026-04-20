@@ -140,7 +140,8 @@ final class OAuthLoginPluginServiceProvider implements ServiceProviderInterface
         // REST API Settings Controller
         $builder->register(OAuthLoginSettingsController::class)
             ->addArgument(new Reference(OAuthLoginConfiguration::class))
-            ->addArgument(new Reference(Sanitizer::class));
+            ->addArgument(new Reference(Sanitizer::class))
+            ->addArgument(new Reference(BlogContextInterface::class));
 
         // Skip OAuth service registration if no providers configured
         if ($config->providers === []) {

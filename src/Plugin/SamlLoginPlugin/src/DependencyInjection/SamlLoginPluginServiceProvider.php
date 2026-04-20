@@ -103,7 +103,8 @@ final class SamlLoginPluginServiceProvider implements ServiceProviderInterface
         $builder->register(SamlLoginSettingsController::class)
             ->addArgument(new Reference(SamlLoginConfiguration::class))
             ->addArgument(new Reference(Sanitizer::class))
-            ->addArgument(new Reference(SpMetadataExporter::class));
+            ->addArgument(new Reference(SpMetadataExporter::class))
+            ->addArgument(new Reference(BlogContextInterface::class));
 
         // Role Provider
         if (!$builder->hasDefinition(\WPPack\Component\Role\RoleProvider::class)) {
@@ -117,7 +118,8 @@ final class SamlLoginPluginServiceProvider implements ServiceProviderInterface
 
         $builder->register(SpSettings::class)
             ->setFactory([self::class, 'createSpSettings'])
-            ->addArgument(new Reference(SamlLoginConfiguration::class));
+            ->addArgument(new Reference(SamlLoginConfiguration::class))
+            ->addArgument(new Reference(BlogContextInterface::class));
 
         $builder->register(SamlConfiguration::class)
             ->setFactory([self::class, 'createSamlConfiguration'])
@@ -215,9 +217,11 @@ final class SamlLoginPluginServiceProvider implements ServiceProviderInterface
         );
     }
 
-    public static function createSpSettings(SamlLoginConfiguration $config): SpSettings
-    {
-        $blogId = is_multisite() ? get_main_site_id() : null;
+    public static function createSpSettings(
+        SamlLoginConfiguration $config,
+        BlogContextInterface $blogContext = new BlogContext(),
+    ): SpSettings {
+        $blogId = $blogContext->isMultisite() ? $blogContext->getMainSiteId() : null;
 
         return new SpSettings(
             entityId: $config->spEntityId !== '' ? $config->spEntityId : get_home_url($blogId),

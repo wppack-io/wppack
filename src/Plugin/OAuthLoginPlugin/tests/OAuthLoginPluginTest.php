@@ -32,6 +32,7 @@ use WPPack\Component\Security\AuthenticationSession;
 use WPPack\Component\Security\Bridge\OAuth\OAuthCallbackController;
 use WPPack\Component\Security\Bridge\OAuth\OAuthVerifyController;
 use WPPack\Component\Security\DependencyInjection\RegisterAuthenticatorsPass;
+use WPPack\Component\Site\BlogContext;
 use WPPack\Plugin\OAuthLoginPlugin\Admin\OAuthLoginSettingsController;
 use WPPack\Plugin\OAuthLoginPlugin\Admin\OAuthLoginSettingsPage;
 use WPPack\Plugin\OAuthLoginPlugin\Configuration\OAuthLoginConfiguration;
@@ -123,7 +124,7 @@ final class OAuthLoginPluginTest extends TestCase
         $settingsController = new OAuthLoginSettingsController(
             $config,
             new Sanitizer(),
-            new RoleProvider(),
+            new BlogContext(),
         );
         $adminRegistry = new AdminPageRegistry();
         $restRegistry = new RestRegistry(new Request());
@@ -157,7 +158,7 @@ final class OAuthLoginPluginTest extends TestCase
         $settingsController = new OAuthLoginSettingsController(
             $config,
             new Sanitizer(),
-            new RoleProvider(),
+            new BlogContext(),
         );
         $adminRegistry = new AdminPageRegistry();
         $restRegistry = new RestRegistry(new Request());
@@ -203,7 +204,7 @@ final class OAuthLoginPluginTest extends TestCase
         $callbackController = new OAuthCallbackController($authManager);
         $verifyController = new OAuthVerifyController($authManager);
         $settingsPage = new OAuthLoginSettingsPage();
-        $settingsController = new OAuthLoginSettingsController($config, new Sanitizer(), new RoleProvider());
+        $settingsController = new OAuthLoginSettingsController($config, new Sanitizer(), new BlogContext());
         $adminRegistry = new AdminPageRegistry();
         $restRegistry = new RestRegistry($request);
 
@@ -262,7 +263,7 @@ final class OAuthLoginPluginTest extends TestCase
         $verifyController = new OAuthVerifyController($authManager);
         $loginForm = new OAuthLoginForm([$google], $config, $authSession, $request);
         $settingsPage = new OAuthLoginSettingsPage();
-        $settingsController = new OAuthLoginSettingsController($config, new Sanitizer(), new RoleProvider());
+        $settingsController = new OAuthLoginSettingsController($config, new Sanitizer(), new BlogContext());
         $adminRegistry = new AdminPageRegistry();
         $restRegistry = new RestRegistry($request);
 

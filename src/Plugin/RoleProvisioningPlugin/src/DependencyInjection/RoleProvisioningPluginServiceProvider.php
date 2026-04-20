@@ -24,6 +24,8 @@ use WPPack\Component\Rest\RestRegistry;
 use WPPack\Component\Role\RoleProvider;
 use WPPack\Component\Site\BlogContext;
 use WPPack\Component\Site\BlogContextInterface;
+use WPPack\Component\Site\SiteRepository;
+use WPPack\Component\Site\SiteRepositoryInterface;
 use WPPack\Component\User\UserRepositoryInterface;
 use WPPack\Plugin\RoleProvisioningPlugin\Admin\RoleProvisioningSettingsController;
 use WPPack\Plugin\RoleProvisioningPlugin\Admin\RoleProvisioningSettingsPage;
@@ -61,6 +63,10 @@ final class RoleProvisioningPluginServiceProvider implements ServiceProviderInte
             $builder->register(BlogContextInterface::class, BlogContext::class);
         }
 
+        if (!$builder->hasDefinition(SiteRepositoryInterface::class)) {
+            $builder->register(SiteRepositoryInterface::class, SiteRepository::class);
+        }
+
         // Logger
         if (!$builder->hasDefinition(LoggerInterface::class)) {
             (new LoggerServiceProvider())->register($builder);
@@ -75,7 +81,9 @@ final class RoleProvisioningPluginServiceProvider implements ServiceProviderInte
 
         // REST API Settings Controller
         $builder->register(RoleProvisioningSettingsController::class)
-            ->addArgument(new Reference(RoleProvider::class));
+            ->addArgument(new Reference(RoleProvider::class))
+            ->addArgument(new Reference(BlogContextInterface::class))
+            ->addArgument(new Reference(SiteRepositoryInterface::class));
 
         // Role Provisioner
         // User Repository

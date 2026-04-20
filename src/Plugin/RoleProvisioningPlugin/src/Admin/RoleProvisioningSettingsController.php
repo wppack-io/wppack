@@ -19,6 +19,10 @@ use WPPack\Component\Rest\Attribute\RestRoute;
 use WPPack\Component\Rest\HttpMethod;
 use WPPack\Component\Role\Attribute\IsGranted;
 use WPPack\Component\Role\RoleProvider;
+use WPPack\Component\Site\BlogContext;
+use WPPack\Component\Site\BlogContextInterface;
+use WPPack\Component\Site\SiteRepository;
+use WPPack\Component\Site\SiteRepositoryInterface;
 use WPPack\Plugin\RoleProvisioningPlugin\Configuration\RoleProvisioningConfiguration;
 use WPPack\Plugin\RoleProvisioningPlugin\Provisioning\RoleProvisioner;
 
@@ -28,6 +32,8 @@ final class RoleProvisioningSettingsController extends AbstractRestController
 {
     public function __construct(
         private readonly RoleProvider $roleProvider,
+        private readonly BlogContextInterface $blogContext = new BlogContext(),
+        private readonly SiteRepositoryInterface $siteRepository = new SiteRepository(),
     ) {}
 
     #[RestRoute(route: '/settings', methods: HttpMethod::GET)]
@@ -81,7 +87,7 @@ final class RoleProvisioningSettingsController extends AbstractRestController
                 ],
             ],
             'roles' => $this->roleProvider->getNames(),
-            'isMultisite' => is_multisite(),
+            'isMultisite' => $this->blogContext->isMultisite(),
             'sites' => $this->getSites(),
         ];
     }
@@ -91,13 +97,13 @@ final class RoleProvisioningSettingsController extends AbstractRestController
      */
     private function getSites(): array
     {
-        if (!is_multisite() || !function_exists('get_sites')) {
+        if (!$this->blogContext->isMultisite()) {
             return [];
         }
 
         $sites = [];
 
-        foreach (get_sites(['number' => 100]) as $site) {
+        foreach ($this->siteRepository->findAll(['number' => 100]) as $site) {
             $blogId = (int) $site->blog_id;
             $name = get_blog_option($blogId, 'blogname') ?: $site->domain . $site->path;
             $sites[] = [
