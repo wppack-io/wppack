@@ -2593,4 +2593,30 @@ trait WpdbIntegrationTestTrait
         sort($parts);
         self::assertSame(['blue', 'red'], $parts);
     }
+
+    #[Test]
+    public function timeToSecReturnsNegativeSecondsForNegativeTime(): void
+    {
+        // MySQL TIME accepts negative values ('-01:00:05' = -3605s). Pin the
+        // runtime output — the SQLite fallback computes sign separately from
+        // magnitude and an earlier regression had the minutes/seconds
+        // contributing the wrong sign (-3595 instead of -3605).
+        $wpdb = $this->getTestWpdb();
+
+        $value = $wpdb->get_var("SELECT TIME_TO_SEC('-01:00:05')");
+
+        self::assertSame(-3605, (int) $value);
+    }
+
+    #[Test]
+    public function periodAddHandlesNegativeMonths(): void
+    {
+        // YYYYMM arithmetic must survive negative offsets spanning year
+        // boundaries. 202301 - 2 months = 202211; 202302 - 3 = 202211 too.
+        $wpdb = $this->getTestWpdb();
+
+        self::assertSame(202211, (int) $wpdb->get_var('SELECT PERIOD_ADD(202301, -2)'));
+        self::assertSame(202211, (int) $wpdb->get_var('SELECT PERIOD_ADD(202302, -3)'));
+        self::assertSame(199912, (int) $wpdb->get_var('SELECT PERIOD_ADD(200001, -1)'));
+    }
 }
