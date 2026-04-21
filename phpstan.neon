@@ -36,3 +36,12 @@ parameters:
                 - booleanAnd.alwaysFalse
             path: src/Component/Database/drop-in/db.php
             reportUnmatched: false
+        # ReflectionAttribute::newInstance() return type differs between
+        # phpstan-src versions (CI PHP 8.2 narrows via template param,
+        # local PHP 8.4 does not). Only the local case needs suppression.
+        -
+            messages:
+                - '#^Access to an undefined property object::\$regex\.$#'
+                - '#^Access to an undefined property object::\$tag\.$#'
+            path: src/Component/Routing/src/RouteRegistry.php
+            reportUnmatched: false

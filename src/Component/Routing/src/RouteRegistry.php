@@ -300,9 +300,6 @@ final class RouteRegistry
         $tags = [];
         foreach ($target->getAttributes(RewriteTag::class) as $attr) {
             $tag = $attr->newInstance();
-            if (!$tag instanceof RewriteTag) {
-                continue;
-            }
             $tags[] = [$tag->tag, $tag->regex];
         }
 
