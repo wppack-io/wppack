@@ -2,7 +2,7 @@
 
 **パッケージ:** `wppack/database`
 **名前空間:** `WPPack\Component\Database\`
-**レイヤー:** Abstraction
+**Category:** Data
 
 WordPress の `$wpdb` を型安全にラップし、例外ベースのエラーハンドリングと `dbDelta()` によるカスタムテーブルのスキーマ管理を提供するコンポーネントです。
 
@@ -201,7 +201,7 @@ SELECT 用と INSERT/UPDATE/DELETE 用を明確に分離しています。
 
 | メソッド | 用途 | 戻り値 |
 |---------|------|--------|
-| `executeQuery(string $query, array $params = []): int\|bool` | SELECT 実行 | `$wpdb->query()` の結果 |
+| `executeQuery(string $query, array $params = []): Result` | SELECT 実行 | `Result` オブジェクト（`fetchAllAssociative()` / `fetchAssociative()` / `fetchOne()` / `fetchFirstColumn()` で結果を取り出す） |
 | `executeStatement(string $query, array $params = []): int` | INSERT/UPDATE/DELETE 実行 | 影響行数 |
 
 ### フェッチメソッド
@@ -211,7 +211,7 @@ SELECT 用と INSERT/UPDATE/DELETE 用を明確に分離しています。
 | メソッド | 説明 |
 |---------|------|
 | `fetchAllAssociative(string $query, array $params = []): list<array<string, mixed>>` | 複数行を連想配列の配列で取得 |
-| `fetchAssociative(string $query, array $params = []): array<string, mixed>\|false` | 1行を連想配列で取得（見つからない場合 `false`） |
+| `fetchAssociative(string $query, array $params = []): array<string, mixed>\|null` | 1行を連想配列で取得（見つからない場合 `null`） |
 | `fetchOne(string $query, array $params = []): mixed` | 単一値を取得 |
 | `fetchFirstColumn(string $query, array $params = []): list<mixed>` | 1列を配列で取得 |
 
@@ -337,7 +337,7 @@ class AnalyticsRepository
         );
     }
 
-    public function findById(int $id): array|false
+    public function findById(int $id): ?array
     {
         return $this->db->fetchAssociative(
             "SELECT * FROM {$this->db->prefix()}analytics WHERE id = %d",
