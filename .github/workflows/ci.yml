@@ -5,6 +5,10 @@ on:
     branches: [1.x]
   pull_request:
     branches: [1.x]
+  # Manual trigger runs the complete PHP × DB × WP matrix (56 jobs) for
+  # thorough back/forward-compat verification. Automatic push/PR stays
+  # at 19 jobs (current WP full + 1 smoke per other WP).
+  workflow_dispatch:
 
 jobs:
   phpstan:
@@ -82,20 +86,28 @@ jobs:
         ports:
           - 5432:5432
         options: --health-cmd="pg_isready" --health-interval=10s --health-timeout=5s --health-retries=3
+    # Gate per matrix combination:
+    #   - push / PR run only WP 6.9 (current, full PHP × DB) plus one
+    #     smoke row (PHP 8.2 × wpdb) for each non-current WP = 19 jobs.
+    #   - workflow_dispatch runs every combination = 56 jobs.
+    # Off-matrix combos on push/PR surface as "skipped" in the Actions UI.
+    if: >-
+      ${{ github.event_name == 'workflow_dispatch'
+       || matrix.wp == '6.9'
+       || (matrix.php == '8.2' && matrix.db-engine == 'wpdb') }}
     strategy:
       fail-fast: false
       matrix:
         php: ['8.2', '8.3', '8.4', '8.5']
         db-engine: [wpdb, sqlite, mysql, postgresql]
-        # Current WP release — run the full PHP × DB matrix (16 jobs).
-        wp: ['6.9']
-        include:
-          # Back/forward-compat smoke for non-current WP: one combo per
-          # version (PHP 8.2 × wpdb). The full PHP × DB matrix only
-          # matters on the current release.
-          - { php: '8.2', db-engine: wpdb, wp: '6.7' }
-          - { php: '8.2', db-engine: wpdb, wp: '6.8' }
-          - { php: '8.2', db-engine: wpdb, wp: '7.0' }
+        wp: ['6.7', '6.8', '6.9', '7.0']
+        exclude:
+          # PHP versions each WP release was not tested against. Compat
+          # ranges from make.wordpress.org PHP / WP compatibility docs.
+          #   WP 6.7 / 6.8 tested up to PHP 8.4
+          #   WP 6.9 / 7.0 tested up to PHP 8.5
+          - { php: '8.5', wp: '6.7' }
+          - { php: '8.5', wp: '6.8' }
     steps:
       - uses: actions/checkout@v5
 
