@@ -2,7 +2,7 @@
 
 **パッケージ:** `wppack/twig-templating`
 **名前空間:** `WPPack\Component\Templating\Bridge\Twig\`
-**レイヤー:** Infrastructure
+**Category:** Presentation
 
 Twig テンプレートエンジンを WPPack Templating コンポーネントに統合するブリッジパッケージです。`TemplateRendererInterface` を実装し、`ChainRenderer` 経由で `PhpRenderer` と共存できます。
 

@@ -2,7 +2,7 @@
 
 **パッケージ:** `wppack/wpress`
 **名前空間:** `WPPack\Component\Wpress\`
-**レイヤー:** Feature
+**Category:** Utility
 
 All-in-One WP Migration が使用する `.wpress` アーカイブ形式を操作するコンポーネントです。`ZipArchive` と同様のインターフェースで `.wpress` ファイルの読み書き・エントリの追加・削除を行えます。
 

@@ -2,7 +2,7 @@
 
 **パッケージ:** `wppack/database-export`
 **名前空間:** `WPPack\Component\DatabaseExport\`
-**レイヤー:** Feature
+**Category:** Data
 
 WordPress データベースを複数のフォーマット（wpress 互換 SQL、JSON、CSV）でエクスポートするコンポーネントです。MySQL、MariaDB、SQLite、PostgreSQL の各ソース DB に対応しています。
 

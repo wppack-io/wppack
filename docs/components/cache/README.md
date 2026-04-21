@@ -2,7 +2,7 @@
 
 **パッケージ:** `wppack/cache`
 **名前空間:** `WPPack\Component\Cache\`
-**レイヤー:** Abstraction
+**Category:** Data
 
 WordPress Object Cache API（`wp_cache_get()` / `wp_cache_set()`）のオブジェクト指向ラッパーです。WordPress のオブジェクトキャッシュを型安全かつモダンなインターフェースで操作できます。
 

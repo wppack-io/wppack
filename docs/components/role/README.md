@@ -2,7 +2,7 @@
 
 **パッケージ:** `wppack/role`
 **名前空間:** `WPPack\Component\Role\`
-**レイヤー:** Infrastructure
+**Category:** Identity & Security
 
 WordPress のロール・権限管理関数（`add_role()` / `add_cap()` / `current_user_can()`）をアトリビュートベースでラップし、型安全なロール定義と権限チェックを提供するコンポーネントです。
 

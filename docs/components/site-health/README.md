@@ -2,7 +2,7 @@
 
 **パッケージ:** `wppack/site-health`
 **名前空間:** `WPPack\Component\SiteHealth\`
-**レイヤー:** Application
+**Category:** Admin
 
 WordPress のサイトヘルスチェック機能（`site_status_tests` フィルター、`debug_information` フィルター）をアトリビュートベースで登録・管理するコンポーネントです。
 

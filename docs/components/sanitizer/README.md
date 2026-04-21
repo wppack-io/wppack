@@ -2,7 +2,7 @@
 
 **パッケージ:** `wppack/sanitizer`
 **名前空間:** `WPPack\Component\Sanitizer\`
-**レイヤー:** Abstraction
+**Category:** Presentation
 
 WordPress のサニタイズ関数を型安全にラップし、サニタイズ関連の WordPress フックを Named Hook アトリビュートとして提供するコンポーネントです。
 

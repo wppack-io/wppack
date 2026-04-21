@@ -2,7 +2,7 @@
 
 **パッケージ:** `wppack/oembed`
 **名前空間:** `WPPack\Component\OEmbed\`
-**レイヤー:** Application
+**Category:** Content
 
 WordPress oEmbed API をモダンな PHP でラップし、プロバイダー自動登録と oEmbed 関連の Named Hook アトリビュートを提供するコンポーネントです。
 

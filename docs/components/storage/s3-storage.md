@@ -2,7 +2,7 @@
 
 **パッケージ:** `wppack/s3-storage`
 **名前空間:** `WPPack\Component\Storage\Bridge\S3\`
-**レイヤー:** Abstraction（Bridge）
+**Category:** Data
 
 [Storage コンポーネント](./README.md) の Amazon S3 アダプタです。`async-aws/s3` を利用して S3 互換のオブジェクトストレージにアクセスします。
 

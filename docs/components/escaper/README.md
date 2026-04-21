@@ -2,7 +2,7 @@
 
 **パッケージ:** `wppack/escaper`
 **名前空間:** `WPPack\Component\Escaper\`
-**レイヤー:** Abstraction
+**Category:** Presentation
 
 WordPress の出力エスケープ関数を型安全にラップし、エスケープ関連の WordPress フックを Named Hook アトリビュートとして提供するコンポーネントです。
 

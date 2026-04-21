@@ -2,7 +2,7 @@
 
 **パッケージ:** `wppack/media`
 **名前空間:** `WPPack\Component\Media\`
-**レイヤー:** Application
+**Category:** Content
 
 WordPress メディア関連フックを Named Hook アトリビュートで型安全に利用するためのコンポーネントです。
 

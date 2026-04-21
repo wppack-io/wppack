@@ -2,7 +2,7 @@
 
 **パッケージ:** `wppack/plugin`
 **名前空間:** `WPPack\Component\Plugin\`
-**レイヤー:** Application
+**Category:** Substrate (Runtime)
 
 WordPress プラグインライフサイクルに関連するフック（`activated_plugin`、`deactivated_plugin`、`plugin_action_links_{plugin}` など）を Named Hook Attributes でラップするコンポーネントです。
 

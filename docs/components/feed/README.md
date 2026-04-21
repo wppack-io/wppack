@@ -2,7 +2,7 @@
 
 **パッケージ:** `wppack/feed`
 **名前空間:** `WPPack\Component\Feed\`
-**レイヤー:** Application
+**Category:** Content
 
 WordPress のフィード機能（RSS 2.0、Atom）をアトリビュートベースで管理するコンポーネントです。カスタムフィードの登録（`add_feed()`）、フィードコンテンツの変更、フィードクエリの制御を型安全に行えます。
 

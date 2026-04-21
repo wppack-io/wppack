@@ -2,7 +2,7 @@
 
 **パッケージ:** `wppack/options-resolver`
 **名前空間:** `WPPack\Component\OptionsResolver\`
-**レイヤー:** Abstraction
+**Category:** Utility
 
 OptionsResolver コンポーネントは、Symfony OptionsResolver を WordPress 向けに拡張したコンポーネントです。`setAllowedTypes()` で単一の型を指定した場合に文字列からの自動キャストを行い、WordPress のショートコード属性のようにすべての値が文字列で渡される場面で型安全なオプション解決を提供します。
 

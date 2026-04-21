@@ -2,7 +2,7 @@
 
 **パッケージ:** `wppack/translation`
 **名前空間:** `WPPack\Component\Translation\`
-**レイヤー:** Application
+**Category:** Presentation
 
 WordPress の国際化（i18n）関数を型安全かつオブジェクト指向でラップするコンポーネントです。
 

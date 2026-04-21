@@ -2,7 +2,7 @@
 
 **パッケージ:** `wppack/theme`
 **名前空間:** `WPPack\Component\Theme\`
-**レイヤー:** Application
+**Category:** Presentation
 
 テーマ関連の WordPress フックを Named Hook アトリビュートとして提供するコンポーネントです。
 

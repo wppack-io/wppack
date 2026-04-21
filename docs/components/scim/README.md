@@ -2,7 +2,7 @@
 
 **パッケージ:** `wppack/scim`
 **名前空間:** `WPPack\Component\Scim\`
-**レイヤー:** Feature
+**Category:** Identity & Security
 
 WordPress 上で SCIM 2.0（RFC 7643/7644）プロビジョニングを実現するコンポーネントです。Azure AD、Okta、OneLogin などの IdP からのユーザー・グループの自動プロビジョニングを提供します。
 

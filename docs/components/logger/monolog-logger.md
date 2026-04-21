@@ -2,7 +2,7 @@
 
 **パッケージ:** `wppack/monolog-logger`
 **名前空間:** `WPPack\Component\Logger\Bridge\Monolog\`
-**レイヤー:** Infrastructure
+**Category:** Substrate (Observability)
 
 Logger コンポーネントの Monolog ブリッジ実装。WPPack Logger のフロントエンド（`LoggerFactory` + `Logger`）はそのまま維持し、`MonologHandler`（WPPack `HandlerInterface` 実装）を通じてバックエンドだけ Monolog に差し替えます。
 

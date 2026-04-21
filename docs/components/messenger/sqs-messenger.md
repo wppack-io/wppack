@@ -2,7 +2,7 @@
 
 **パッケージ:** `wppack/sqs-messenger`
 **名前空間:** `WPPack\Component\Messenger\Bridge\Sqs\`
-**レイヤー:** Abstraction
+**Category:** Substrate (Async & Delivery)
 
 Messenger コンポーネントの Amazon SQS トランスポート実装。SQS キューへのメッセージ送信と、Lambda 環境での SQS イベント受信・処理を提供します。
 

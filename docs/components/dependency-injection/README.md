@@ -2,7 +2,7 @@
 
 **パッケージ:** `wppack/dependency-injection`
 **名前空間:** `WPPack\Component\DependencyInjection\`
-**レイヤー:** Infrastructure
+**Category:** Substrate (Runtime)
 
 PSR-11 準拠のサービスコンテナです。ディレクトリスキャンによる自動サービス登録、オートワイヤリング、Symfony スタイルの `ContainerConfigurator`、インターフェースバインディング、タグ付きサービス、コンパイラーパス、ファクトリサービス、サービスデコレーション、遅延サービス、WordPress グローバルのインジェクタブルサービスとしての提供などを提供します。
 

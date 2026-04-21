@@ -2,7 +2,7 @@
 
 **パッケージ:** `wppack/messenger`
 **名前空間:** `WPPack\Component\Messenger\`
-**レイヤー:** Abstraction
+**Category:** Substrate (Async & Delivery)
 
 トランスポート非依存のメッセージバス。Symfony Messenger ライクなアーキテクチャで、メッセージの定義・ディスパッチ・ミドルウェアチェーン・ハンドラー解決・シリアライゼーションを提供します。トランスポート（SQS、同期処理など）は Bridge パッケージとして分離されています。
 

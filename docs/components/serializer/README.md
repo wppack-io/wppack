@@ -2,7 +2,7 @@
 
 **パッケージ:** `wppack/serializer`
 **名前空間:** `WPPack\Component\Serializer\`
-**レイヤー:** Abstraction
+**Category:** Utility
 
 Symfony Serializer に準じた Normalizer + Encoder チェーン方式のオブジェクト直列化コンポーネント。Messenger の `JsonSerializer` や Scheduler の `SqsPayloadFactory` が共通基盤として利用します。
 

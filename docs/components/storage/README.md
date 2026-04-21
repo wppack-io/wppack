@@ -2,7 +2,7 @@
 
 **パッケージ:** `wppack/storage`
 **名前空間:** `WPPack\Component\Storage\`
-**レイヤー:** Abstraction
+**Category:** Data
 
 WordPress のアップロードストレージ（`wp-content/uploads/`）を S3・GCS・Azure Blob 等のオブジェクトストレージに差し替えるための抽象化レイヤーです。Cache / Mailer と同じ Adapter / Bridge パターンを採用し、コアパッケージはストレージプロバイダに依存しません。
 

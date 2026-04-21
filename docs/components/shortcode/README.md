@@ -2,7 +2,7 @@
 
 **パッケージ:** `wppack/shortcode`
 **名前空間:** `WPPack\Component\Shortcode\`
-**レイヤー:** Feature
+**Category:** HTTP
 
 Shortcode コンポーネントは、アトリビュートベースの設定、依存性注入サポートを備えた、モダンでオブジェクト指向な WordPress ショートコード開発アプローチを提供します。
 

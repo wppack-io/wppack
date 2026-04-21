@@ -2,7 +2,7 @@
 
 **パッケージ:** `wppack/event-dispatcher`
 **名前空間:** `WPPack\Component\EventDispatcher\`
-**レイヤー:** Infrastructure
+**Category:** Substrate (Runtime)
 
 PSR-14 準拠のイベントディスパッチャー。WordPress フックシステム（`$wp_filter`）をバックエンドとして使用し、型安全なイベントオブジェクト、アトリビュートベースのリスナー登録、イベント伝播制御、WordPress フックとの双方向連携を提供します。
 

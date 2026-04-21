@@ -2,7 +2,7 @@
 
 **パッケージ:** `wppack/console`
 **名前空間:** `WPPack\Component\Console\`
-**レイヤー:** Feature
+**Category:** Substrate (Runtime)
 
 Console コンポーネントは、Symfony Console に倣った `configure()` + `execute()` パターンで WP-CLI コマンドを型安全に作成するためのフレームワークです。DI コンテナとの統合により、`#[AsCommand]` アトリビュートを付けたコマンドクラスが自動的に検出・登録されます。
 

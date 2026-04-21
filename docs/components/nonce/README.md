@@ -2,7 +2,7 @@
 
 **パッケージ:** `wppack/nonce`
 **名前空間:** `WPPack\Component\Nonce\`
-**レイヤー:** Feature
+**Category:** Identity & Security
 
 WordPress の Nonce API（`wp_create_nonce()` / `wp_verify_nonce()` 等）をオブジェクト指向でラップするコンポーネントです。型安全な Nonce 操作と Attribute ベースの CSRF 保護を提供します。
 

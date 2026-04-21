@@ -2,7 +2,7 @@
 
 **パッケージ:** `wppack/templating`
 **名前空間:** `WPPack\Component\Templating\`
-**レイヤー:** Infrastructure
+**Category:** Presentation
 
 Templating コンポーネントは、PHP テンプレートをレンダリングするためのエンジンです。レイアウト継承、セクション、自動エスケープ、パーシャルインクルードを提供し、Plates / Symfony PhpEngine のパターンに倣った設計です。将来の Twig 対応を念頭に、エンジン非依存のインターフェース（`TemplateRendererInterface`）で抽象化されています。
 

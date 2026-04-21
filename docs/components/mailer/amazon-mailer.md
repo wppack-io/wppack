@@ -2,7 +2,7 @@
 
 **パッケージ:** `wppack/amazon-mailer`
 **名前空間:** `WPPack\Component\Mailer\Bridge\Amazon\`
-**レイヤー:** Abstraction
+**Category:** Substrate (Async & Delivery)
 
 Mailer コンポーネントの Amazon SES トランスポート実装。Symfony の `symfony/amazon-mailer` と同じ DSN パターンで、SES を使ったメール送信を提供します。
 

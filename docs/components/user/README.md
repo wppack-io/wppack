@@ -2,7 +2,7 @@
 
 **パッケージ:** `wppack/user`
 **名前空間:** `WPPack\Component\User\`
-**レイヤー:** Application
+**Category:** Identity & Security
 
 WordPress ユーザー関連フックを Named Hook アトリビュートで型安全に利用するためのコンポーネントです。
 

@@ -2,7 +2,7 @@
 
 **パッケージ:** `wppack/dashboard-widget`
 **名前空間:** `WPPack\Component\DashboardWidget\`
-**レイヤー:** Application
+**Category:** Admin
 
 WordPress のダッシュボードウィジェット機能（`wp_add_dashboard_widget()`）をアトリビュートベースで登録・管理するコンポーネントです。
 

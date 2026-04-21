@@ -2,7 +2,7 @@
 
 **パッケージ:** `wppack/routing`
 **名前空間:** `WPPack\Component\Routing\`
-**レイヤー:** Feature
+**Category:** HTTP
 
 WordPress リライトルール API を Symfony スタイルの Controller + Route + Response パターンでラップ。Symfony Router を参考にした path ベースのルート定義と、`UrlGenerator` による URL 生成をサポートします。
 

@@ -2,7 +2,7 @@
 
 **パッケージ:** `wppack/admin`
 **名前空間:** `WPPack\Component\Admin\`
-**レイヤー:** Feature
+**Category:** Admin
 
 WordPress 管理画面のページ登録とフック管理を提供するコンポーネントです。クラスベースの管理ページ定義と、Named Hook アトリビュートによる型安全なフック登録の 2 つのアプローチをサポートします。
 

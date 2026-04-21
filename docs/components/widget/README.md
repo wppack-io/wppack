@@ -2,7 +2,7 @@
 
 **パッケージ:** `wppack/widget`
 **名前空間:** `WPPack\Component\Widget\`
-**レイヤー:** Application
+**Category:** Presentation
 
 WordPress ウィジェット API のアクション・フィルターフックを Named Hook アトリビュートで型安全に登録するためのコンポーネントです。`AbstractWidget` と `#[AsWidget]` アトリビュートによるウィジェット登録も提供します。
 

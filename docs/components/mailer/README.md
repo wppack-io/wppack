@@ -2,7 +2,7 @@
 
 **パッケージ:** `wppack/mailer`
 **名前空間:** `WPPack\Component\Mailer\`
-**レイヤー:** Abstraction
+**Category:** Substrate (Async & Delivery)
 
 WordPress のメール送信をモダン化するコンポーネント。PHPMailer を継承した `PhpMailer` で WordPress のグローバル `$phpmailer` を差し替え、DSN ベースのトランスポート設定とオブジェクト指向の Email API を提供します。
 

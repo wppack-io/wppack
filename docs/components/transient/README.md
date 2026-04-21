@@ -2,7 +2,7 @@
 
 **パッケージ:** `wppack/transient`
 **名前空間:** `WPPack\Component\Transient\`
-**レイヤー:** Infrastructure
+**Category:** Data
 
 WordPress Transient API（`get_transient()` / `set_transient()`）の型安全なラッパーです。シングルサイト用の `TransientManager` とマルチサイト用の `SiteTransientManager` を提供します。
 

@@ -2,7 +2,7 @@
 
 **パッケージ:** `wppack/kernel`
 **名前空間:** `WPPack\Component\Kernel\`
-**レイヤー:** Infrastructure
+**Category:** Substrate (Runtime)
 
 WordPress アプリケーション全体で1つの DI コンテナのライフサイクル（登録 → コンパイル → ブート）を管理するコンポーネントです。各プラグインは `PluginInterface`、テーマは `ThemeInterface` として Kernel に登録し、`boot()` を呼ぶことでコンテナの構築からサービスの初期化までを一括で行います。
 

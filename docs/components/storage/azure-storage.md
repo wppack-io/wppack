@@ -2,7 +2,7 @@
 
 **パッケージ:** `wppack/azure-storage`
 **名前空間:** `WPPack\Component\Storage\Bridge\Azure\`
-**レイヤー:** Abstraction（Bridge）
+**Category:** Data
 
 [Storage コンポーネント](./README.md) の Azure Blob Storage アダプタです。`azure-oss/storage` を利用して Azure Blob Storage にアクセスします。
 

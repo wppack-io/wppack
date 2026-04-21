@@ -2,7 +2,7 @@
 
 **パッケージ:** `wppack/gcs-storage`
 **名前空間:** `WPPack\Component\Storage\Bridge\Gcs\`
-**レイヤー:** Abstraction（Bridge）
+**Category:** Data
 
 [Storage コンポーネント](./README.md) の Google Cloud Storage アダプタです。`google/cloud-storage` を利用して GCS にアクセスします。
 

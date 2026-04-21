@@ -2,7 +2,7 @@
 
 **パッケージ:** `wppack/block`
 **名前空間:** `WPPack\Component\Block\`
-**レイヤー:** Application
+**Category:** Content
 
 サーバーサイドレンダリング、ダイナミックブロック、ブロックパターン、ブロックバリエーション、WordPress ブロックエディター（Gutenberg）との完全統合を備えた、モダンなオブジェクト指向のブロック開発フレームワークです。
 

@@ -2,7 +2,7 @@
 
 **パッケージ:** `wppack/hook`
 **名前空間:** `WPPack\Component\Hook\`
-**レイヤー:** Infrastructure
+**Category:** Substrate (Runtime)
 
 アトリビュートベースのWordPressフック（アクション/フィルター）管理コンポーネント。PHP 8アトリビュートを使用して、型安全で宣言的なフック登録を実現します。自動ディスカバリ、条件付き登録、一般的なWordPressフック用の名前付きフックアトリビュートを提供します。
 

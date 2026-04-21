@@ -2,7 +2,7 @@
 
 **パッケージ:** `wppack/navigation-menu`
 **名前空間:** `WPPack\Component\NavigationMenu\`
-**レイヤー:** Application
+**Category:** Content
 
 WordPress のメニュー関数 `register_nav_menus()` / `wp_nav_menu()` をモダンな PHP でラップし、メニューロケーション自動登録とメニュー関連の Named Hook アトリビュートを提供するコンポーネントです。
 

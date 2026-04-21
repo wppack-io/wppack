@@ -2,7 +2,7 @@
 
 **パッケージ:** `wppack/taxonomy`
 **名前空間:** `WPPack\Component\Taxonomy\`
-**レイヤー:** Application
+**Category:** Content
 
 WordPress のタクソノミー登録関数 `register_taxonomy()` をアトリビュートでラップし、タームの CRUD フックを Named Hook アトリビュートとして提供するコンポーネントです。
 

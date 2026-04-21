@@ -2,7 +2,7 @@
 
 **パッケージ:** `wppack/azure-mailer`
 **名前空間:** `WPPack\Component\Mailer\Bridge\Azure\`
-**レイヤー:** Abstraction
+**Category:** Substrate (Async & Delivery)
 
 Mailer コンポーネントの Azure Communication Services Email トランスポート実装。Azure の REST API を使ったメール送信を提供します。外部 SDK 不要で、`wppack/http-client` 経由で API を呼び出します。
 

@@ -2,7 +2,7 @@
 
 **パッケージ:** `wppack/scheduler`
 **名前空間:** `WPPack\Component\Scheduler\`
-**レイヤー:** Feature
+**Category:** Substrate (Async & Delivery)
 
 Trigger ベースのタスクスケジューラー。WordPress の `wp_schedule_event()` / `wp_schedule_single_event()` をアトリビュートベースのモダンなインターフェースでラップし、5 種類の Trigger による柔軟なスケジュール定義と、複数バックエンド（WP-Cron / Action Scheduler / EventBridge）の切り替えをサポートします。
 

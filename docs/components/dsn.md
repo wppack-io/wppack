@@ -2,7 +2,7 @@
 
 **パッケージ:** `wppack/dsn`
 **名前空間:** `WPPack\Component\Dsn\`
-**レイヤー:** Infrastructure
+**Category:** Data
 
 Data Source Name (DSN) 文字列を解析する共通コンポーネント。Database / Cache / Mailer / Storage / Monitoring など、DSN を扱う全てのコンポーネントが canonical なパーサーとしてこれを利用します。
 

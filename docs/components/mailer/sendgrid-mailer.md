@@ -2,7 +2,7 @@
 
 **パッケージ:** `wppack/sendgrid-mailer`
 **名前空間:** `WPPack\Component\Mailer\Bridge\SendGrid\`
-**レイヤー:** Abstraction
+**Category:** Substrate (Async & Delivery)
 
 Mailer コンポーネントの SendGrid トランスポート実装。SendGrid v3 Mail Send API および SMTP 経由でのメール送信を提供します。外部 SDK 不要で、API は `wppack/http-client` 経由で呼び出します。
 

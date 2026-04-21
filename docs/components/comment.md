@@ -2,7 +2,7 @@
 
 **パッケージ:** `wppack/comment`
 **名前空間:** `WPPack\Component\Comment\`
-**レイヤー:** Application
+**Category:** Content
 
 WordPress コメント関連フックを Named Hook アトリビュートで型安全に利用するためのコンポーネントです。
 

@@ -2,7 +2,7 @@
 
 **パッケージ:** `wppack/security`
 **名前空間:** `WPPack\Component\Security\`
-**レイヤー:** Abstraction
+**Category:** Identity & Security
 
 WordPress 上でプラガブルな認証・認可フレームワークを提供するコンポーネントです。Authenticator パターンによるリクエストベース認証、Passport/Badge による認証要件の値オブジェクト化、Voter ベースの認可チェックを提供します。OAuth / SAML / 2FA は Bridge パッケージとして拡張可能です。
 

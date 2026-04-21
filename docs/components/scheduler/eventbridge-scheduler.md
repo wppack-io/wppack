@@ -2,7 +2,7 @@
 
 **パッケージ:** `wppack/eventbridge-scheduler`
 **名前空間:** `WPPack\Component\Scheduler\Bridge\EventBridge\`
-**レイヤー:** Feature
+**Category:** Substrate (Async & Delivery)
 
 Scheduler コンポーネントの Amazon EventBridge Scheduler バックエンド実装。WP-Cron に依存しない高信頼性のスケジューリングを提供し、EventBridge → SQS → Lambda の連携で正確なタイミングでのメッセージ処理を実現します。
 

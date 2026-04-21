@@ -2,7 +2,7 @@
 
 **パッケージ:** `wppack/dynamodb-cache`
 **名前空間:** `WPPack\Component\Cache\Bridge\DynamoDb\`
-**レイヤー:** Abstraction
+**Category:** Data
 
 Cache コンポーネントの AWS DynamoDB アダプタ実装。サーバーレスでフルマネージドなキャッシュバックエンドを提供します。Redis / Valkey のようなインフラ管理が不要で、オンデマンドキャパシティによるスケーラブルなキャッシュストレージとして利用できます。
 

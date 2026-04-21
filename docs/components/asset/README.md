@@ -2,7 +2,7 @@
 
 **パッケージ:** `wppack/asset`
 **名前空間:** `WPPack\Component\Asset\`
-**レイヤー:** Feature
+**Category:** Presentation
 
 WordPress のスクリプト／スタイル API（`wp_enqueue_script()` / `wp_enqueue_style()` 等）をオブジェクト指向でラップするコンポーネントです。DI 可能なアセット管理を提供します。
 

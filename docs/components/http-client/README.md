@@ -2,7 +2,7 @@
 
 **パッケージ:** `wppack/http-client`
 **名前空間:** `WPPack\Component\HttpClient\`
-**レイヤー:** Abstraction
+**Category:** HTTP
 
 WordPress の HTTP API（`wp_remote_get()` / `wp_remote_post()`）を PSR-18 準拠の HTTP クライアントとしてラップするコンポーネントです。Fluent インターフェースによる型安全な API と、PSR-7 / PSR-18 互換のインターフェースを提供します。
 

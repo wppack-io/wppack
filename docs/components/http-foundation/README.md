@@ -2,7 +2,7 @@
 
 **パッケージ:** `wppack/http-foundation`
 **名前空間:** `WPPack\Component\HttpFoundation\`
-**レイヤー:** Abstraction
+**Category:** HTTP
 
 WordPress における HTTP リクエスト処理のためのオブジェクト指向レイヤーを提供します。`$_GET`、`$_POST`、`$_FILES` などのスーパーグローバルへの型安全なアクセスと、基本的なレスポンスクラスを提供します。
 

@@ -2,7 +2,7 @@
 
 **パッケージ:** `wppack/setting`
 **名前空間:** `WPPack\Component\Setting\`
-**レイヤー:** Application
+**Category:** Admin
 
 WordPress Settings API をモダンな PHP で扱うためのコンポーネントです。クラス定義だけで設定ページ・セクション・フィールドが自動登録されます。
 

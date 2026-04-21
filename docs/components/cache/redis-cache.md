@@ -2,7 +2,7 @@
 
 **パッケージ:** `wppack/redis-cache`
 **名前空間:** `WPPack\Component\Cache\Bridge\Redis\`
-**レイヤー:** Abstraction
+**Category:** Data
 
 Cache コンポーネントの Redis / Valkey アダプタ実装。Symfony Cache の DSN 形式に準拠し、複数の Redis クライアントライブラリをサポートする高性能な永続キャッシュを提供します。
 
