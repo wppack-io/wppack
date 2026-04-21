@@ -1,0 +1,1081 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Trying to invoke \$this\(WPPack\\Component\\Admin\\AbstractAdminPage\) but it might not be a callable\.$#'
+			identifier: callable.nonCallable
+			count: 1
+			path: src/Component/Admin/src/AbstractAdminPage.php
+
+		-
+			message: '#^Argument of an invalid type array\|Redis\|Relay\\Relay supplied for foreach, only iterables are supported\.$#'
+			identifier: foreach.nonIterable
+			count: 1
+			path: src/Component/Cache/Bridge/Redis/src/Adapter/AbstractNativeAdapter.php
+
+		-
+			message: '#^Cannot access offset int\<0, max\> on array\|Redis\|Relay\\Relay\|false\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Component/Cache/Bridge/Redis/src/Adapter/AbstractNativeAdapter.php
+
+		-
+			message: '#^Cannot access offset int\<0, max\> on array\|bool\|Redis\|Relay\\Relay\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: src/Component/Cache/Bridge/Redis/src/Adapter/AbstractNativeAdapter.php
+
+		-
+			message: '#^Cannot call method del\(\) on bool\|Redis\|Relay\\Relay\.$#'
+			identifier: method.nonObject
+			count: 2
+			path: src/Component/Cache/Bridge/Redis/src/Adapter/AbstractNativeAdapter.php
+
+		-
+			message: '#^Cannot call method exec\(\) on bool\|Redis\|Relay\\Relay\.$#'
+			identifier: method.nonObject
+			count: 3
+			path: src/Component/Cache/Bridge/Redis/src/Adapter/AbstractNativeAdapter.php
+
+		-
+			message: '#^Cannot call method set\(\) on bool\|Redis\|Relay\\Relay\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Component/Cache/Bridge/Redis/src/Adapter/AbstractNativeAdapter.php
+
+		-
+			message: '#^Cannot call method setex\(\) on bool\|Redis\|Relay\\Relay\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Component/Cache/Bridge/Redis/src/Adapter/AbstractNativeAdapter.php
+
+		-
+			message: '#^Cannot call method unlink\(\) on bool\|Redis\|Relay\\Relay\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Component/Cache/Bridge/Redis/src/Adapter/AbstractNativeAdapter.php
+
+		-
+			message: '#^Method WPPack\\Component\\Cache\\Bridge\\Redis\\Adapter\\AbstractNativeAdapter\:\:doDecrement\(\) should return int\|null but returns int\|Redis\|Relay\\Relay\|false\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Component/Cache/Bridge/Redis/src/Adapter/AbstractNativeAdapter.php
+
+		-
+			message: '#^Method WPPack\\Component\\Cache\\Bridge\\Redis\\Adapter\\AbstractNativeAdapter\:\:doFlush\(\) should return bool but returns bool\|Redis\|Relay\\Relay\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Component/Cache/Bridge/Redis/src/Adapter/AbstractNativeAdapter.php
+
+		-
+			message: '#^Method WPPack\\Component\\Cache\\Bridge\\Redis\\Adapter\\AbstractNativeAdapter\:\:doHashSetMultiple\(\) should return bool but returns bool\|Redis\|Relay\\Relay\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Component/Cache/Bridge/Redis/src/Adapter/AbstractNativeAdapter.php
+
+		-
+			message: '#^Method WPPack\\Component\\Cache\\Bridge\\Redis\\Adapter\\AbstractNativeAdapter\:\:doIncrement\(\) should return int\|null but returns int\|Redis\|Relay\\Relay\|false\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Component/Cache/Bridge/Redis/src/Adapter/AbstractNativeAdapter.php
+
+		-
+			message: '#^Method WPPack\\Component\\Cache\\Bridge\\Redis\\Adapter\\AbstractNativeAdapter\:\:doSet\(\) should return bool but returns bool\|Redis\|Relay\\Relay\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Component/Cache/Bridge/Redis/src/Adapter/AbstractNativeAdapter.php
+
+		-
+			message: '#^Argument of an invalid type array\|Relay\\Cluster supplied for foreach, only iterables are supported\.$#'
+			identifier: foreach.nonIterable
+			count: 1
+			path: src/Component/Cache/Bridge/Redis/src/Adapter/AbstractNativeClusterAdapter.php
+
+		-
+			message: '#^Argument of an invalid type array\|true supplied for foreach, only iterables are supported\.$#'
+			identifier: foreach.nonIterable
+			count: 1
+			path: src/Component/Cache/Bridge/Redis/src/Adapter/AbstractNativeClusterAdapter.php
+
+		-
+			message: '#^Cannot access offset int\<0, max\> on array\|Relay\\Cluster\|false\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Component/Cache/Bridge/Redis/src/Adapter/AbstractNativeClusterAdapter.php
+
+		-
+			message: '#^Method WPPack\\Component\\Cache\\Bridge\\Redis\\Adapter\\AbstractNativeClusterAdapter\:\:doDecrement\(\) should return int\|null but returns int\|Relay\\Cluster\|false\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Component/Cache/Bridge/Redis/src/Adapter/AbstractNativeClusterAdapter.php
+
+		-
+			message: '#^Method WPPack\\Component\\Cache\\Bridge\\Redis\\Adapter\\AbstractNativeClusterAdapter\:\:doHashSetMultiple\(\) should return bool but returns bool\|Relay\\Cluster\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Component/Cache/Bridge/Redis/src/Adapter/AbstractNativeClusterAdapter.php
+
+		-
+			message: '#^Method WPPack\\Component\\Cache\\Bridge\\Redis\\Adapter\\AbstractNativeClusterAdapter\:\:doIncrement\(\) should return int\|null but returns int\|Relay\\Cluster\|false\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Component/Cache/Bridge/Redis/src/Adapter/AbstractNativeClusterAdapter.php
+
+		-
+			message: '#^Method WPPack\\Component\\Cache\\Bridge\\Redis\\Adapter\\AbstractNativeClusterAdapter\:\:doSet\(\) should return bool but returns bool\|Relay\\Cluster\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Component/Cache/Bridge/Redis/src/Adapter/AbstractNativeClusterAdapter.php
+
+		-
+			message: '#^Method WPPack\\Component\\Cache\\Bridge\\Redis\\Adapter\\AbstractNativeClusterAdapter\:\:doSet\(\) should return bool but returns bool\|Relay\\Cluster\|string\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Component/Cache/Bridge/Redis/src/Adapter/AbstractNativeClusterAdapter.php
+
+		-
+			message: '#^Method WPPack\\Component\\Cache\\Bridge\\Redis\\Adapter\\AbstractNativeClusterAdapter\:\:doSetMultiple\(\) should return array\<string, bool\> but returns array\<string, bool\|Relay\\Cluster\|string\>\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Component/Cache/Bridge/Redis/src/Adapter/AbstractNativeClusterAdapter.php
+
+		-
+			message: '#^Cannot access offset int\<0, max\> on array\|Predis\\Pipeline\\Pipeline\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: src/Component/Cache/Bridge/Redis/src/Adapter/PredisAdapter.php
+
+		-
+			message: '#^Argument of an invalid type bool\|int\|list\<string\>\|string supplied for foreach, only iterables are supported\.$#'
+			identifier: foreach.nonIterable
+			count: 1
+			path: src/Component/Cache/Bridge/Redis/src/Adapter/RedisAdapterFactory.php
+
+		-
+			message: '#^Function wp_cache_add_multiple\(\) should return array\<string, bool\> but returns array\<int\|string, bool\>\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Component/Cache/drop-in/object-cache.php
+
+		-
+			message: '#^Function wp_cache_delete_multiple\(\) should return array\<string, bool\> but returns array\<int\|string, bool\>\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Component/Cache/drop-in/object-cache.php
+
+		-
+			message: '#^Function wp_cache_get_multiple\(\) should return array\<string, mixed\> but returns array\<int\|string, mixed\>\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Component/Cache/drop-in/object-cache.php
+
+		-
+			message: '#^Function wp_cache_set_multiple\(\) should return array\<string, bool\> but returns array\<int\|string, bool\>\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Component/Cache/drop-in/object-cache.php
+
+		-
+			message: '#^Parameter \#1 \$key of method WPPack\\Component\\Cache\\Strategy\\HashStrategyInterface\:\:supports\(\) expects string, int\|string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Component/Cache/src/ObjectCache.php
+
+		-
+			message: '#^Parameter \#2 \$value of method WPPack\\Component\\Cache\\Adapter\\AdapterInterface\:\:set\(\) expects string, int\<0, max\>\|string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Component/Cache/src/ObjectCache.php
+
+		-
+			message: '#^Parameter \#6 \$context of function wp_add_dashboard_widget expects ''column3''\|''column4''\|''normal''\|''side'', string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Component/DashboardWidget/src/AbstractDashboardWidget.php
+
+		-
+			message: '#^Parameter \#7 \$priority of function wp_add_dashboard_widget expects ''core''\|''default''\|''high''\|''low'', string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Component/DashboardWidget/src/AbstractDashboardWidget.php
+
+		-
+			message: '#^Trying to invoke \$this\(WPPack\\Component\\DashboardWidget\\AbstractDashboardWidget\) but it might not be a callable\.$#'
+			identifier: callable.nonCallable
+			count: 1
+			path: src/Component/DashboardWidget/src/AbstractDashboardWidget.php
+
+		-
+			message: '#^Parameter \#2 \$params of method WPPack\\Component\\Database\\Driver\\AbstractDriver\:\:executeQuery\(\) expects list\<mixed\>, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Component/Database/Bridge/MySQLDataApi/src/MySQLDataApiDriver.php
+
+		-
+			message: '#^Parameter \#2 \$params of method WPPack\\Component\\Database\\Driver\\AbstractDriver\:\:executeStatement\(\) expects list\<mixed\>, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Component/Database/Bridge/MySQLDataApi/src/MySQLDataApiDriver.php
+
+		-
+			message: '#^Method WPPack\\Component\\Database\\Bridge\\PostgreSQL\\PostgreSQLDriver\:\:quoteStringLiteral\(\) should return string but returns string\|false\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Component/Database/Bridge/PostgreSQL/src/PostgreSQLDriver.php
+
+		-
+			message: '#^Argument of an invalid type array\<PhpMyAdmin\\SqlParser\\Components\\CreateDefinition\>\|PhpMyAdmin\\SqlParser\\Components\\ArrayObj supplied for foreach, only iterables are supported\.$#'
+			identifier: foreach.nonIterable
+			count: 1
+			path: src/Component/Database/Bridge/PostgreSQL/src/Translator/PostgreSQLQueryTranslator.php
+
+		-
+			message: '#^Method WPPack\\Component\\Database\\Bridge\\PostgreSQL\\Translator\\PostgreSQLQueryTranslator\:\:extractFunctionArgs\(\) should return list\<list\<PhpMyAdmin\\SqlParser\\Token\>\>\|null but returns non\-empty\-array\<int\<0, max\>, list\<PhpMyAdmin\\SqlParser\\Token\|null\>\>\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Component/Database/Bridge/PostgreSQL/src/Translator/PostgreSQLQueryTranslator.php
+
+		-
+			message: '#^Parameter \#1 \$tokens of class WPPack\\Component\\Database\\Sql\\QueryRewriter constructor expects list\<PhpMyAdmin\\SqlParser\\Token\>, array\<PhpMyAdmin\\SqlParser\\Token\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Component/Database/Bridge/PostgreSQL/src/Translator/PostgreSQLQueryTranslator.php
+
+		-
+			message: '#^Parameter \#3 \$parserErrors of class WPPack\\Component\\Database\\Exception\\ParserFailureException constructor expects list\<string\>, non\-empty\-array\<string\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Component/Database/Bridge/PostgreSQL/src/Translator/PostgreSQLQueryTranslator.php
+
+		-
+			message: '#^Parameter \#2 \$params of method WPPack\\Component\\Database\\Driver\\AbstractDriver\:\:executeQuery\(\) expects list\<mixed\>, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Component/Database/Bridge/PostgreSQLDataApi/src/PostgreSQLDataApiDriver.php
+
+		-
+			message: '#^Parameter \#2 \$params of method WPPack\\Component\\Database\\Driver\\AbstractDriver\:\:executeStatement\(\) expects list\<mixed\>, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Component/Database/Bridge/PostgreSQLDataApi/src/PostgreSQLDataApiDriver.php
+
+		-
+			message: '#^Binary operation "\+" between int\|string and 1 results in an error\.$#'
+			identifier: binaryOp.invalid
+			count: 1
+			path: src/Component/Database/Bridge/Sqlite/src/SqliteDriver.php
+
+		-
+			message: '#^Cannot call method fetchColumn\(\) on PDOStatement\|false\.$#'
+			identifier: method.nonObject
+			count: 2
+			path: src/Component/Database/Bridge/Sqlite/src/SqliteDriver.php
+
+		-
+			message: '#^Access to an undefined property object\:\:\$token\.$#'
+			identifier: property.notFound
+			count: 1
+			path: src/Component/Database/Bridge/Sqlite/src/Translator/SqliteQueryTranslator.php
+
+		-
+			message: '#^Access to an undefined property object\:\:\$type\.$#'
+			identifier: property.notFound
+			count: 1
+			path: src/Component/Database/Bridge/Sqlite/src/Translator/SqliteQueryTranslator.php
+
+		-
+			message: '#^Argument of an invalid type array\<PhpMyAdmin\\SqlParser\\Components\\CreateDefinition\>\|PhpMyAdmin\\SqlParser\\Components\\ArrayObj supplied for foreach, only iterables are supported\.$#'
+			identifier: foreach.nonIterable
+			count: 2
+			path: src/Component/Database/Bridge/Sqlite/src/Translator/SqliteQueryTranslator.php
+
+		-
+			message: '#^Method WPPack\\Component\\Database\\Bridge\\Sqlite\\Translator\\SqliteQueryTranslator\:\:extractFunctionArgs\(\) should return list\<list\<PhpMyAdmin\\SqlParser\\Token\>\>\|null but returns non\-empty\-array\<int\<0, max\>, list\<PhpMyAdmin\\SqlParser\\Token\|null\>\>\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Component/Database/Bridge/Sqlite/src/Translator/SqliteQueryTranslator.php
+
+		-
+			message: '#^Parameter \#1 \$identifier of method WPPack\\Component\\Database\\Bridge\\Sqlite\\Translator\\SqliteQueryTranslator\:\:quoteId\(\) expects string, bool\|float\|int\|string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Component/Database/Bridge/Sqlite/src/Translator/SqliteQueryTranslator.php
+
+		-
+			message: '#^Parameter \#1 \$tokens of class WPPack\\Component\\Database\\Sql\\QueryRewriter constructor expects list\<PhpMyAdmin\\SqlParser\\Token\>, array\<PhpMyAdmin\\SqlParser\\Token\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Component/Database/Bridge/Sqlite/src/Translator/SqliteQueryTranslator.php
+
+		-
+			message: '#^Parameter \#3 \$parserErrors of class WPPack\\Component\\Database\\Exception\\ParserFailureException constructor expects list\<string\>, non\-empty\-array\<string\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Component/Database/Bridge/Sqlite/src/Translator/SqliteQueryTranslator.php
+
+		-
+			message: '#^Anonymous function should return int\<\-1, max\> but returns int\<\-1, max\>\|numeric\-string\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Component/Database/src/Driver/MySQLDriver.php
+
+		-
+			message: '#^Method WPPack\\Component\\Database\\Driver\\MySQLDriver\:\:doExecuteStatement\(\) should return int but returns int\<\-1, max\>\|string\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Component/Database/src/Driver/MySQLDriver.php
+
+		-
+			message: '#^Parameter \#2 \$affectedRows of class WPPack\\Component\\Database\\Result constructor expects int, int\<\-1, max\>\|string given\.$#'
+			identifier: argument.type
+			count: 4
+			path: src/Component/Database/src/Driver/MySQLDriver.php
+
+		-
+			message: '#^Parameter \#2 \$params of method WPPack\\Component\\Database\\Driver\\MySQLDriver\:\:bindAndExecute\(\) expects list\<mixed\>, array given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Component/Database/src/Driver/MySQLDriver.php
+
+		-
+			message: '#^Offset ''type'' might not exist on array\{function\: string, line\?\: int, file\?\: string, class\?\: class\-string, type\?\: ''\-\>''\|''\:\:'', args\?\: list\<mixed\>, object\?\: object\}\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: src/Component/Database/src/WPPackWpdb.php
+
+		-
+			message: '#^Parameter \#2 \$data of function fwrite expects string, string\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Component/DatabaseExport/src/Writer/JsonWriter.php
+
+		-
+			message: '#^Cannot call method getMetrics\(\) on class\-string\|object\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Component/Debug/src/DataCollector/CacheDataCollector.php
+
+		-
+			message: '#^Cannot call method all\(\) on class\-string\|object\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Component/Debug/src/DataCollector/ContainerDataCollector.php
+
+		-
+			message: '#^Cannot call method getClass\(\) on class\-string\|object\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Component/Debug/src/DataCollector/ContainerDataCollector.php
+
+		-
+			message: '#^Cannot call method getPasses\(\) on class\-string\|object\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Component/Debug/src/DataCollector/ContainerDataCollector.php
+
+		-
+			message: '#^Cannot call method getTags\(\) on class\-string\|object\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Component/Debug/src/DataCollector/ContainerDataCollector.php
+
+		-
+			message: '#^Cannot call method isAutowired\(\) on class\-string\|object\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Component/Debug/src/DataCollector/ContainerDataCollector.php
+
+		-
+			message: '#^Cannot call method isLazy\(\) on class\-string\|object\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Component/Debug/src/DataCollector/ContainerDataCollector.php
+
+		-
+			message: '#^Cannot call method isPublic\(\) on class\-string\|object\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Component/Debug/src/DataCollector/ContainerDataCollector.php
+
+		-
+			message: '#^Cannot call method get_error_message\(\) on class\-string\|object\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Component/Debug/src/DataCollector/MailDataCollector.php
+
+		-
+			message: '#^Parameter \#2 \$namespaces of method WPPack\\Component\\Debug\\DataCollector\\RestDataCollector\:\:collectCurrentRequest\(\) expects list\<string\>, array\<string\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Component/Debug/src/DataCollector/RestDataCollector.php
+
+		-
+			message: '#^Property WPPack\\Component\\Debug\\DataCollector\\TranslationDataCollector\:\:\$loadedDomains \(list\<string\>\) does not accept array\<int\<0, max\>, string\>\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: src/Component/Debug/src/DataCollector/TranslationDataCollector.php
+
+		-
+			message: '#^Parameter \$wpErrorCodes of class WPPack\\Component\\Debug\\ErrorHandler\\WpErrorException constructor expects list\<string\>, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Component/Debug/src/ErrorHandler/WpDieHandler.php
+
+		-
+			message: '#^Trying to invoke \(callable\(\)\: mixed\)\|string but it might not be a callable\.$#'
+			identifier: callable.nonCallable
+			count: 1
+			path: src/Component/Debug/src/ErrorHandler/WpDieHandler.php
+
+		-
+			message: '#^Parameter \#1 \.\.\.\$arg1 of function min expects non\-empty\-array, list\<mixed\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Component/Debug/src/Toolbar/Panel/PerformancePanelRenderer.php
+
+		-
+			message: '#^Parameter \#1 \$statusCode of method WPPack\\Component\\Debug\\Toolbar\\ToolbarSubscriber\:\:collectProfile\(\) expects int, int\<min, \-1\>\|int\<1, max\>\|true given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Component/Debug/src/Toolbar/ToolbarSubscriber.php
+
+		-
+			message: '#^Method WPPack\\Component\\DependencyInjection\\ContainerBuilder\:\:findTaggedServiceIds\(\) should return array\<string, list\<array\<string, mixed\>\>\> but returns array\<string, array\>\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Component/DependencyInjection/src/ContainerBuilder.php
+
+		-
+			message: '#^Parameter \#1 \$objectOrClass of class ReflectionClass constructor expects class\-string\<T of object\>\|T of object, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Component/DependencyInjection/src/ServiceDiscovery.php
+
+		-
+			message: '#^Cannot access offset 0 on int\|list\{0\: string, 1\: int, 2\?\: int, 3\?\: class\-string\<WPPack\\Component\\EventDispatcher\\WordPressEvent\>\}\|string\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Component/EventDispatcher/src/EventDispatcher.php
+
+		-
+			message: '#^Parameter \#2 \$listener of method WPPack\\Component\\EventDispatcher\\EventDispatcher\:\:addListener\(\) expects callable\(\)\: mixed, array\{WPPack\\Component\\EventDispatcher\\EventSubscriberInterface, string\} given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Component/EventDispatcher/src/EventDispatcher.php
+
+		-
+			message: '#^Parameter \#2 \$listener of method WPPack\\Component\\EventDispatcher\\EventDispatcher\:\:removeListener\(\) expects callable\(\)\: mixed, array\{WPPack\\Component\\EventDispatcher\\EventSubscriberInterface, string\} given\.$#'
+			identifier: argument.type
+			count: 3
+			path: src/Component/EventDispatcher/src/EventDispatcher.php
+
+		-
+			message: '#^Parameter \#3 \$priority of method WPPack\\Component\\EventDispatcher\\EventDispatcher\:\:removeListener\(\) expects int, int\|list\<int\|string\>\|string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Component/EventDispatcher/src/EventDispatcher.php
+
+		-
+			message: '#^Parameter \#3 \$priority of method WPPack\\Component\\EventDispatcher\\EventDispatcher\:\:removeListener\(\) expects int, int\|string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Component/EventDispatcher/src/EventDispatcher.php
+
+		-
+			message: '#^Property WPPack\\Component\\EventDispatcher\\EventDispatcher\:\:\$wrappedListeners \(array\<string, array\<int, list\<array\{original\: callable\(\)\: mixed, wrapped\: Closure\}\>\>\>\) does not accept array\<string, array\<int, array\<int\<0, max\>, array\{original\: callable\(\)\: mixed, wrapped\: Closure\}\>\>\>\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: src/Component/EventDispatcher/src/EventDispatcher.php
+
+		-
+			message: '#^Parameter \#1 \$list of method WPPack\\Component\\Filesystem\\Filesystem\:\:flattenDirlist\(\) expects array\<string, array\{type\: string, files\?\: array\<string, mixed\>\}\>, array\<string, array\{name\: string, perms\: string, permsn\: string, owner\: string\|false, size\: int\|string\|false, lastmodunix\: int\|string\|false, lastmod\: string\|false, time\: string\|false, \.\.\.\}\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Component/Filesystem/src/Filesystem.php
+
+		-
+			message: '#^Method WPPack\\Component\\Filesystem\\WordPress\\UploadPath\:\:uploadDir\(\) should return array\{path\: string, url\: string, subdir\: string, basedir\: string, baseurl\: string, error\: string\|false\} but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Component/Filesystem/src/WordPress/UploadPath.php
+
+		-
+			message: '#^Cannot access offset ''body'' on array\{body\: string, headers\: array\<string, string\>, response\: array\{code\: int, message\: string\}\}\|WP_Error\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Component/HttpClient/src/HttpClient.php
+
+		-
+			message: '#^Cannot access offset ''headers'' on array\{body\: string, headers\: array\<string, string\>, response\: array\{code\: int, message\: string\}\}\|WP_Error\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Component/HttpClient/src/HttpClient.php
+
+		-
+			message: '#^Cannot access offset ''response'' on array\{body\: string, headers\: array\<string, string\>, response\: array\{code\: int, message\: string\}\}\|WP_Error\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: src/Component/HttpClient/src/HttpClient.php
+
+		-
+			message: '#^Cannot call method get_error_message\(\) on array\<string, array\<string, int\|string\>\|string\>\|WP_Error\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Component/HttpClient/src/HttpClient.php
+
+		-
+			message: '#^Property WPPack\\Component\\HttpClient\\Request\:\:\$headers \(array\<string, list\<string\>\>\) does not accept non\-empty\-array\<string, array\<string\>\>\.$#'
+			identifier: assign.propertyType
+			count: 3
+			path: src/Component/HttpClient/src/Request.php
+
+		-
+			message: '#^Property WPPack\\Component\\HttpClient\\Response\:\:\$headerValues \(array\<string, list\<string\>\>\) does not accept non\-empty\-array\<string, array\<string\>\>\.$#'
+			identifier: assign.propertyType
+			count: 3
+			path: src/Component/HttpClient/src/Response.php
+
+		-
+			message: '#^Parameter \#2 \$length of function fread expects int\<1, max\>, int given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Component/HttpClient/src/Stream.php
+
+		-
+			message: '#^Method WPPack\\Component\\HttpFoundation\\File\\UploadedFile\:\:wpHandleUpload\(\) should return array\{error\: string\}\|array\{file\: string, url\: string, type\: string\} but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Component/HttpFoundation/src/File/UploadedFile.php
+
+		-
+			message: '#^Parameter \#1 \$query of class WPPack\\Component\\HttpFoundation\\Request constructor expects array\<string, mixed\>, array\<int\|string, mixed\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Component/HttpFoundation/src/Request.php
+
+		-
+			message: '#^Method WPPack\\Component\\Mailer\\Bridge\\Amazon\\Transport\\SesApiTransport\:\:buildDestination\(\) should return array\{ToAddresses\: list\<string\>, CcAddresses\?\: list\<string\>, BccAddresses\?\: list\<string\>\} but returns array\{ToAddresses\: array\<string\>, CcAddresses\?\: non\-empty\-array\<string\>, BccAddresses\?\: non\-empty\-array\<string\>\}\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Component/Mailer/Bridge/Amazon/src/Transport/SesApiTransport.php
+
+		-
+			message: '#^Parameter \#1 \$addr of method WPPack\\Component\\Mailer\\Transport\\AbstractApiTransport\:\:formatAddress\(\) expects array\{string, string\}, array given\.$#'
+			identifier: argument.type
+			count: 4
+			path: src/Component/Mailer/Bridge/Amazon/src/Transport/SesApiTransport.php
+
+		-
+			message: '#^Method WPPack\\Component\\Mailer\\Bridge\\Azure\\Transport\\AzureApiTransport\:\:buildRecipients\(\) should return array\{to\: list\<array\{address\: string, displayName\?\: string\}\>, cc\?\: list\<array\{address\: string, displayName\?\: string\}\>, bcc\?\: list\<array\{address\: string, displayName\?\: string\}\>\} but returns array\{to\: array\<array\{address\: string, displayName\?\: string\}\>, cc\?\: non\-empty\-array\<array\{address\: string, displayName\?\: string\}\>, bcc\?\: non\-empty\-array\<array\{address\: string, displayName\?\: string\}\>\}\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Component/Mailer/Bridge/Azure/src/Transport/AzureApiTransport.php
+
+		-
+			message: '#^Parameter \#1 \$addr of method WPPack\\Component\\Mailer\\Bridge\\Azure\\Transport\\AzureApiTransport\:\:formatRecipient\(\) expects array\{string, string\}, array given\.$#'
+			identifier: argument.type
+			count: 4
+			path: src/Component/Mailer/Bridge/Azure/src/Transport/AzureApiTransport.php
+
+		-
+			message: '#^Method WPPack\\Component\\Mailer\\Bridge\\SendGrid\\Transport\\SendGridApiTransport\:\:buildPersonalization\(\) should return array\{to\: list\<array\{email\: string, name\?\: string\}\>, cc\?\: list\<array\{email\: string, name\?\: string\}\>, bcc\?\: list\<array\{email\: string, name\?\: string\}\>\} but returns array\{to\: array\<array\{email\: string, name\?\: string\}\>, cc\?\: non\-empty\-array\<array\{email\: string, name\?\: string\}\>, bcc\?\: non\-empty\-array\<array\{email\: string, name\?\: string\}\>\}\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Component/Mailer/Bridge/SendGrid/src/Transport/SendGridApiTransport.php
+
+		-
+			message: '#^Parameter \$wpErrorCodes of class WPPack\\Component\\Media\\Exception\\AttachmentException constructor expects list\<string\>, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Component/Media/src/Exception/AttachmentException.php
+
+		-
+			message: '#^Parameter \$wpErrorMessages of class WPPack\\Component\\Media\\Exception\\AttachmentException constructor expects list\<string\>, array\<string\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Component/Media/src/Exception/AttachmentException.php
+
+		-
+			message: '#^Method WPPack\\Component\\Media\\Storage\\ImageEditor\\StorageImageEditor\:\:_save\(\) should return array\{path\: string, file\: string, width\: int, height\: int, mime\-type\: string\}\|WP_Error but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Component/Media/src/Storage/ImageEditor/StorageImageEditor.php
+
+		-
+			message: '#^Parameter \#1 \$objectOrClass of class ReflectionClass constructor expects class\-string\<T of object\>\|T of object, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Component/Messenger/src/DependencyInjection/RegisterMessageHandlersPass.php
+
+		-
+			message: '#^Method WPPack\\Component\\Messenger\\Envelope\:\:last\(\) should return \(T of WPPack\\Component\\Messenger\\Stamp\\StampInterface\)\|null but returns WPPack\\Component\\Messenger\\Stamp\\StampInterface\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Component/Messenger/src/Envelope.php
+
+		-
+			message: '#^Property WPPack\\Component\\Messenger\\Handler\\HandlerLocator\:\:\$handlers \(array\<class\-string, list\<WPPack\\Component\\Messenger\\Handler\\HandlerDescriptor\>\>\) does not accept non\-empty\-array\<string, list\<WPPack\\Component\\Messenger\\Handler\\HandlerDescriptor\>\>\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: src/Component/Messenger/src/Handler/HandlerLocator.php
+
+		-
+			message: '#^Parameter \#1 \$input of class AsyncAws\\CloudWatch\\ValueObject\\MetricStat constructor expects array\{Metric\: array\|AsyncAws\\CloudWatch\\ValueObject\\Metric, Period\: int, Stat\: string, Unit\?\: ''Bits''\|''Bits/Second''\|''Bytes''\|''Bytes/Second''\|''Count''\|''Count/Second''\|''Gigabits''\|''Gigabits/Second''\|''Gigabytes''\|''Gigabytes/Second''\|''Kilobits''\|''Kilobits/Second''\|''Kilobytes''\|''Kilobytes/Second''\|''Megabits''\|''Megabits/Second''\|''Megabytes''\|''Megabytes/Second''\|''Microseconds''\|''Milliseconds''\|''None''\|''Percent''\|''Seconds''\|''Terabits''\|''Terabits/Second''\|''Terabytes''\|''Terabytes/Second''\|''UNKNOWN_TO_SDK''\|null\}, array\{Metric\: AsyncAws\\CloudWatch\\ValueObject\\Metric, Period\: int, Stat\: string, Unit\?\: non\-empty\-string\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Component/Monitoring/Bridge/CloudWatch/src/CloudWatchMetricProvider.php
+
+		-
+			message: '#^Cannot call method get_error_message\(\) on array\|WP_Error\.$#'
+			identifier: method.nonObject
+			count: 2
+			path: src/Component/Monitoring/Bridge/Cloudflare/src/CloudflareMetricProvider.php
+
+		-
+			message: '#^Method WPPack\\Component\\Monitoring\\Bridge\\Cloudflare\\CloudflareMetricProvider\:\:analyzeRequirements\(\) should return array\{needsZone\: bool, sumFields\: list\<string\>, needsUniq\: bool, needsStatusMap\: bool, wafAliases\: array\<string, string\|null\>\} but returns array\{needsZone\: bool, sumFields\: list\<200\|300\|400\|500\|array\{''requests'', ''cachedRequests''\}\|string\|null\>, needsUniq\: bool, needsStatusMap\: bool, wafAliases\: array\<string, 200\|300\|400\|500\|array\{''requests'', ''cachedRequests''\}\|string\|null\>\}\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Component/Monitoring/Bridge/Cloudflare/src/CloudflareMetricProvider.php
+
+		-
+			message: '#^Parameter \#1 \$array of function array_unique expects an array of values castable to string, list\<int\|list\<string\>\|string\|null\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Component/Monitoring/Bridge/Cloudflare/src/CloudflareMetricProvider.php
+
+		-
+			message: '#^Parameter \$wpErrorCodes of class WPPack\\Component\\PostType\\Exception\\PostException constructor expects list\<string\>, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Component/PostType/src/Exception/PostException.php
+
+		-
+			message: '#^Parameter \$wpErrorMessages of class WPPack\\Component\\PostType\\Exception\\PostException constructor expects list\<string\>, array\<string\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Component/PostType/src/Exception/PostException.php
+
+		-
+			message: '#^Cannot cast int\|WP_Post to int\.$#'
+			identifier: cast.int
+			count: 1
+			path: src/Component/PostType/src/PostRepository.php
+
+		-
+			message: '#^Method WPPack\\Component\\PostType\\PostRepository\:\:findAll\(\) should return list\<WP_Post\> but returns array\<int\|WP_Post\>\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Component/PostType/src/PostRepository.php
+
+		-
+			message: '#^Method WPPack\\Component\\Query\\Condition\\ConditionGroup\:\:toQuery\(\) should return array\<string, mixed\> but returns array\<int\|string, array\<int\|string, mixed\>\|string\>\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Component/Query/src/Condition/ConditionGroup.php
+
+		-
+			message: '#^Method WPPack\\Component\\Query\\Condition\\ConditionGroup\:\:toQuery\(\) should return array\<string, mixed\> but returns array\<int\|string, array\<string, mixed\>\|string\>\.$#'
+			identifier: return.type
+			count: 2
+			path: src/Component/Query/src/Condition/ConditionGroup.php
+
+		-
+			message: '#^Parameter \$prefix of class WPPack\\Component\\Query\\Wql\\ParsedExpression constructor expects ''meta''\|''post''\|''tax''\|''term''\|''user'', string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Component/Query/src/Wql/ExpressionParser.php
+
+		-
+			message: '#^Method WPPack\\Component\\Role\\RoleProvider\:\:all\(\) should return array\<string, array\{name\: string, capabilities\: array\<string, bool\>\}\> but returns array\<array\>\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Component/Role/src/RoleProvider.php
+
+		-
+			message: '#^Method WPPack\\Component\\Role\\RoleProvider\:\:find\(\) should return array\{name\: string, capabilities\: array\<string, bool\>\}\|null but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Component/Role/src/RoleProvider.php
+
+		-
+			message: '#^Access to an undefined property object\:\:\$regex\.$#'
+			identifier: property.notFound
+			count: 1
+			path: src/Component/Routing/src/RouteRegistry.php
+
+		-
+			message: '#^Access to an undefined property object\:\:\$tag\.$#'
+			identifier: property.notFound
+			count: 1
+			path: src/Component/Routing/src/RouteRegistry.php
+
+		-
+			message: '#^Parameter \#1 \$object of static method DateTimeImmutable\:\:createFromMutable\(\) expects DateTime, DateTime\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Component/Scheduler/Bridge/EventBridge/src/Collector/ActionSchedulerCollector.php
+
+		-
+			message: '#^Parameter \#1 \$members of static method WPPack\\Component\\Scim\\Controller\\GroupController\:\:extractMemberIds\(\) expects list\<array\<string, mixed\>\>, array\<mixed, mixed\> given\.$#'
+			identifier: argument.type
+			count: 3
+			path: src/Component/Scim/src/Controller/GroupController.php
+
+		-
+			message: '#^Call to an undefined method object\:\:getData\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Component/Scim/src/Mapping/UserAttributeMapper.php
+
+		-
+			message: '#^Call to an undefined method object\:\:getMeta\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Component/Scim/src/Mapping/UserAttributeMapper.php
+
+		-
+			message: '#^Call to an undefined method object\:\:getScimAttributes\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Component/Scim/src/Mapping/UserAttributeMapper.php
+
+		-
+			message: '#^Method WPPack\\Component\\Scim\\Repository\\ScimUserRepository\:\:findFiltered\(\) should return array\{users\: list\<WP_User\>, totalResults\: int\} but returns array\{users\: array, totalResults\: int\}\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Component/Scim/src/Repository/ScimUserRepository.php
+
+		-
+			message: '#^Parameter \#2 \$roles of class WPPack\\Component\\Security\\Authentication\\Token\\PostAuthenticationToken constructor expects list\<string\>, array\<string\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Component/Security/Bridge/OAuth/src/OAuthAuthenticator.php
+
+		-
+			message: '#^Parameter \#1 \$length of function random_bytes expects int\<1, max\>, int given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Component/Security/Bridge/OAuth/src/Pkce/PkceGenerator.php
+
+		-
+			message: '#^Method WPPack\\Component\\Security\\Bridge\\Passkey\\Ceremony\\CeremonyManager\:\:consumeChallenge\(\) should return array\{options\: string, optionsClass\: class\-string, userId\?\: int, type\: string\}\|null but returns array\<mixed, mixed\>\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Component/Security/Bridge/Passkey/src/Ceremony/CeremonyManager.php
+
+		-
+			message: '#^Parameter \$timeout of static method Webauthn\\PublicKeyCredentialCreationOptions\:\:create\(\) expects int\<1, max\>\|null, int given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Component/Security/Bridge/Passkey/src/Ceremony/CeremonyManager.php
+
+		-
+			message: '#^Parameter \$timeout of static method Webauthn\\PublicKeyCredentialRequestOptions\:\:create\(\) expects int\<1, max\>\|null, int given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Component/Security/Bridge/Passkey/src/Ceremony/CeremonyManager.php
+
+		-
+			message: '#^Parameter \$transports of class WPPack\\Component\\Security\\Bridge\\Passkey\\Storage\\PasskeyCredential constructor expects list\<string\>, array\<string\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Component/Security/Bridge/Passkey/src/Controller/RegistrationController.php
+
+		-
+			message: '#^Cannot call method get_error_message\(\) on array\|WP_Error\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Component/Security/Bridge/SAML/src/Configuration/IdpMetadataParser.php
+
+		-
+			message: '#^Method WPPack\\Component\\Security\\Bridge\\SAML\\SamlAuthenticator\:\:extractAttributes\(\) should return array\<string, list\<string\>\> but returns array\<string, array\<string\>\>\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Component/Security/Bridge/SAML/src/SamlAuthenticator.php
+
+		-
+			message: '#^Parameter \#2 \$roles of class WPPack\\Component\\Security\\Authentication\\Token\\PostAuthenticationToken constructor expects list\<string\>, array\<string\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Component/Security/Bridge/SAML/src/SamlAuthenticator.php
+
+		-
+			message: '#^Call to an undefined method object\:\:getUserMeta\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: src/Component/Security/Bridge/SAML/src/UserResolution/SamlUserResolver.php
+
+		-
+			message: '#^Call to an undefined method object\:\:getUserdata\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: src/Component/Security/Bridge/SAML/src/UserResolution/SamlUserResolver.php
+
+		-
+			message: '#^Parameter \#2 \$roles of class WPPack\\Component\\Security\\Authentication\\Token\\PostAuthenticationToken constructor expects list\<string\>, array\<string\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Component/Security/src/Authentication/Authenticator/ApplicationPasswordAuthenticator.php
+
+		-
+			message: '#^Parameter \#2 \$roles of class WPPack\\Component\\Security\\Authentication\\Token\\PostAuthenticationToken constructor expects list\<string\>, array\<string\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Component/Security/src/Authentication/Authenticator/CookieAuthenticator.php
+
+		-
+			message: '#^Parameter \#2 \$roles of class WPPack\\Component\\Security\\Authentication\\Token\\PostAuthenticationToken constructor expects list\<string\>, array\<string\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Component/Security/src/Authentication/Authenticator/FormLoginAuthenticator.php
+
+		-
+			message: '#^Method WPPack\\Component\\Security\\Authentication\\Passport\\Passport\:\:getBadge\(\) should return \(T of WPPack\\Component\\Security\\Authentication\\Passport\\Badge\\BadgeInterface\)\|null but returns WPPack\\Component\\Security\\Authentication\\Passport\\Badge\\BadgeInterface\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Component/Security/src/Authentication/Passport/Passport.php
+
+		-
+			message: '#^Method WPPack\\Component\\Serializer\\Normalizer\\ObjectNormalizer\:\:resolveClassName\(\) should return class\-string\|null but returns string\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Component/Serializer/src/Normalizer/ObjectNormalizer.php
+
+		-
+			message: '#^Method WPPack\\Component\\Serializer\\Normalizer\\ObjectNormalizer\:\:resolveClassName\(\) should return class\-string\|null but returns string\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Component/Serializer/src/Normalizer/ObjectNormalizer.php
+
+		-
+			message: '#^Property WPPack\\Component\\Serializer\\Serializer\:\:\$encoders \(list\<WPPack\\Component\\Serializer\\Encoder\\DecoderInterface\|WPPack\\Component\\Serializer\\Encoder\\EncoderInterface\>\) does not accept array\<WPPack\\Component\\Serializer\\Encoder\\DecoderInterface\|WPPack\\Component\\Serializer\\Encoder\\EncoderInterface\>\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: src/Component/Serializer/src/Serializer.php
+
+		-
+			message: '#^Method WPPack\\Component\\Site\\SiteRepository\:\:findAll\(\) should return list\<WP_Site\> but returns array\<int\|WP_Site\>\|int\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Component/Site/src/SiteRepository.php
+
+		-
+			message: '#^Parameter \#1 \$callback of function array_map expects \(callable\(int\|WP_Site\)\: mixed\)\|null, Closure\(WP_Site\)\: string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Component/Site/src/SiteRepository.php
+
+		-
+			message: '#^Parameter \#2 \$array of function array_map expects array, array\<int\|WP_Site\>\|int given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Component/Site/src/SiteRepository.php
+
+		-
+			message: '#^Call to an undefined method AsyncAws\\S3\\ValueObject\\AwsObject\|AsyncAws\\S3\\ValueObject\\CommonPrefix\:\:getKey\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: src/Component/Storage/Bridge/S3/src/S3StorageAdapter.php
+
+		-
+			message: '#^Call to an undefined method AsyncAws\\S3\\ValueObject\\AwsObject\|AsyncAws\\S3\\ValueObject\\CommonPrefix\:\:getLastModified\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Component/Storage/Bridge/S3/src/S3StorageAdapter.php
+
+		-
+			message: '#^Call to an undefined method AsyncAws\\S3\\ValueObject\\AwsObject\|AsyncAws\\S3\\ValueObject\\CommonPrefix\:\:getSize\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Component/Storage/Bridge/S3/src/S3StorageAdapter.php
+
+		-
+			message: '#^Parameter \#2 \$length of function fread expects int\<1, max\>, int given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Component/Storage/src/StreamWrapper/StorageStreamWrapper.php
+
+		-
+			message: '#^Parameter \#2 \$size of function ftruncate expects int\<0, max\>, int given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Component/Storage/src/StreamWrapper/StorageStreamWrapper.php
+
+		-
+			message: '#^Parameter \$wpErrorCodes of class WPPack\\Component\\Taxonomy\\Exception\\TermException constructor expects list\<string\>, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Component/Taxonomy/src/Exception/TermException.php
+
+		-
+			message: '#^Parameter \$wpErrorMessages of class WPPack\\Component\\Taxonomy\\Exception\\TermException constructor expects list\<string\>, array\<string\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Component/Taxonomy/src/Exception/TermException.php
+
+		-
+			message: '#^Method WPPack\\Component\\Taxonomy\\TermRepository\:\:addMeta\(\) should return int\|null but returns int\|WP_Error\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Component/Taxonomy/src/TermRepository.php
+
+		-
+			message: '#^Method WPPack\\Component\\Taxonomy\\TermRepository\:\:addObjectTerms\(\) should return list\<int\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Component/Taxonomy/src/TermRepository.php
+
+		-
+			message: '#^Method WPPack\\Component\\Taxonomy\\TermRepository\:\:findAll\(\) should return list\<WP_Term\> but returns array\<int\|string\|WP_Term\>\|string\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Component/Taxonomy/src/TermRepository.php
+
+		-
+			message: '#^Method WPPack\\Component\\Taxonomy\\TermRepository\:\:getObjectTerms\(\) should return list\<WP_Term\> but returns array\<int\|string\|WP_Term\>\|string\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Component/Taxonomy/src/TermRepository.php
+
+		-
+			message: '#^Method WPPack\\Component\\Taxonomy\\TermRepository\:\:insert\(\) should return array\{term_id\: int, term_taxonomy_id\: int\} but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Component/Taxonomy/src/TermRepository.php
+
+		-
+			message: '#^Method WPPack\\Component\\Taxonomy\\TermRepository\:\:setObjectTerms\(\) should return list\<int\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Component/Taxonomy/src/TermRepository.php
+
+		-
+			message: '#^Method WPPack\\Component\\Taxonomy\\TermRepository\:\:update\(\) should return array\{term_id\: int, term_taxonomy_id\: int\} but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Component/Taxonomy/src/TermRepository.php
+
+		-
+			message: '#^Method WPPack\\Component\\Taxonomy\\TermRepository\:\:updateMeta\(\) should return bool\|int but returns bool\|int\|WP_Error\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Component/Taxonomy/src/TermRepository.php
+
+		-
+			message: '#^Parameter \$wpErrorCodes of class WPPack\\Component\\User\\Exception\\UserException constructor expects list\<string\>, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Component/User/src/Exception/UserException.php
+
+		-
+			message: '#^Parameter \$wpErrorMessages of class WPPack\\Component\\User\\Exception\\UserException constructor expects list\<string\>, array\<string\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Component/User/src/Exception/UserException.php
+
+		-
+			message: '#^Method WPPack\\Component\\User\\UserRepository\:\:findAll\(\) should return list\<WP_User\> but returns array\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Component/User/src/UserRepository.php
+
+		-
+			message: '#^Trying to invoke \$this\(WPPack\\Component\\Widget\\AbstractWidget\) but it might not be a callable\.$#'
+			identifier: callable.nonCallable
+			count: 1
+			path: src/Component/Widget/src/AbstractWidget.php
+
+		-
+			message: '#^Cannot access offset 1 on array\|false\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Component/Wpress/src/ContentProcessor/ChainContentProcessor.php
+
+		-
+			message: '#^Cannot access offset 1 on array\|false\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Component/Wpress/src/ContentProcessor/CompressedContentProcessor.php
+
+		-
+			message: '#^Cannot access offset ''crc32'' on array\|false\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Component/Wpress/src/Header.php
+
+		-
+			message: '#^Cannot access offset ''mtime'' on array\|false\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Component/Wpress/src/Header.php
+
+		-
+			message: '#^Cannot access offset ''name'' on array\|false\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Component/Wpress/src/Header.php
+
+		-
+			message: '#^Cannot access offset ''prefix'' on array\|false\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Component/Wpress/src/Header.php
+
+		-
+			message: '#^Cannot access offset ''size'' on array\|false\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Component/Wpress/src/Header.php
+
+		-
+			message: '#^Method WPPack\\Component\\Wpress\\WpressArchive\:\:findEofOffset\(\) should return int\|null but returns int\|false\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Component/Wpress/src/WpressArchive.php
+
+		-
+			message: '#^Parameter \#1 \$data of static method WPPack\\Component\\Wpress\\Header\:\:fromBinary\(\) expects string, string\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Component/Wpress/src/WpressArchive.php
+
+		-
+			message: '#^Parameter \#2 \$length of function fread expects int\<1, max\>, int\<min, \-1\>\|int\<1, max\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Component/Wpress/src/WpressArchive.php
+
+		-
+			message: '#^Parameter \#2 \$size of static method WPPack\\Component\\Wpress\\Header\:\:fromPath\(\) expects int, int\<0, max\>\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Component/Wpress/src/WpressArchive.php
+
+		-
+			message: '#^Parameter \#3 \$contentOffset of class WPPack\\Component\\Wpress\\WpressEntry constructor expects int, int\|false given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Component/Wpress/src/WpressArchive.php
+
+		-
+			message: '#^Property WPPack\\Component\\Wpress\\WpressArchive\:\:\$handle \(resource\) does not accept resource\|false\.$#'
+			identifier: assign.propertyType
+			count: 3
+			path: src/Component/Wpress/src/WpressArchive.php
+
+		-
+			message: '#^Property WPPack\\Component\\Wpress\\WpressArchive\:\:\$index \(array\<string, int\>\|null\) does not accept array\<string, bool\|int\>\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: src/Component/Wpress/src/WpressArchive.php
+
+		-
+			message: '#^Parameter \$scopes of class WPPack\\Plugin\\OAuthLoginPlugin\\Configuration\\ProviderConfiguration constructor expects list\<string\>\|null, array\<mixed, mixed\>\|null given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Plugin/OAuthLoginPlugin/src/Configuration/OAuthLoginConfiguration.php
+
+		-
+			message: '#^Parameter \$transports of class WPPack\\Component\\Security\\Bridge\\Passkey\\Storage\\PasskeyCredential constructor expects list\<string\>, array\<string\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Plugin/PasskeyLoginPlugin/src/Activation/PasskeyActivationController.php
