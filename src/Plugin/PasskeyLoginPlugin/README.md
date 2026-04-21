@@ -20,7 +20,7 @@ composer require wppack/passkey-login-plugin
 ## Requirements
 
 - PHP 8.2+
-- WordPress 6.9+
+- WordPress 6.7 or higher
 - HTTPS (required by the WebAuthn specification)
 
 ## Configuration

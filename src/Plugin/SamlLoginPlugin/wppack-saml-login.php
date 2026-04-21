@@ -16,7 +16,7 @@ declare(strict_types=1);
  * Description: SAML 2.0 SSO authentication for WordPress.
  * Version: 1.0.0
  * Requires PHP: 8.2
- * Requires at least: 6.9
+ * Requires at least: 6.7
  * Author: WPPack
  * License: MIT
  * Text Domain: wppack-saml-login

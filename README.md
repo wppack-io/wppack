@@ -4,7 +4,7 @@
 [![Codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack)](https://codecov.io/gh/wppack-io/wppack)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![PHP Version](https://img.shields.io/badge/PHP-8.2%2B-777BB4.svg)](https://php.net)
-[![WordPress](https://img.shields.io/badge/WordPress-6.3%2B-21759B.svg)](https://wordpress.org)
+[![WordPress](https://img.shields.io/badge/WordPress-6.7%2B-21759B.svg)](https://wordpress.org)
 
 WPPack is a Symfony-inspired component library that brings modern PHP
 development practices to WordPress **without replacing it**. Adopt a single
@@ -114,9 +114,8 @@ plugins.
 ## Requirements
 
 - **PHP 8.2 or higher**
-- **WordPress 6.3 or higher** — the first release officially supporting PHP 8.2.
-  - WordPress 6.5+ recommended for full PHP 8.3 compatibility.
-  - WordPress 6.8+ recommended for PHP 8.4 compatibility (tested in CI).
+- **WordPress 6.7 or higher** — CI tests against WP 6.7 / 6.8 / 6.9 / 7.0 (beta/RC via `roots/wordpress-full`) across every supported DB engine.
+  - WordPress 6.9+ required for PHP 8.5 compatibility.
 
 ## Development
 

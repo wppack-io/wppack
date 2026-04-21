@@ -72,9 +72,9 @@ $extraIncludes = [
 | パッケージ | バージョン | 用途 |
 |-----------|-----------|------|
 | `phpunit/phpunit` | `^11.5` | テストフレームワーク |
-| `wp-phpunit/wp-phpunit` | `^6.9` | WordPress テストブートストラップ |
+| `wp-phpunit/wp-phpunit` | `>=6.7 <8.0` | WordPress テストブートストラップ |
 | `yoast/phpunit-polyfills` | `^4.0` | PHPUnit バージョン互換性 |
-| `roots/wordpress-no-content` | `^6.9` | WordPress コアファイル（ABSPATH） |
+| `roots/wordpress-full` | `>=6.7 <8.0` | WordPress コアファイル（ABSPATH）。`-full` variant を使うことで beta/RC タグ（7.0-RC2 など）の解決が可能 |
 
 ### データベース・サービス設定
 

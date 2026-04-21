@@ -30,7 +30,7 @@ WordPress 内部実装のリファレンス。詳細は [wordpress/README.md](./
 
 - PHP 8.2 以上
 - Composer 2.x
-- WordPress 6.3 以上
+- WordPress 6.7 以上
 
 ### インストール
 

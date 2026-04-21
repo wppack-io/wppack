@@ -16,7 +16,7 @@ declare(strict_types=1);
  * Description: Assigns roles to users based on configurable rules using user_register hook and SSO event listeners.
  * Version: 1.0.0
  * Requires PHP: 8.2
- * Requires at least: 6.9
+ * Requires at least: 6.7
  * Author: WPPack
  * License: MIT
  */

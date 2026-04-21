@@ -87,26 +87,12 @@ jobs:
       matrix:
         php: ['8.2', '8.3', '8.4', '8.5']
         db-engine: [wpdb, sqlite, mysql, postgresql]
-        wp: ['6.3', '6.4', '6.5', '6.6', '6.7', '6.8', '6.9', '7.0']
+        wp: ['6.7', '6.8', '6.9', '7.0']
         exclude:
-          # PHP versions each WP release was not tested against. Older WP
-          # cores hit deprecation notices / removed-function errors on
-          # newer PHP. Compat ranges from make.wordpress.org PHP / WP
-          # compatibility docs.
-          #   WP 6.3 / 6.4 tested up to PHP 8.2
-          #   WP 6.5 / 6.6 tested up to PHP 8.3
+          # PHP versions the WP release was not tested against. Compat
+          # ranges from make.wordpress.org PHP / WP compatibility docs.
           #   WP 6.7 / 6.8 tested up to PHP 8.4
           #   WP 6.9 / 7.0 tested up to PHP 8.5
-          - { php: '8.3', wp: '6.3' }
-          - { php: '8.4', wp: '6.3' }
-          - { php: '8.5', wp: '6.3' }
-          - { php: '8.3', wp: '6.4' }
-          - { php: '8.4', wp: '6.4' }
-          - { php: '8.5', wp: '6.4' }
-          - { php: '8.4', wp: '6.5' }
-          - { php: '8.5', wp: '6.5' }
-          - { php: '8.4', wp: '6.6' }
-          - { php: '8.5', wp: '6.6' }
           - { php: '8.5', wp: '6.7' }
           - { php: '8.5', wp: '6.8' }
     steps:
@@ -124,14 +110,24 @@ jobs:
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist
 
-      # Pin roots/wordpress and wp-phpunit/wp-phpunit to the matrix WP
-      # major.minor. Their release cadence tracks WP core tags 1:1 so
-      # the same constraint resolves both packages to the right revision.
+      # Pin roots/wordpress-full to the matrix WP major.minor. The -full
+      # variant includes beta/RC tags so pre-release rows (e.g. 7.0) can
+      # resolve; the @beta stability flag authorises those tags without
+      # loosening project-wide stability.
+      # wp-phpunit/wp-phpunit is pinned to match for stable WP rows, but
+      # kept at the composer.json default for pre-release rows where no
+      # matching tag exists yet (the latest stable is forward-compatible
+      # enough to bootstrap the WP 7.0 test suite).
       - name: Pin WordPress ${{ matrix.wp }}
         run: |
-          composer require --no-interaction --no-progress --prefer-dist \
-            "roots/wordpress:^${{ matrix.wp }}" \
-            "wp-phpunit/wp-phpunit:^${{ matrix.wp }}"
+          if [[ "${{ matrix.wp }}" == "7.0" ]]; then
+            composer require --no-interaction --no-progress --prefer-dist \
+              "roots/wordpress-full:^${{ matrix.wp }}@beta"
+          else
+            composer require --no-interaction --no-progress --prefer-dist \
+              "roots/wordpress-full:^${{ matrix.wp }}" \
+              "wp-phpunit/wp-phpunit:^${{ matrix.wp }}"
+          fi
 
       - name: Start Valkey Cluster
         run: |

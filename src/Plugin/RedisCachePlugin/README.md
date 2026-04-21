@@ -22,7 +22,7 @@ composer require wppack/redis-cache-plugin
 ## Requirements
 
 - PHP 8.2+
-- WordPress 6.3 or higher
+- WordPress 6.7 or higher
 - Redis server (or Amazon ElastiCache / Valkey)
 - One of: `ext-redis`, `ext-relay`, or `predis/predis`
 

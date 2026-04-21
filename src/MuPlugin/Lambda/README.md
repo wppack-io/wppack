@@ -21,7 +21,7 @@ composer require wppack/lambda-plugin
 ## Requirements
 
 - PHP 8.2+
-- WordPress 6.3 or higher
+- WordPress 6.7 or higher
 
 ## License
 
