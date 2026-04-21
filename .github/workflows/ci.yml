@@ -48,7 +48,43 @@ jobs:
       - name: Check code style
         run: vendor/bin/php-cs-fixer fix --dry-run --diff --ansi
 
+  # Emit the test matrix based on the trigger event:
+  #   push / PR          → 19 jobs (WP 6.9 full PHP × DB + smoke combo per other WP)
+  #   workflow_dispatch  → 56 jobs (every PHP × DB × WP minus PHP 8.5 × WP 6.7/6.8)
+  # Job-level `if:` with matrix context is not supported by GitHub Actions,
+  # so matrix shaping has to happen before the matrix is expanded.
+  matrix:
+    name: Compute test matrix
+    runs-on: ubuntu-latest
+    outputs:
+      include: ${{ steps.build.outputs.include }}
+    steps:
+      - id: build
+        env:
+          EVENT: ${{ github.event_name }}
+        run: |
+          full=$(for php in 8.2 8.3 8.4 8.5; do
+            for db in wpdb sqlite mysql postgresql; do
+              for wp in 6.7 6.8 6.9 7.0; do
+                # WP 6.7 / 6.8 were not tested against PHP 8.5 by WP core.
+                if [[ "$php" == "8.5" && ( "$wp" == "6.7" || "$wp" == "6.8" ) ]]; then
+                  continue
+                fi
+                jq -nc --arg p "$php" --arg d "$db" --arg w "$wp" \
+                  '{"php":$p,"db-engine":$d,"wp":$w}'
+              done
+            done
+          done | jq -sc .)
+          if [[ "$EVENT" == "workflow_dispatch" ]]; then
+            include="$full"
+          else
+            include=$(echo "$full" | jq -c \
+              '[.[] | select(.wp == "6.9" or (.php == "8.2" and ."db-engine" == "wpdb"))]')
+          fi
+          echo "include=$include" >> "$GITHUB_OUTPUT"
+
   tests:
+    needs: matrix
     name: Tests (PHP ${{ matrix.php }}, WP ${{ matrix.wp }}, DB ${{ matrix.db-engine }})
     runs-on: ubuntu-latest
     continue-on-error: ${{ matrix.db-engine != 'wpdb' }}
@@ -86,28 +122,10 @@ jobs:
         ports:
           - 5432:5432
         options: --health-cmd="pg_isready" --health-interval=10s --health-timeout=5s --health-retries=3
-    # Gate per matrix combination:
-    #   - push / PR run only WP 6.9 (current, full PHP × DB) plus one
-    #     smoke row (PHP 8.2 × wpdb) for each non-current WP = 19 jobs.
-    #   - workflow_dispatch runs every combination = 56 jobs.
-    # Off-matrix combos on push/PR surface as "skipped" in the Actions UI.
-    if: >-
-      ${{ github.event_name == 'workflow_dispatch'
-       || matrix.wp == '6.9'
-       || (matrix.php == '8.2' && matrix.db-engine == 'wpdb') }}
     strategy:
       fail-fast: false
       matrix:
-        php: ['8.2', '8.3', '8.4', '8.5']
-        db-engine: [wpdb, sqlite, mysql, postgresql]
-        wp: ['6.7', '6.8', '6.9', '7.0']
-        exclude:
-          # PHP versions each WP release was not tested against. Compat
-          # ranges from make.wordpress.org PHP / WP compatibility docs.
-          #   WP 6.7 / 6.8 tested up to PHP 8.4
-          #   WP 6.9 / 7.0 tested up to PHP 8.5
-          - { php: '8.5', wp: '6.7' }
-          - { php: '8.5', wp: '6.8' }
+        include: ${{ fromJson(needs.matrix.outputs.include) }}
     steps:
       - uses: actions/checkout@v5
 
