@@ -30,7 +30,7 @@ installations work through graceful fallbacks — never the other way round.
 
 ### Multi-Cloud Support (AWS / GCP / Azure)
 
-Core interfaces (Abstraction Layer) are cloud-agnostic. Provider-specific code lives
+Core interfaces (base abstractions in Data / Substrate) are cloud-agnostic. Provider-specific code lives
 in Bridge packages. Development is AWS-first; GCP and Azure support expands
 incrementally.
 
@@ -73,10 +73,11 @@ is documented under "Directory Structure" below.
 ## Dependency Graph
 
 Per-package dependencies are declared in each `composer.json` and flow through
-Composer's PSR-4 autoload. Architectural layering (Infrastructure → Abstraction →
-Feature → Application) is documented in
-[docs/architecture/](docs/architecture/) — refer there when deciding whether a new
-dependency is acceptable (a lower layer must never depend on a higher one).
+Composer's PSR-4 autoload. Components are grouped by **concern-domain category**
+(Substrate / Data / Content / Identity & Security / HTTP / Presentation / Admin /
+Utility — see [docs/components/README.md](docs/components/README.md)). Dependency
+graph must stay acyclic; Substrate and Utility may be depended on freely, other
+categories should reference each other only where semantically meaningful.
 
 `wordpress/core-implementation` is declared by every package whose `src/` calls a
 WordPress function directly. See

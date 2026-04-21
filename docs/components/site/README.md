@@ -2,7 +2,7 @@
 
 **Package:** `wppack/site`
 **Namespace:** `WPPack\Component\Site\`
-**Layer:** Infrastructure
+**Category:** Identity & Security
 
 WordPress マルチサイトの状態照会・ブログ切替・サイト検索をオブジェクト指向で提供するコンポーネント。シングルサイト環境でもグレースフルにフォールバックする。
 

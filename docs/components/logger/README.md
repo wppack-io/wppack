@@ -2,7 +2,7 @@
 
 **Package:** `wppack/logger`
 **Namespace:** `WPPack\Component\Logger\`
-**Layer:** Infrastructure
+**Category:** Substrate (Observability)
 
 WordPress の `error_log()` / デバッグログを PSR-3 準拠のインターフェースでラップするコンポーネントです。`WP_DEBUG_LOG` 設定と連携し、構造化されたコンテキスト付きのロギング、チャンネルベースのログ分離、WordPress 統合を提供します。
 

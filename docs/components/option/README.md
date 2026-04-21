@@ -2,7 +2,7 @@
 
 **Package:** `wppack/option`
 **Namespace:** `WPPack\Component\Option\`
-**Layer:** Infrastructure
+**Category:** Data
 
 WordPress オプション API のモダンなオブジェクト指向ラッパーです。シンプルなマネージャークラスによるオプション操作と、オプション関連の WordPress フックの名前付きフックアトリビュートを提供します。
 

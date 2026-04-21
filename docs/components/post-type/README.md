@@ -2,7 +2,7 @@
 
 **Package:** `wppack/post-type`
 **Namespace:** `WPPack\Component\PostType\`
-**Layer:** Feature
+**Category:** Content
 
 PostType コンポーネントは、WordPress カスタム投稿タイプをモダンなオブジェクト指向で開発するためのフレームワークです。PHP 8 アトリビュートによる型安全なメタフィールド定義、REST API の自動統合、流暢なクエリインターフェースを提供します。
 

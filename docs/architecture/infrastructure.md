@@ -4,7 +4,7 @@
 
 ### 設計方針
 
-- コアインターフェース（Abstraction Layer）はクラウド非依存
+- コアインターフェース（Data / Substrate の基底抽象）はクラウド非依存
 - プロバイダ固有の実装は Bridge パッケージとして分離
 - AWS ファーストで開発し、GCP・Azure に順次拡大
 - Symfony の Transport / Adapter パターンに従う

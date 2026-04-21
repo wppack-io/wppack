@@ -2,7 +2,7 @@
 
 プロジェクト全体の設計思想と構造。
 
-- [overview.md](./overview.md) - レイヤー構造と設計原則
+- [overview.md](./overview.md) - 関心ドメイン分類と設計原則
 - [monorepo.md](./monorepo.md) - モノレポ構造と開発フロー
 - [infrastructure.md](./infrastructure.md) - マルチクラウド対応・サーバーレス環境対応
 - [serverless.md](./serverless.md) - サーバレスアーキテクチャ（AWS フロー詳細）

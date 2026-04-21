@@ -2,7 +2,7 @@
 
 **Package:** `wppack/filesystem`
 **Namespace:** `WPPack\Component\Filesystem\`
-**Layer:** Infrastructure
+**Category:** Substrate (Runtime)
 
 WordPress のファイル操作をモダンなオブジェクト指向 API でラップするコンポーネントです。`WP_Filesystem_Base` を DI 注入可能にし、ファイルの読み書き・コピー・移動・削除などの基本操作、WordPress アップロードディレクトリの統合、Named Hook Attributes を提供します。
 

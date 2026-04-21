@@ -8,7 +8,9 @@ component_management:
         target: auto
 
   individual_components:
-    # Infrastructure Layer
+    # Components are grouped loosely by concern domain (Substrate → Data →
+    # Identity & Security → HTTP → Presentation → Admin → Content).
+    # See docs/components/README.md for the authoritative categorisation.
     - component_id: hook
       name: Hook
       paths:
@@ -70,7 +72,6 @@ component_management:
       paths:
         - src/Component/Site/src/**
 
-    # Abstraction Layer
     - component_id: options_resolver
       name: OptionsResolver
       paths:
@@ -196,7 +197,6 @@ component_management:
       paths:
         - src/Component/Debug/src/**
 
-    # Feature Layer
     - component_id: admin
       name: Admin
       paths:
@@ -274,7 +274,6 @@ component_management:
       paths:
         - src/Component/Database/Bridge/AuroraDSQL/src/**
 
-    # Application Layer
     - component_id: plugin
       name: Plugin
       paths:

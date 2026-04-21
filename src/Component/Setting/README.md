@@ -4,7 +4,7 @@
 
 **Package:** `wppack/setting`
 **Namespace:** `WPPack\Component\Setting\`
-**Layer:** Application
+**Category:** Admin
 
 A component for working with the WordPress Settings API using modern PHP. Provides attribute-based settings page definition and Named Hook attributes.
 

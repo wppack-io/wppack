@@ -2,7 +2,7 @@
 
 **Package:** `wppack/query`
 **Namespace:** `WPPack\Component\Query\`
-**Layer:** Abstraction
+**Category:** Data
 
 Query コンポーネントは、WordPress のネイティブクエリ（`WP_Query`、`WP_User_Query`、`WP_Term_Query`）に対する型安全で流暢なラッパーを提供します。
 
