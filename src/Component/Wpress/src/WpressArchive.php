@@ -53,10 +53,11 @@ final class WpressArchive implements \Countable
         $this->plainProcessor = new PlainContentProcessor();
 
         if ($flags & self::CREATE) {
-            $this->handle = fopen($this->path, 'w+b');
-            if ($this->handle === false) {
+            $handle = fopen($this->path, 'w+b');
+            if ($handle === false) {
                 throw new ArchiveException(\sprintf('Cannot create archive: %s', $this->path));
             }
+            $this->handle = $handle;
             // Write EOF marker
             fwrite($this->handle, Header::eof()->toBinary());
             $this->contentProcessor = $this->buildContentProcessor();
@@ -64,10 +65,11 @@ final class WpressArchive implements \Countable
             if (!file_exists($this->path)) {
                 throw new ArchiveException(\sprintf('Archive not found: %s', $this->path));
             }
-            $this->handle = fopen($this->path, 'r+b');
-            if ($this->handle === false) {
+            $handle = fopen($this->path, 'r+b');
+            if ($handle === false) {
                 throw new ArchiveException(\sprintf('Cannot open archive: %s', $this->path));
             }
+            $this->handle = $handle;
             $this->contentProcessor = $this->buildContentProcessor();
         }
     }
@@ -93,6 +95,9 @@ final class WpressArchive implements \Countable
             }
 
             $contentOffset = ftell($this->handle);
+            if ($contentOffset === false) {
+                break;
+            }
             $processor = $this->getProcessorForEntry($header->name);
 
             yield new WpressEntry($header, $this->handle, $contentOffset, $processor);
@@ -114,8 +119,14 @@ final class WpressArchive implements \Countable
         fseek($this->handle, $offset);
 
         $headerData = fread($this->handle, Header::SIZE);
+        if ($headerData === false) {
+            throw new EntryNotFoundException(\sprintf('Failed to read header for entry: %s', $path));
+        }
         $header = Header::fromBinary($headerData);
         $contentOffset = ftell($this->handle);
+        if ($contentOffset === false) {
+            throw new EntryNotFoundException(\sprintf('Failed to read offset for entry: %s', $path));
+        }
         $processor = $this->getProcessorForEntry($header->name);
 
         return new WpressEntry($header, $this->handle, $contentOffset, $processor);
@@ -465,11 +476,12 @@ final class WpressArchive implements \Countable
                 throw new ArchiveException('Failed to replace archive with updated version.');
             }
 
-            $this->handle = fopen($this->path, 'r+b');
+            $handle = fopen($this->path, 'r+b');
 
-            if ($this->handle === false) {
+            if ($handle === false) {
                 throw new ArchiveException(\sprintf('Cannot reopen archive: %s', $this->path));
             }
+            $this->handle = $handle;
         } catch (\Throwable $e) {
             if (is_resource($tempHandle)) {
                 fclose($tempHandle);

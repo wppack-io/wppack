@@ -907,12 +907,6 @@ parameters:
 			path: src/Component/Wpress/src/ContentProcessor/CompressedContentProcessor.php
 
 		-
-			message: '#^Parameter \#1 \$data of static method WPPack\\Component\\Wpress\\Header\:\:fromBinary\(\) expects string, string\|false given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Component/Wpress/src/WpressArchive.php
-
-		-
 			message: '#^Parameter \#2 \$length of function fread expects int\<1, max\>, int\<min, \-1\>\|int\<1, max\> given\.$#'
 			identifier: argument.type
 			count: 1
@@ -922,18 +916,6 @@ parameters:
 			message: '#^Parameter \#2 \$size of static method WPPack\\Component\\Wpress\\Header\:\:fromPath\(\) expects int, int\<0, max\>\|false given\.$#'
 			identifier: argument.type
 			count: 1
-			path: src/Component/Wpress/src/WpressArchive.php
-
-		-
-			message: '#^Parameter \#3 \$contentOffset of class WPPack\\Component\\Wpress\\WpressEntry constructor expects int, int\|false given\.$#'
-			identifier: argument.type
-			count: 2
-			path: src/Component/Wpress/src/WpressArchive.php
-
-		-
-			message: '#^Property WPPack\\Component\\Wpress\\WpressArchive\:\:\$handle \(resource\) does not accept resource\|false\.$#'
-			identifier: assign.propertyType
-			count: 3
 			path: src/Component/Wpress/src/WpressArchive.php
 
 		-
