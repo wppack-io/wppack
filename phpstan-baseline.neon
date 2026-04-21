@@ -157,24 +157,6 @@ parameters:
 			path: src/Component/Cache/drop-in/object-cache.php
 
 		-
-			message: '#^Function wp_cache_delete_multiple\(\) should return array\<string, bool\> but returns array\<int\|string, bool\>\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Component/Cache/drop-in/object-cache.php
-
-		-
-			message: '#^Function wp_cache_get_multiple\(\) should return array\<string, mixed\> but returns array\<int\|string, mixed\>\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Component/Cache/drop-in/object-cache.php
-
-		-
-			message: '#^Function wp_cache_set_multiple\(\) should return array\<string, bool\> but returns array\<int\|string, bool\>\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Component/Cache/drop-in/object-cache.php
-
-		-
 			message: '#^Parameter \#1 \$key of method WPPack\\Component\\Cache\\Strategy\\HashStrategyInterface\:\:supports\(\) expects string, int\|string given\.$#'
 			identifier: argument.type
 			count: 1

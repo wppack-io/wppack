@@ -142,7 +142,16 @@ function wp_cache_get(string $key, string $group = '', bool $force = false, bool
  */
 function wp_cache_get_multiple(array $keys, string $group = '', bool $force = false): array
 {
-    return wp_cache_instance()->getMultiple($keys, $group, $force);
+    $result = wp_cache_instance()->getMultiple($keys, $group, $force);
+    // ObjectCache::getMultiple keys can be int (numeric-string PHP cast).
+    // WP's wp_cache_get_multiple contract is array<string, mixed>; stringify
+    // keys to match while preserving values.
+    $stringKeyed = [];
+    foreach ($result as $key => $value) {
+        $stringKeyed[(string) $key] = $value;
+    }
+
+    return $stringKeyed;
 }
 
 function wp_cache_set(string $key, mixed $data, string $group = '', int $expire = 0): bool
@@ -156,7 +165,13 @@ function wp_cache_set(string $key, mixed $data, string $group = '', int $expire 
  */
 function wp_cache_set_multiple(array $data, string $group = '', int $expire = 0): array
 {
-    return wp_cache_instance()->setMultiple($data, $group, $expire);
+    $result = wp_cache_instance()->setMultiple($data, $group, $expire);
+    $stringKeyed = [];
+    foreach ($result as $key => $value) {
+        $stringKeyed[(string) $key] = $value;
+    }
+
+    return $stringKeyed;
 }
 
 function wp_cache_add(string $key, mixed $data, string $group = '', int $expire = 0): bool
@@ -189,7 +204,13 @@ function wp_cache_delete(string $key, string $group = ''): bool
  */
 function wp_cache_delete_multiple(array $keys, string $group = ''): array
 {
-    return wp_cache_instance()->deleteMultiple($keys, $group);
+    $result = wp_cache_instance()->deleteMultiple($keys, $group);
+    $stringKeyed = [];
+    foreach ($result as $key => $value) {
+        $stringKeyed[(string) $key] = $value;
+    }
+
+    return $stringKeyed;
 }
 
 function wp_cache_incr(string $key, int $offset = 1, string $group = ''): int|false
