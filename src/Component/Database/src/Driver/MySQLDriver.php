@@ -284,7 +284,10 @@ class MySQLDriver extends AbstractDriver
             }
 
             if ($result === true) {
-                return new Result([], $this->connection->affected_rows);
+                // affected_rows is int<-1, max>|string per mysqli stubs
+                // (string variant only on huge 64-bit row counts); cast
+                // to int to match the Result constructor's int contract.
+                return new Result([], (int) $this->connection->affected_rows);
             }
 
             /** @var list<array<string, mixed>> */
@@ -312,7 +315,7 @@ class MySQLDriver extends AbstractDriver
                 $this->throwQueryError();
             }
 
-            return $this->connection->affected_rows;
+            return (int) $this->connection->affected_rows;
         }
 
         $preparedResult = $this->executePrepared($sql, $params, false);
@@ -373,7 +376,7 @@ class MySQLDriver extends AbstractDriver
             $result = $stmt->get_result();
 
             if ($result === false) {
-                return new Result([], $stmt->affected_rows);
+                return new Result([], (int) $stmt->affected_rows);
             }
 
             /** @var list<array<string, mixed>> */
@@ -386,7 +389,7 @@ class MySQLDriver extends AbstractDriver
         $executeStatement = function (array $params) use ($stmt): int {
             $this->bindAndExecute($stmt, $params);
 
-            return $stmt->affected_rows;
+            return (int) $stmt->affected_rows;
         };
 
         $close = static function () use ($stmt): void {
@@ -476,7 +479,7 @@ class MySQLDriver extends AbstractDriver
                 $result = $stmt->get_result();
 
                 if ($result === false) {
-                    return new Result([], $stmt->affected_rows);
+                    return new Result([], (int) $stmt->affected_rows);
                 }
 
                 /** @var list<array<string, mixed>> */
@@ -486,7 +489,7 @@ class MySQLDriver extends AbstractDriver
                 return new Result($rows);
             }
 
-            return new Result([], $stmt->affected_rows);
+            return new Result([], (int) $stmt->affected_rows);
         } finally {
             $stmt->close();
         }

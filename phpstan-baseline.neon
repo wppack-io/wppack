@@ -313,24 +313,6 @@ parameters:
 			path: src/Component/Database/Bridge/Sqlite/src/Translator/SqliteQueryTranslator.php
 
 		-
-			message: '#^Anonymous function should return int\<\-1, max\> but returns int\<\-1, max\>\|numeric\-string\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Component/Database/src/Driver/MySQLDriver.php
-
-		-
-			message: '#^Method WPPack\\Component\\Database\\Driver\\MySQLDriver\:\:doExecuteStatement\(\) should return int but returns int\<\-1, max\>\|string\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Component/Database/src/Driver/MySQLDriver.php
-
-		-
-			message: '#^Parameter \#2 \$affectedRows of class WPPack\\Component\\Database\\Result constructor expects int, int\<\-1, max\>\|string given\.$#'
-			identifier: argument.type
-			count: 4
-			path: src/Component/Database/src/Driver/MySQLDriver.php
-
-		-
 			message: '#^Parameter \#2 \$params of method WPPack\\Component\\Database\\Driver\\MySQLDriver\:\:bindAndExecute\(\) expects list\<mixed\>, array given\.$#'
 			identifier: argument.type
 			count: 2
