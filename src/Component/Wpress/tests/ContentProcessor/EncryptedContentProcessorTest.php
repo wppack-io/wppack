@@ -94,15 +94,33 @@ final class EncryptedContentProcessorTest extends TestCase
     }
 
     #[Test]
-    public function wrongPasswordFails(): void
+    public function wrongPasswordCannotRecoverOriginal(): void
     {
+        // The .wpress format (AI1WM) is specified as AES-256-CBC with
+        // PKCS#7 padding (see docs/components/wpress/README.md). With
+        // that scheme + a wrong key, PKCS#7 validation detects the bad
+        // plaintext roughly 99.6% of the time — but in ~0.4% of runs the
+        // decrypted garbage happens to end with bytes that look like
+        // valid PKCS#7 padding, so openssl_decrypt returns truncated
+        // garbage instead of false. We cannot eliminate this without
+        // switching to an authenticated cipher (GCM / +HMAC), which
+        // would break .wpress interoperability.
+        //
+        // The cryptographic guarantee we actually have is: a wrong key
+        // cannot recover the original plaintext. Assert exactly that.
         $encoder = new EncryptedContentProcessor('correct-password');
         $decoder = new EncryptedContentProcessor('wrong-password');
 
         $encoded = $encoder->encode('secret data');
 
-        $this->expectException(EncryptionException::class);
-        $decoder->decode($encoded);
+        try {
+            $decoded = $decoder->decode($encoded);
+            self::assertNotSame('secret data', $decoded);
+        } catch (EncryptionException) {
+            // PKCS#7 padding validation caught the wrong key — also a
+            // valid, stronger outcome.
+            self::assertTrue(true);
+        }
     }
 
     #[Test]
