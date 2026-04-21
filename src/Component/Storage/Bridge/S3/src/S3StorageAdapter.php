@@ -23,6 +23,7 @@ use AsyncAws\S3\Input\ListObjectsV2Request;
 use AsyncAws\S3\Input\PutObjectAclRequest;
 use AsyncAws\S3\Input\PutObjectRequest;
 use AsyncAws\S3\S3Client;
+use AsyncAws\S3\ValueObject\AwsObject;
 use AsyncAws\S3\ValueObject\Delete;
 use AsyncAws\S3\ValueObject\ObjectIdentifier;
 use WPPack\Component\Storage\Adapter\AbstractStorageAdapter;
@@ -212,6 +213,10 @@ final class S3StorageAdapter extends AbstractStorageAdapter
         $objects = [];
 
         foreach ($result as $object) {
+            if (!$object instanceof AwsObject) {
+                continue;
+            }
+
             $objectKey = $object->getKey();
             if ($objectKey === null) {
                 continue;
@@ -365,6 +370,10 @@ final class S3StorageAdapter extends AbstractStorageAdapter
 
         // Yield file objects from Contents
         foreach ($result as $object) {
+            if (!$object instanceof AwsObject) {
+                continue;
+            }
+
             $objectKey = $object->getKey();
             if ($objectKey === null) {
                 continue;

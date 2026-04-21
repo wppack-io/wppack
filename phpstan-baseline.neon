@@ -547,24 +547,6 @@ parameters:
 			path: src/Component/Site/src/SiteRepository.php
 
 		-
-			message: '#^Call to an undefined method AsyncAws\\S3\\ValueObject\\AwsObject\|AsyncAws\\S3\\ValueObject\\CommonPrefix\:\:getKey\(\)\.$#'
-			identifier: method.notFound
-			count: 2
-			path: src/Component/Storage/Bridge/S3/src/S3StorageAdapter.php
-
-		-
-			message: '#^Call to an undefined method AsyncAws\\S3\\ValueObject\\AwsObject\|AsyncAws\\S3\\ValueObject\\CommonPrefix\:\:getLastModified\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: src/Component/Storage/Bridge/S3/src/S3StorageAdapter.php
-
-		-
-			message: '#^Call to an undefined method AsyncAws\\S3\\ValueObject\\AwsObject\|AsyncAws\\S3\\ValueObject\\CommonPrefix\:\:getSize\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: src/Component/Storage/Bridge/S3/src/S3StorageAdapter.php
-
-		-
 			message: '#^Parameter \#2 \$length of function fread expects int\<1, max\>, int given\.$#'
 			identifier: argument.type
 			count: 1
