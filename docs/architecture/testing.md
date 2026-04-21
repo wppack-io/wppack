@@ -292,6 +292,68 @@ new \WP_Error('http_request_failed', 'Could not resolve host')
 |--------------|------|
 | `EventDispatcherTestTrait` | EventDispatcher のテスト支援（リスナー登録・イベントディスパッチの検証） |
 
+## カバレッジ方針
+
+### 目標値
+
+- **全体**: 85% 以上を維持（現在 約 86%）
+- **新規コード**: 触れたファイル単位で 90% 以上
+- **Component 層のコア**: インターフェース / サービス / ユースケースは 95% 以上
+- **Bridge 層**: エンジン固有実装。unit で 80%、integration で互換性を担保
+
+Codecov には per-component のフラグで coverage が記録されます
+（`codecov.yml` の `individual_components` 参照）。
+
+### 意図的に低カバレッジな領域
+
+以下は**実行時環境／外部サービスに依存するため unit テストの価値が
+低い**領域で、意図的にカバレッジを低く保っています。代替として
+integration / smoke / 手動検証でカバーします。
+
+| 領域 | 典型的な未カバー比率 | 理由と代替手段 |
+|------|-------------------|--------------|
+| **AWS Bridge のライブコール** (`S3StorageAdapter`, `CloudWatchMetricProvider`, `DataApiDriver`, `SesApiTransport`) | 60-80% | async-aws クライアントの HTTP レスポンスは mock できるが、SigV4 署名・リージョン解決・retry backoff の実装詳細は mock と実挙動の乖離が大きい。AWS SDK 側のテストを信用し、WPPack 側は「呼び出しパラメータの構築」「エラー分類」「retry loop」など mockable な境界のみカバー |
+| **WebAuthn crypto flow** (`Security/Bridge/Passkey/Ceremony/*`) | 50-70% | WebAuthn の ECDSA / RSA 検証は `web-auth/webauthn-lib` 側で担保。WPPack 側はユーザ解決・セッション管理・RP ID マッピング等の business logic のみテスト |
+| **PHP 拡張依存アダプタ** (`ApcuAdapter`, `RelayAdapter`) | 30-50% | `ext-apcu`, `ext-relay` がホストに入っていないと `skipIfExtensionMissing()` で skip。CI では Valkey 系のみ必ず走らせる |
+| **マルチサイト専用分岐** (`Site`, `Security/Bridge/SAML/Multisite`) | single-site CI は 60% 程度 | `tests/phpunit/multisite.xml` で別途走る。メインの matrix は single-site のみ |
+| **`exit()` / `wp_die()` を含む handler** (`WpDieHandler`, SAML `EntryPoint`) | 例外到達テストで fully cover 不可 | 到達直前までをテスト。`@runInSeparateProcess` は `exit` を PHPUnit が捕捉できないため使わない |
+| **DB Driver の低レベル I/O** (`MySQLDriver::doConnect`, `PostgreSQLDriver::gone-away 判定`) | 70-80% | `mysqli_connect` / `pg_connect` のモックは unit では困難。`WpdbIntegrationTestTrait` による各エンジン実接続の integration test でカバー |
+| **Drop-in / bootstrap スクリプト** (`db.php`, `object-cache.php`, `fatal-error-handler.php`) | N/A | PHP の require 順・定数解決が `tests/bootstrap.php` とは異なるため従来型 unit test で扱えない。動作確認は smoke / 手動 |
+
+### カバレッジ測定方法
+
+ローカルで unit coverage を見るには Xdebug を入れて:
+
+```bash
+XDEBUG_MODE=coverage vendor/bin/phpunit --coverage-html var/coverage
+open var/coverage/index.html
+```
+
+Component 単位の生の Clover も出力可能:
+
+```bash
+XDEBUG_MODE=coverage vendor/bin/phpunit \
+    src/Component/Database/tests/ \
+    --coverage-clover var/coverage-database.xml
+```
+
+CI が Codecov にアップロードするのは `coverage.xml`（全体 Clover）と
+`junit.xml`（test results）です。PR 上の Codecov コメントで差分ベースの
+coverage change が確認できます。
+
+### 新規テストを書く指針
+
+- **ユースケース（public API）優先**: インターフェース実装の contract を
+  テスト。private / protected は public 経由で自然にカバーされる
+- **Framework の dependency は mock**: `$wpdb`, `WP_Query`,
+  `WP_Filesystem_Base` などは DI で注入して mock に差し替え可能な形で
+  利用する（該当 Subscriber / Repository のテストを参照）
+- **Integration は sparingly**: 可能な限り unit。どうしても現実のエンジン
+  挙動が必要な場合のみ `WpdbIntegrationTestTrait` / `wpdb://` DSN で本物を
+  叩く
+- **低カバレッジ許容の領域**: 上表の領域を触る場合は、新規関数でも unit
+  カバレッジは必須ではない。代わりに統合 / smoke / 手動確認を PR で示す
+
 ## CI
 
 GitHub Actions（`.github/workflows/ci.yml`）で 3 つのジョブを実行します。
