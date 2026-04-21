@@ -99,6 +99,12 @@ final class ContainerDataCollector extends AbstractDataCollector
 
         if (method_exists($builder, 'all')) {
             foreach ($builder->all() as $id => $definition) {
+                // method_exists accepts class-string too; the calls below
+                // require an instance, so guard once.
+                if (!\is_object($definition)) {
+                    continue;
+                }
+
                 $isPublic = method_exists($definition, 'isPublic') && $definition->isPublic();
                 $isAutowired = method_exists($definition, 'isAutowired') && $definition->isAutowired();
                 $isLazy = method_exists($definition, 'isLazy') && $definition->isLazy();
@@ -128,7 +134,7 @@ final class ContainerDataCollector extends AbstractDataCollector
         $compilerPasses = [];
         if (method_exists($builder, 'getCompilerPassConfig')) {
             $config = $builder->getCompilerPassConfig();
-            if (method_exists($config, 'getPasses')) {
+            if (\is_object($config) && method_exists($config, 'getPasses')) {
                 foreach ($config->getPasses() as $pass) {
                     $compilerPasses[] = $pass::class;
                 }

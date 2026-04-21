@@ -331,42 +331,6 @@ parameters:
 			path: src/Component/Debug/src/DataCollector/ContainerDataCollector.php
 
 		-
-			message: '#^Cannot call method getClass\(\) on class\-string\|object\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: src/Component/Debug/src/DataCollector/ContainerDataCollector.php
-
-		-
-			message: '#^Cannot call method getPasses\(\) on class\-string\|object\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: src/Component/Debug/src/DataCollector/ContainerDataCollector.php
-
-		-
-			message: '#^Cannot call method getTags\(\) on class\-string\|object\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: src/Component/Debug/src/DataCollector/ContainerDataCollector.php
-
-		-
-			message: '#^Cannot call method isAutowired\(\) on class\-string\|object\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: src/Component/Debug/src/DataCollector/ContainerDataCollector.php
-
-		-
-			message: '#^Cannot call method isLazy\(\) on class\-string\|object\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: src/Component/Debug/src/DataCollector/ContainerDataCollector.php
-
-		-
-			message: '#^Cannot call method isPublic\(\) on class\-string\|object\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: src/Component/Debug/src/DataCollector/ContainerDataCollector.php
-
-		-
 			message: '#^Cannot call method get_error_message\(\) on class\-string\|object\.$#'
 			identifier: method.nonObject
 			count: 1
