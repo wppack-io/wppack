@@ -429,7 +429,7 @@ class WPPackWpdb extends \wpdb
             return false;
         }
 
-        return $this->executeInsertReplace($table, $data, $format, 'INSERT');
+        return $this->executeInsertReplace($table, $data, 'INSERT');
     }
 
     /**
@@ -449,7 +449,7 @@ class WPPackWpdb extends \wpdb
             return false;
         }
 
-        return $this->executeInsertReplace($table, $data, $format, 'REPLACE');
+        return $this->executeInsertReplace($table, $data, 'REPLACE');
     }
 
     /**
@@ -1356,10 +1356,15 @@ class WPPackWpdb extends \wpdb
     }
 
     /**
-     * @param array<string, mixed>      $data
-     * @param array<string>|string|null $format
+     * Build and execute an INSERT / REPLACE statement via the writer Driver.
+     *
+     * Field-level validation (format, charset, length) is handled upstream in
+     * validateAndFlatten(), so this helper only needs the flattened
+     * [column => value] map — no $format here.
+     *
+     * @param array<string, mixed> $data
      */
-    private function executeInsertReplace(string $table, array $data, array|string|null $format, string $verb): int|false
+    private function executeInsertReplace(string $table, array $data, string $verb): int|false
     {
         if ($data === []) {
             return false;
@@ -1370,12 +1375,10 @@ class WPPackWpdb extends \wpdb
 
         $columns = [];
         $placeholders = [];
-        $params = [];
 
-        foreach ($data as $column => $value) {
+        foreach (array_keys($data) as $column) {
             $columns[] = $platform->quoteIdentifier($column);
             $placeholders[] = '?';
-            $params[] = $value;
         }
 
         $sql = \sprintf(
@@ -1386,7 +1389,7 @@ class WPPackWpdb extends \wpdb
             implode(', ', $placeholders),
         );
 
-        $result = $this->executeWithDriver($sql, $params);
+        $result = $this->executeWithDriver($sql, array_values($data));
 
         return $result === false ? false : (int) $result;
     }
