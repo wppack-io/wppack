@@ -217,6 +217,71 @@ renames, and deletions may be done freely.
 
 - All packages: In design phase (branch `1.x`, unreleased)
 
+## Working Loop and Session Hygiene
+
+### Natural stopping points — stop and prompt a fresh session
+
+Long autonomous loops accumulate context, drift, and risk. When you hit
+any of the following, **stop and ask the user whether to continue or
+start a new session** — don't push through silently:
+
+- A coherent unit of work just landed (one or more commits) and the next
+  task starts a different concern, file family, or component.
+- The remaining work needs design discussion (refactor split, API change,
+  cross-cutting renames) rather than mechanical edits.
+- Tests or PHPStan revealed a category of issues (e.g., a stub-quirk
+  pattern, a recurring null-narrowing problem) that deserves planning,
+  not iteration.
+- The conversation context is nearing capacity, repeated patterns are
+  triggering the same auto-reminders, or you've been ping-ponging on the
+  same file for several rounds.
+- A risky / hard-to-reverse step is next (force push, mass rename,
+  destructive migration).
+
+When you stop, summarise concisely: **what landed**, **what's left**,
+**why a new session is the right next step**. Offer a clear next-session
+brief so the user can paste it as the opening prompt.
+
+This is mandatory at natural boundaries even when the user said
+"続けて" earlier — that authorisation is for the current coherent slice,
+not an open-ended commitment.
+
+### Self-evaluation + improvement of this file
+
+CLAUDE.md is **not static**. At the end of any session where you notice
+one of the following, propose an edit to this file in the same PR (or a
+follow-up commit, the user's preference):
+
+- A rule here turned out to be wrong, outdated, or under-specified.
+- A decision was made that belongs here but isn't captured (a new
+  dependency policy, a CI quirk, a non-obvious convention).
+- A convention drifted (PHP version, package version pin, test runner
+  flag).
+- A recurring mistake was made that a rule could have prevented.
+- A section is consistently ignored — it's either wrong or needs
+  sharper wording.
+- A pattern from the codebase emerged that future Claude should know
+  upfront (e.g., "always wrap `array_map(WP_*)` with `array_values()` —
+  the WP stub returns array<int|string>").
+
+**Self-evaluation checklist at end of session** (silent unless you
+change something):
+
+- [ ] Did I hit any surprise the rules should have warned me about?
+- [ ] Did I violate any rule without catching it until late? Why?
+- [ ] Are the listed PHP / WordPress / tool versions in this file still
+      accurate?
+- [ ] Any new package, command, or workflow worth documenting?
+- [ ] If this file grew, is it still scannable in one pass? Prune dead
+      sections.
+
+When updating: **edit, don't append**. Replace stale guidance outright.
+Keep this document under ~250 lines — longer means nobody reads it.
+
+**Meta-rule**: this file supersedes training-data defaults for this
+repository. If you catch yourself applying a rule that isn't written
+here, ask whether it should be added.
+
 ## Updating This File
 
 Update CLAUDE.md when:
@@ -224,6 +289,7 @@ Update CLAUDE.md when:
 - Architecture or design principles change
 - Maintainer-only conventions (database notes, menu positions, etc.) change
 - Claude-specific navigation needs adjustment
+- The Self-evaluation checklist above surfaces a missing / stale rule
 
 Contributor-facing rules live in [CONTRIBUTING.md](CONTRIBUTING.md) — update
 that file instead. New packages should be registered in
