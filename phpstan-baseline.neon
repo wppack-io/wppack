@@ -715,12 +715,6 @@ parameters:
 			path: src/Component/Scim/src/Mapping/UserAttributeMapper.php
 
 		-
-			message: '#^Method WPPack\\Component\\Scim\\Repository\\ScimUserRepository\:\:findFiltered\(\) should return array\{users\: list\<WP_User\>, totalResults\: int\} but returns array\{users\: array, totalResults\: int\}\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Component/Scim/src/Repository/ScimUserRepository.php
-
-		-
 			message: '#^Parameter \#1 \$length of function random_bytes expects int\<1, max\>, int given\.$#'
 			identifier: argument.type
 			count: 1
@@ -839,12 +833,6 @@ parameters:
 			identifier: return.type
 			count: 1
 			path: src/Component/Taxonomy/src/TermRepository.php
-
-		-
-			message: '#^Method WPPack\\Component\\User\\UserRepository\:\:findAll\(\) should return list\<WP_User\> but returns array\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Component/User/src/UserRepository.php
 
 		-
 			message: '#^Trying to invoke \$this\(WPPack\\Component\\Widget\\AbstractWidget\) but it might not be a callable\.$#'

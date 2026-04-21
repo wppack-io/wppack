@@ -73,7 +73,10 @@ readonly class ScimUserRepository
         $total = $query->get_total();
 
         return [
-            'users' => $users,
+            'users' => array_values(array_filter(
+                $users,
+                static fn($user): bool => $user instanceof \WP_User,
+            )),
             'totalResults' => $total,
         ];
     }

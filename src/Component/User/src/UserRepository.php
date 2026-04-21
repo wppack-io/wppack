@@ -19,7 +19,13 @@ final readonly class UserRepository implements UserRepositoryInterface
 {
     public function findAll(array $args = []): array
     {
-        return get_users($args);
+        // get_users() returns array; the listing path always yields
+        // WP_User instances. array_filter narrows + array_values reindexes
+        // for the list<WP_User> contract.
+        return array_values(array_filter(
+            get_users($args),
+            static fn($user): bool => $user instanceof \WP_User,
+        ));
     }
 
     public function find(int $userId): ?\WP_User
