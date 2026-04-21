@@ -481,30 +481,6 @@ parameters:
 			path: src/Component/Filesystem/src/WordPress/UploadPath.php
 
 		-
-			message: '#^Cannot access offset ''body'' on array\{body\: string, headers\: array\<string, string\>, response\: array\{code\: int, message\: string\}\}\|WP_Error\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: src/Component/HttpClient/src/HttpClient.php
-
-		-
-			message: '#^Cannot access offset ''headers'' on array\{body\: string, headers\: array\<string, string\>, response\: array\{code\: int, message\: string\}\}\|WP_Error\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: src/Component/HttpClient/src/HttpClient.php
-
-		-
-			message: '#^Cannot access offset ''response'' on array\{body\: string, headers\: array\<string, string\>, response\: array\{code\: int, message\: string\}\}\|WP_Error\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 2
-			path: src/Component/HttpClient/src/HttpClient.php
-
-		-
-			message: '#^Cannot call method get_error_message\(\) on array\<string, array\<string, int\|string\>\|string\>\|WP_Error\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: src/Component/HttpClient/src/HttpClient.php
-
-		-
 			message: '#^Property WPPack\\Component\\HttpClient\\Request\:\:\$headers \(array\<string, list\<string\>\>\) does not accept non\-empty\-array\<string, array\<string\>\>\.$#'
 			identifier: assign.propertyType
 			count: 3

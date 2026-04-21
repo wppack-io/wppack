@@ -57,34 +57,36 @@ class HttpClient implements ClientInterface
             $args[$key] = $value;
         }
 
-        /** @var array{body: string, headers: array<string, string>, response: array{code: int, message: string}}|\WP_Error $result */
         $result = wp_remote_request($uri, $args);
 
-        if (is_wp_error($result)) {
+        // Narrow via instanceof rather than is_wp_error(): PHPStan handles
+        // instanceof natively, while is_wp_error()'s narrowing depends on a
+        // stub extension that doesn't always align with the loose return
+        // type wp_remote_request() advertises.
+        if ($result instanceof \WP_Error) {
             throw new ConnectionException(
                 $result->get_error_message(),
                 $request,
             );
         }
 
-        $statusCode = (int) $result['response']['code'];
-        $reasonPhrase = $result['response']['message'] ?? '';
+        // wp_remote_response is array{response: array{code, message}, body, headers}
+        // in practice, but the WP stub flattens to array<string, array|string>;
+        // pull through wp_remote_retrieve_* helpers which encapsulate the
+        // null-safe shape.
+        $statusCode = (int) wp_remote_retrieve_response_code($result);
+        $reasonPhrase = (string) wp_remote_retrieve_response_message($result);
         $responseHeaders = [];
-
-        if (isset($result['headers'])) {
-            $headers = $result['headers'];
-            if (\is_object($headers) && $headers instanceof \WpOrg\Requests\Utility\CaseInsensitiveDictionary) {
-                $headers = $headers->getAll();
-            }
-            if (\is_array($headers)) {
-                /** @var array<string, string|list<string>> $headers */
-                foreach ($headers as $name => $value) {
-                    $responseHeaders[$name] = \is_array($value) ? $value : [$value];
-                }
-            }
+        $headers = wp_remote_retrieve_headers($result);
+        if ($headers instanceof \WpOrg\Requests\Utility\CaseInsensitiveDictionary) {
+            $headers = $headers->getAll();
+        }
+        /** @var array<string, string|list<string>> $headers */
+        foreach ($headers as $name => $value) {
+            $responseHeaders[$name] = \is_array($value) ? $value : [$value];
         }
 
-        $body = $result['body'] ?? '';
+        $body = (string) wp_remote_retrieve_body($result);
 
         return new Response(
             statusCode: $statusCode,
