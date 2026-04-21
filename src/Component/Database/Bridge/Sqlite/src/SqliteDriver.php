@@ -242,7 +242,11 @@ final class SqliteDriver extends AbstractDriver
                 return null;
             }
 
-            return long2ip((int) $num);
+            // Cast to string: older PHPStan stubs (PHP 8.2) declare
+            // long2ip() as string|false, newer stubs (PHP 8.4) as string.
+            // An explicit cast is a no-op on string and maps false → "",
+            // keeping the callback ?string under both stub versions.
+            return (string) long2ip((int) $num);
         }, 1);
 
         // Note: CHECK → INSERT is not atomic across processes (TOCTOU).
