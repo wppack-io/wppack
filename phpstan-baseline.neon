@@ -913,18 +913,6 @@ parameters:
 			path: src/Component/Wpress/src/WpressArchive.php
 
 		-
-			message: '#^Parameter \#2 \$size of static method WPPack\\Component\\Wpress\\Header\:\:fromPath\(\) expects int, int\<0, max\>\|false given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Component/Wpress/src/WpressArchive.php
-
-		-
-			message: '#^Property WPPack\\Component\\Wpress\\WpressArchive\:\:\$index \(array\<string, int\>\|null\) does not accept array\<string, bool\|int\>\.$#'
-			identifier: assign.propertyType
-			count: 1
-			path: src/Component/Wpress/src/WpressArchive.php
-
-		-
 			message: '#^Parameter \$scopes of class WPPack\\Plugin\\OAuthLoginPlugin\\Configuration\\ProviderConfiguration constructor expects list\<string\>\|null, array\<mixed, mixed\>\|null given\.$#'
 			identifier: argument.type
 			count: 2

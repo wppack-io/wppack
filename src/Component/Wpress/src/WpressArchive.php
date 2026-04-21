@@ -354,6 +354,9 @@ final class WpressArchive implements \Countable
 
         while (!feof($this->handle)) {
             $headerOffset = ftell($this->handle);
+            if ($headerOffset === false) {
+                break;
+            }
             $headerData = fread($this->handle, Header::SIZE);
 
             if ($headerData === false || \strlen($headerData) < Header::SIZE) {
@@ -578,6 +581,9 @@ final class WpressArchive implements \Countable
         }
 
         $size = filesize($sourcePath);
+        if ($size === false) {
+            throw new ArchiveException(\sprintf('Cannot determine size of source file: %s', $sourcePath));
+        }
         $mtime = filemtime($sourcePath) ?: time();
 
         $header = Header::fromPath($archivePath, $size, $mtime);
