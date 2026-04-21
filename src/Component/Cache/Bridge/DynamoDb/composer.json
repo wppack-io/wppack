@@ -6,7 +6,7 @@
   "require": {
     "php": "^8.2",
     "async-aws/dynamo-db": "^3.0",
-    "wppack/cache": "^0.1",
+    "wppack/cache": "^1.0",
     "wppack/dsn": "^1.0"
   },
   "autoload": {
