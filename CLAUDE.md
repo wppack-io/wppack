@@ -9,6 +9,29 @@ process (bug reports, PR workflow, review expectations) lives in
 below cover project overview, Claude-specific navigation, and maintainer-
 only conventions.
 
+## Non-negotiables (failing these loses trust; do not skip)
+
+1. **Tests must pass before every commit.** `vendor/bin/phpunit` for the
+   touched component(s) at minimum; full suite before push when the change
+   crosses component boundaries.
+2. **PHPStan must be clean (level 7).** `vendor/bin/phpstan analyse` shows
+   `[OK] No errors`. Don't lower the level. Don't add baseline entries
+   without explanation in the commit message — they're tech debt receipts.
+3. **Never push to `master`.** All work goes through `1.x` (current
+   pre-release branch). PRs target `1.x`.
+4. **Never skip hooks or signing.** No `--no-verify`, no
+   `--no-gpg-sign`. If a hook fails, fix the cause, don't bypass.
+5. **Secrets never in git.** `.env`, IAM credentials, OAuth secrets,
+   API tokens — fetch via env / Secrets Manager / OptionManager. If a
+   change would commit one, refuse.
+6. **Destructive ops require explicit user confirmation.** `git push
+   --force`, `git reset --hard`, `rm -rf`, `DROP TABLE`, dropping a
+   PHPStan ignore that masks a real bug — call it out and wait. Local-only
+   commits can be force-pushed without permission only if not yet on
+   origin; once pushed, treat as published.
+7. **Don't auto-push after every commit.** CI matrix (PHP × DB × WP) is
+   heavy. Batch commits locally; push only on explicit instruction.
+
 ## Project Overview
 
 WPPack is a monorepo of component libraries that extend WordPress with modern PHP.
@@ -124,7 +147,49 @@ All Named Hook attributes are centralized in the Hook component:
 - All packages managed via the root `composer.json`
 - Self-packages declared in the `replace` section
 - Individual package repositories published via splitsh-lite
-- CI/CD runs on GitHub Actions (16-job matrix: PHP 8.2-8.5 × wpdb/mysql/sqlite/postgresql)
+- CI/CD runs on GitHub Actions:
+  - **push / PR (auto, 19 jobs)**: WP 6.9 × PHP {8.2-8.5} × DB
+    {wpdb,sqlite,mysql,postgresql} + smoke combo (PHP 8.2 × wpdb)
+    for WP {6.7, 6.8, 7.0}.
+  - **workflow_dispatch (manual, 56 jobs)**: full PHP × DB × WP matrix
+    minus PHP 8.5 × WP 6.7/6.8 (compat exclusions). Run from Actions UI
+    or `gh workflow run ci.yml`.
+
+### Recurring patterns Claude should know up-front
+
+Lessons from past sessions; each was a non-obvious time-sink the first
+time. Apply pre-emptively when touching the listed surface:
+
+- **PHP version stub differences (`long2ip`, etc.)**: PHP 8.2 stubs
+  declare `long2ip(): string|false`; PHP 8.4 stubs declare `string`. CI
+  runs PHP 8.2 minimum, local often runs newer. For functions whose
+  return type narrowed across versions, use `(string) func(...)` to
+  satisfy both stub generations without dead-code warnings.
+- **WP API stub looseness — `array<int|string, T>` vs `list<T>`**:
+  `WP_Error::get_error_codes()`, `get_users()`, `get_terms()`,
+  `wp_get_object_terms()`, `WP_User->roles`, etc. all return
+  `array<int|string, T>` per phpstan-wordpress stubs. When passing to a
+  `list<T>` parameter or contracted return, wrap with `array_values()`
+  (and `array_filter(...instanceof WP_*)` if the union also admits
+  non-instance values).
+- **`is_wp_error()` doesn't always narrow under PHPStan**: prefer
+  `instanceof \WP_Error` for the early-return guard. Native instanceof
+  narrows reliably; the `is_wp_error()` extension support is patchy.
+- **`wp_remote_request()` field access**: use `wp_remote_retrieve_*`
+  helpers (`_response_code`, `_response_message`, `_headers`, `_body`)
+  instead of `$result['response']['code']`. The helpers encapsulate the
+  loose stub union.
+- **mysqli `affected_rows` is `int<-1, max>|string`**: cast with `(int)`
+  before forwarding to `Result` constructor or returning as `int`.
+  String only triggers on >2^32 row counts but PHPStan flags every site.
+- **`fopen()` / `ftell()` / `fread()` / `filesize()` / `unpack()` return
+  `... | false`**: assign to local var, check, then assign to property
+  or pass to function. The check on the property post-assignment doesn't
+  narrow under PHPStan.
+- **`method_exists($x, ...)` accepts `class-string|object`**: subsequent
+  `$x->method()` fails type-check unless preceded by `is_object($x)`.
+  Group all `method_exists` chains under one `is_object` guard at top
+  of the loop / branch.
 
 ### Consistency Checks for Documentation & Component Updates
 
@@ -217,7 +282,50 @@ renames, and deletions may be done freely.
 
 - All packages: In design phase (branch `1.x`, unreleased)
 
+## Toolchain Quick Reference
+
+| Task | Command |
+|------|---------|
+| Install deps | `composer install` |
+| Run tests (all) | `vendor/bin/phpunit` |
+| Run tests (single component) | `vendor/bin/phpunit src/Component/{Name}/tests/` |
+| Run tests (single file) | `vendor/bin/phpunit path/to/Test.php` |
+| Coverage (HTML) | `XDEBUG_MODE=coverage vendor/bin/phpunit --coverage-html var/coverage` |
+| PHPStan | `vendor/bin/phpstan analyse --no-progress` |
+| Regenerate baseline | `vendor/bin/phpstan analyse --generate-baseline phpstan-baseline.neon` |
+| Code style fix | `vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.php <path>` |
+| Code style check | `vendor/bin/php-cs-fixer fix --dry-run --diff --ansi` |
+| Database integration (each engine) | `DATABASE_DSN='sqlite:///tmp/wppack_test.db' vendor/bin/phpunit --filter SqliteWpdbIntegrationTest` (mysql / pgsql variants in Database notes) |
+| Switch PHP version | `phpenv local 8.2` (8.3 / 8.4 / 8.5) |
+| CI status | `gh run list --workflow=ci.yml --limit=3` |
+| Run failed CI job (manual matrix) | `gh workflow run ci.yml` (legacy WP) |
+
+PHP runtime: phpenv (no `eval "$(phpenv init -)"` needed for `composer`).
+
 ## Working Loop and Session Hygiene
+
+### How to approach a task
+
+1. **Read the surrounding code first.** Skim related component README and
+   `coding-standards.md` for the contract you're touching. Don't rewrite
+   before understanding.
+2. **Find the canonical pattern.** Mirror an existing test or service
+   that solves an analogous problem — `DatabaseManager` is the reference
+   for component-shaped repositories, `Cache/Bridge/Redis/*` for
+   bridge-pattern adapters, `Security/Authentication/Token/*` for value
+   objects.
+3. **State the plan when the change is non-trivial.** One or two
+   sentences for changes > 20 lines or crossing component boundaries.
+   Trivial edits: just ship.
+4. **Edit → test → PHPStan → commit.** `vendor/bin/phpunit` (touched
+   components) + `vendor/bin/phpstan analyse` must both be green before
+   each commit. CS-fixer last (if needed).
+5. **Never claim a task complete with red tests or PHPStan errors.**
+   "Partial / blocked, here's why" beats a false "done".
+6. **Discovered a bug along the way?** Record it in the commit message
+   or a follow-up task. Don't expand scope silently.
+7. **Don't push after every commit** — CI matrix is heavy; batch locally
+   and push on explicit request.
 
 ### Natural stopping points — stop and prompt a fresh session
 
