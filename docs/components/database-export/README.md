@@ -1,6 +1,16 @@
 # DatabaseExport コンポーネント
 
-WordPress データベースを SQL / JSON / CSV 形式でエクスポートする。wpress（All-in-One WP Migration）互換の SQL 出力に対応。
+**パッケージ:** `wppack/database-export`
+**名前空間:** `WPPack\Component\DatabaseExport\`
+**Category:** Data
+
+WordPress データベースを SQL / JSON / CSV 形式でエクスポートする。wpress（All-in-One WP Migration）互換の SQL 出力に対応。MySQL、MariaDB、SQLite、PostgreSQL の各ソース DB からの読み取りに対応。
+
+## インストール
+
+```bash
+composer require wppack/database-export
+```
 
 ## マルチエンジン対応
 
@@ -99,6 +109,23 @@ RFC 4180 CSV:
 ID,post_title,post_status
 1,"Hello World","publish"
 ```
+
+## マルチサイト対応
+
+`ExportConfiguration::$blogIds` で対象サイトを制御できます。
+
+| blogIds | 動作 |
+|---------|------|
+| `[]`（空） | ネットワーク全体 |
+| `[1]` | メインサイトのみ |
+| `[2]` | サブサイト 2 のみ |
+
+## セキュリティデフォルト
+
+- トランジェント（`_transient_*`）はデフォルトで除外
+- セッショントークン（`session_tokens`）はデフォルトで除外
+- `active_plugins` は空配列 `a:0:{}` にリセット
+- `template` / `stylesheet` は空文字にリセット
 
 ## 設定 (ExportConfiguration)
 
