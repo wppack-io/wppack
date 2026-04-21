@@ -32,8 +32,11 @@ class TermException extends \RuntimeException implements ExceptionInterface
     {
         return new self(
             message: $error->get_error_message(),
-            wpErrorCodes: $error->get_error_codes(),
-            wpErrorMessages: $error->get_error_messages(),
+            // WP_Error::get_error_*() return array<int|string, string>; we
+            // contract list<string> on the constructor so consumers can rely
+            // on sequential int keys. array_values() normalises both.
+            wpErrorCodes: array_values($error->get_error_codes()),
+            wpErrorMessages: array_values($error->get_error_messages()),
         );
     }
 

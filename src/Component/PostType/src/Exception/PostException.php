@@ -32,8 +32,10 @@ class PostException extends \RuntimeException implements ExceptionInterface
     {
         return new self(
             message: $error->get_error_message(),
-            wpErrorCodes: $error->get_error_codes(),
-            wpErrorMessages: $error->get_error_messages(),
+            // WP_Error::get_error_*() return array<int|string, string>;
+            // array_values() preserves the list<string> constructor contract.
+            wpErrorCodes: array_values($error->get_error_codes()),
+            wpErrorMessages: array_values($error->get_error_messages()),
         );
     }
 

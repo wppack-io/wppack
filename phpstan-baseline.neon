@@ -583,18 +583,6 @@ parameters:
 			path: src/Component/Mailer/Bridge/SendGrid/src/Transport/SendGridApiTransport.php
 
 		-
-			message: '#^Parameter \$wpErrorCodes of class WPPack\\Component\\Media\\Exception\\AttachmentException constructor expects list\<string\>, array given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Component/Media/src/Exception/AttachmentException.php
-
-		-
-			message: '#^Parameter \$wpErrorMessages of class WPPack\\Component\\Media\\Exception\\AttachmentException constructor expects list\<string\>, array\<string\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Component/Media/src/Exception/AttachmentException.php
-
-		-
 			message: '#^Method WPPack\\Component\\Media\\Storage\\ImageEditor\\StorageImageEditor\:\:_save\(\) should return array\{path\: string, file\: string, width\: int, height\: int, mime\-type\: string\}\|WP_Error but returns array\.$#'
 			identifier: return.type
 			count: 1
@@ -641,18 +629,6 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: src/Component/Monitoring/Bridge/Cloudflare/src/CloudflareMetricProvider.php
-
-		-
-			message: '#^Parameter \$wpErrorCodes of class WPPack\\Component\\PostType\\Exception\\PostException constructor expects list\<string\>, array given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Component/PostType/src/Exception/PostException.php
-
-		-
-			message: '#^Parameter \$wpErrorMessages of class WPPack\\Component\\PostType\\Exception\\PostException constructor expects list\<string\>, array\<string\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Component/PostType/src/Exception/PostException.php
 
 		-
 			message: '#^Cannot cast int\|WP_Post to int\.$#'
@@ -901,18 +877,6 @@ parameters:
 			path: src/Component/Storage/src/StreamWrapper/StorageStreamWrapper.php
 
 		-
-			message: '#^Parameter \$wpErrorCodes of class WPPack\\Component\\Taxonomy\\Exception\\TermException constructor expects list\<string\>, array given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Component/Taxonomy/src/Exception/TermException.php
-
-		-
-			message: '#^Parameter \$wpErrorMessages of class WPPack\\Component\\Taxonomy\\Exception\\TermException constructor expects list\<string\>, array\<string\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Component/Taxonomy/src/Exception/TermException.php
-
-		-
 			message: '#^Method WPPack\\Component\\Taxonomy\\TermRepository\:\:addMeta\(\) should return int\|null but returns int\|WP_Error\|null\.$#'
 			identifier: return.type
 			count: 1
@@ -959,18 +923,6 @@ parameters:
 			identifier: return.type
 			count: 1
 			path: src/Component/Taxonomy/src/TermRepository.php
-
-		-
-			message: '#^Parameter \$wpErrorCodes of class WPPack\\Component\\User\\Exception\\UserException constructor expects list\<string\>, array given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Component/User/src/Exception/UserException.php
-
-		-
-			message: '#^Parameter \$wpErrorMessages of class WPPack\\Component\\User\\Exception\\UserException constructor expects list\<string\>, array\<string\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Component/User/src/Exception/UserException.php
 
 		-
 			message: '#^Method WPPack\\Component\\User\\UserRepository\:\:findAll\(\) should return list\<WP_User\> but returns array\.$#'
