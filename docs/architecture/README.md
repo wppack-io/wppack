@@ -8,3 +8,4 @@
 - [serverless.md](./serverless.md) - サーバレスアーキテクチャ（AWS フロー詳細）
 - [testing.md](./testing.md) - テスト戦略と実行方法
 - [attributes.md](./attributes.md) - PHP Attribute 一覧
+- [maintainer-notes.md](./maintainer-notes.md) - コンポーネント固有のメンテナ向け深掘りメモ (Database / Cache / Plugin Settings / CI matrix 等)
