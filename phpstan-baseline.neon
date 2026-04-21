@@ -385,18 +385,6 @@ parameters:
 			path: src/Component/Role/src/RoleProvider.php
 
 		-
-			message: '#^Access to an undefined property object\:\:\$regex\.$#'
-			identifier: property.notFound
-			count: 1
-			path: src/Component/Routing/src/RouteRegistry.php
-
-		-
-			message: '#^Access to an undefined property object\:\:\$tag\.$#'
-			identifier: property.notFound
-			count: 1
-			path: src/Component/Routing/src/RouteRegistry.php
-
-		-
 			message: '#^Parameter \#1 \$object of static method DateTimeImmutable\:\:createFromMutable\(\) expects DateTime, DateTime\|false given\.$#'
 			identifier: argument.type
 			count: 1
