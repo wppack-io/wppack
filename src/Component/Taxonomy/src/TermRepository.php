@@ -25,7 +25,17 @@ final readonly class TermRepository implements TermRepositoryInterface
             throw TermException::fromWpError($result);
         }
 
-        return $result;
+        // The WP stub for get_terms() models the value union loosely as
+        // array<int|string|WP_Term>|string. This repository only exposes
+        // the WP_Term listing path; narrow + array_values for list<WP_Term>.
+        if (!\is_array($result)) {
+            return [];
+        }
+
+        return array_values(array_filter(
+            $result,
+            static fn($term): bool => $term instanceof \WP_Term,
+        ));
     }
 
     public function find(int $termId, string $taxonomy = ''): ?\WP_Term
@@ -60,6 +70,9 @@ final readonly class TermRepository implements TermRepositoryInterface
         return null;
     }
 
+    /**
+     * @return array{term_id: int, term_taxonomy_id: int}
+     */
     public function insert(string $term, string $taxonomy, array $args = []): array
     {
         $result = wp_insert_term($term, $taxonomy, $args);
@@ -68,9 +81,13 @@ final readonly class TermRepository implements TermRepositoryInterface
             throw TermException::fromWpError($result);
         }
 
+        /** @var array{term_id: int, term_taxonomy_id: int} $result */
         return $result;
     }
 
+    /**
+     * @return array{term_id: int, term_taxonomy_id: int}
+     */
     public function update(int $termId, string $taxonomy, array $args = []): array
     {
         $result = wp_update_term($termId, $taxonomy, $args);
@@ -79,6 +96,7 @@ final readonly class TermRepository implements TermRepositoryInterface
             throw TermException::fromWpError($result);
         }
 
+        /** @var array{term_id: int, term_taxonomy_id: int} $result */
         return $result;
     }
 
@@ -103,7 +121,13 @@ final readonly class TermRepository implements TermRepositoryInterface
 
     public function updateMeta(int $termId, string $key, mixed $value, mixed $previousValue = ''): int|bool
     {
-        return update_term_meta($termId, $key, $value, $previousValue);
+        $result = update_term_meta($termId, $key, $value, $previousValue);
+
+        if ($result instanceof \WP_Error) {
+            throw TermException::fromWpError($result);
+        }
+
+        return $result;
     }
 
     public function deleteMeta(int $termId, string $key, mixed $value = ''): bool
@@ -119,7 +143,7 @@ final readonly class TermRepository implements TermRepositoryInterface
             throw TermException::fromWpError($result);
         }
 
-        return $result;
+        return array_values(array_map('intval', $result));
     }
 
     public function addObjectTerms(int $objectId, array $terms, string $taxonomy): array
@@ -130,7 +154,7 @@ final readonly class TermRepository implements TermRepositoryInterface
             throw TermException::fromWpError($result);
         }
 
-        return $result;
+        return array_values(array_map('intval', $result));
     }
 
     public function removeObjectTerms(int $objectId, array $terms, string $taxonomy): bool
@@ -152,7 +176,17 @@ final readonly class TermRepository implements TermRepositoryInterface
             throw TermException::fromWpError($result);
         }
 
-        return $result;
+        // wp_get_object_terms() can return string under 'fields' => 'all'
+        // (terms as a comma-separated string) per the WP stub union; we
+        // don't expose that mode, so guard + filter to list<WP_Term>.
+        if (!\is_array($result)) {
+            return [];
+        }
+
+        return array_values(array_filter(
+            $result,
+            static fn($term): bool => $term instanceof \WP_Term,
+        ));
     }
 
     private function findBy(string $field, string $value, string $taxonomy): ?\WP_Term

@@ -841,48 +841,6 @@ parameters:
 			path: src/Component/Taxonomy/src/TermRepository.php
 
 		-
-			message: '#^Method WPPack\\Component\\Taxonomy\\TermRepository\:\:addObjectTerms\(\) should return list\<int\> but returns array\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Component/Taxonomy/src/TermRepository.php
-
-		-
-			message: '#^Method WPPack\\Component\\Taxonomy\\TermRepository\:\:findAll\(\) should return list\<WP_Term\> but returns array\<int\|string\|WP_Term\>\|string\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Component/Taxonomy/src/TermRepository.php
-
-		-
-			message: '#^Method WPPack\\Component\\Taxonomy\\TermRepository\:\:getObjectTerms\(\) should return list\<WP_Term\> but returns array\<int\|string\|WP_Term\>\|string\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Component/Taxonomy/src/TermRepository.php
-
-		-
-			message: '#^Method WPPack\\Component\\Taxonomy\\TermRepository\:\:insert\(\) should return array\{term_id\: int, term_taxonomy_id\: int\} but returns array\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Component/Taxonomy/src/TermRepository.php
-
-		-
-			message: '#^Method WPPack\\Component\\Taxonomy\\TermRepository\:\:setObjectTerms\(\) should return list\<int\> but returns array\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Component/Taxonomy/src/TermRepository.php
-
-		-
-			message: '#^Method WPPack\\Component\\Taxonomy\\TermRepository\:\:update\(\) should return array\{term_id\: int, term_taxonomy_id\: int\} but returns array\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Component/Taxonomy/src/TermRepository.php
-
-		-
-			message: '#^Method WPPack\\Component\\Taxonomy\\TermRepository\:\:updateMeta\(\) should return bool\|int but returns bool\|int\|WP_Error\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Component/Taxonomy/src/TermRepository.php
-
-		-
 			message: '#^Method WPPack\\Component\\User\\UserRepository\:\:findAll\(\) should return list\<WP_User\> but returns array\.$#'
 			identifier: return.type
 			count: 1
