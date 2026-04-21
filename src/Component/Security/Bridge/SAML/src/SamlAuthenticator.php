@@ -177,7 +177,7 @@ final class SamlAuthenticator implements AuthenticatorInterface
 
         return new PostAuthenticationToken(
             $user,
-            $user->roles,
+            array_values($user->roles),
             $blogId,
         );
     }

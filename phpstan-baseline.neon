@@ -721,12 +721,6 @@ parameters:
 			path: src/Component/Scim/src/Repository/ScimUserRepository.php
 
 		-
-			message: '#^Parameter \#2 \$roles of class WPPack\\Component\\Security\\Authentication\\Token\\PostAuthenticationToken constructor expects list\<string\>, array\<string\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Component/Security/Bridge/OAuth/src/OAuthAuthenticator.php
-
-		-
 			message: '#^Parameter \#1 \$length of function random_bytes expects int\<1, max\>, int given\.$#'
 			identifier: argument.type
 			count: 1
@@ -769,12 +763,6 @@ parameters:
 			path: src/Component/Security/Bridge/SAML/src/SamlAuthenticator.php
 
 		-
-			message: '#^Parameter \#2 \$roles of class WPPack\\Component\\Security\\Authentication\\Token\\PostAuthenticationToken constructor expects list\<string\>, array\<string\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Component/Security/Bridge/SAML/src/SamlAuthenticator.php
-
-		-
 			message: '#^Call to an undefined method object\:\:getUserMeta\(\)\.$#'
 			identifier: method.notFound
 			count: 2
@@ -785,24 +773,6 @@ parameters:
 			identifier: method.notFound
 			count: 2
 			path: src/Component/Security/Bridge/SAML/src/UserResolution/SamlUserResolver.php
-
-		-
-			message: '#^Parameter \#2 \$roles of class WPPack\\Component\\Security\\Authentication\\Token\\PostAuthenticationToken constructor expects list\<string\>, array\<string\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Component/Security/src/Authentication/Authenticator/ApplicationPasswordAuthenticator.php
-
-		-
-			message: '#^Parameter \#2 \$roles of class WPPack\\Component\\Security\\Authentication\\Token\\PostAuthenticationToken constructor expects list\<string\>, array\<string\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Component/Security/src/Authentication/Authenticator/CookieAuthenticator.php
-
-		-
-			message: '#^Parameter \#2 \$roles of class WPPack\\Component\\Security\\Authentication\\Token\\PostAuthenticationToken constructor expects list\<string\>, array\<string\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Component/Security/src/Authentication/Authenticator/FormLoginAuthenticator.php
 
 		-
 			message: '#^Method WPPack\\Component\\Security\\Authentication\\Passport\\Passport\:\:getBadge\(\) should return \(T of WPPack\\Component\\Security\\Authentication\\Passport\\Badge\\BadgeInterface\)\|null but returns WPPack\\Component\\Security\\Authentication\\Passport\\Badge\\BadgeInterface\|null\.$#'

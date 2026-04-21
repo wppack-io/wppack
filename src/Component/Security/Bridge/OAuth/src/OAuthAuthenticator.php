@@ -107,7 +107,7 @@ final class OAuthAuthenticator implements AuthenticatorInterface
 
         return new PostAuthenticationToken(
             $user,
-            $user->roles,
+            array_values($user->roles),
             $blogId,
         );
     }

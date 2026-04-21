@@ -56,7 +56,7 @@ final class FormLoginAuthenticator implements AuthenticatorInterface
         $user = $passport->getUser();
         $blogId = $this->blogContext->getCurrentBlogId();
 
-        return new PostAuthenticationToken($user, $user->roles, $blogId);
+        return new PostAuthenticationToken($user, array_values($user->roles), $blogId);
     }
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token): ?Response
