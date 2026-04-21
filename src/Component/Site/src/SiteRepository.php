@@ -21,7 +21,20 @@ final readonly class SiteRepository implements SiteRepositoryInterface
             return [];
         }
 
-        return get_sites($args);
+        // The WP stub for get_sites() models the value union loosely as
+        // array<int|WP_Site>|int (int element appears when 'count' => true
+        // is passed, in which case the result is also int total). This
+        // repository only exposes the listing path, so guard + filter to
+        // narrow to a clean list<WP_Site>.
+        $sites = get_sites($args);
+        if (!\is_array($sites)) {
+            return [];
+        }
+
+        return array_values(array_filter(
+            $sites,
+            static fn($site): bool => $site instanceof \WP_Site,
+        ));
     }
 
     public function find(int $blogId): ?\WP_Site
@@ -63,7 +76,12 @@ final readonly class SiteRepository implements SiteRepositoryInterface
             return [];
         }
 
+        // 'count' is not set, so get_sites returns array<int, WP_Site>;
+        // is_array() narrows away the int return that the stub also models.
         $sites = get_sites(['number' => 0]);
+        if (!\is_array($sites)) {
+            return [];
+        }
 
         return array_values(array_unique(
             array_map(static fn(\WP_Site $site): string => $site->domain, $sites),

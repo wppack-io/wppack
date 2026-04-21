@@ -799,19 +799,7 @@ parameters:
 			path: src/Component/Serializer/src/Serializer.php
 
 		-
-			message: '#^Method WPPack\\Component\\Site\\SiteRepository\:\:findAll\(\) should return list\<WP_Site\> but returns array\<int\|WP_Site\>\|int\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Component/Site/src/SiteRepository.php
-
-		-
 			message: '#^Parameter \#1 \$callback of function array_map expects \(callable\(int\|WP_Site\)\: mixed\)\|null, Closure\(WP_Site\)\: string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Component/Site/src/SiteRepository.php
-
-		-
-			message: '#^Parameter \#2 \$array of function array_map expects array, array\<int\|WP_Site\>\|int given\.$#'
 			identifier: argument.type
 			count: 1
 			path: src/Component/Site/src/SiteRepository.php
