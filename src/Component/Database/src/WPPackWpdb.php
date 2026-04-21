@@ -425,7 +425,7 @@ class WPPackWpdb extends \wpdb
     {
         $data = $this->validateAndFlatten($table, $data, $format);
 
-        if ($data === false) {
+        if ($data === null) {
             return false;
         }
 
@@ -445,7 +445,7 @@ class WPPackWpdb extends \wpdb
     {
         $data = $this->validateAndFlatten($table, $data, $format);
 
-        if ($data === false) {
+        if ($data === null) {
             return false;
         }
 
@@ -467,13 +467,13 @@ class WPPackWpdb extends \wpdb
     {
         $data = $this->validateAndFlatten($table, $data, $format);
 
-        if ($data === false) {
+        if ($data === null) {
             return false;
         }
 
         $where = $this->validateAndFlatten($table, $where, $where_format);
 
-        if ($where === false) {
+        if ($where === null) {
             return false;
         }
 
@@ -515,7 +515,7 @@ class WPPackWpdb extends \wpdb
     {
         $where = $this->validateAndFlatten($table, $where, $where_format);
 
-        if ($where === false) {
+        if ($where === null) {
             return false;
         }
 
@@ -1309,20 +1309,16 @@ class WPPackWpdb extends \wpdb
     }
 
     /**
-     * @param array<string, mixed>      $data
-     * @param array<string>|string|null $format
-     *
-     * @return int|false
-     */
-    /**
      * Run wpdb's field validation (format / charset / length) when the
      * underlying connection is mysqli — the exact pre-flight checks
      * wpdb::_insert_replace_helper() would normally apply — and flatten the
      * resulting tagged structure back to [column => value] for our own
      * executeInsertReplace() / update() paths.
      *
-     * Returning false mirrors the standard wpdb behavior: the caller must
-     * abort the statement so wp_insert_post() can report a WP_Error.
+     * Returning null mirrors the standard wpdb behavior (validation rejected,
+     * the caller must abort so wp_insert_post() can report a WP_Error) —
+     * process_fields() itself returns false, which we normalise to null for
+     * a modern ?array contract on this private helper.
      *
      * For non-mysqli drivers (SQLite, PostgreSQL, Aurora Data API) the
      * DESCRIBE / SHOW FULL COLUMNS queries that feed process_fields are not
@@ -1332,9 +1328,9 @@ class WPPackWpdb extends \wpdb
      * @param array<string, mixed>      $data
      * @param array<string>|string|null $format
      *
-     * @return array<string, mixed>|false
+     * @return array<string, mixed>|null
      */
-    private function validateAndFlatten(string $table, array $data, array|string|null $format): array|false
+    private function validateAndFlatten(string $table, array $data, array|string|null $format): ?array
     {
         // process_fields() runs DESCRIBE / SHOW FULL COLUMNS queries, which
         // only make sense on MySQL/MariaDB. Skip the pre-flight entirely for
@@ -1347,7 +1343,7 @@ class WPPackWpdb extends \wpdb
         $processed = $this->process_fields($table, $data, $format);
 
         if ($processed === false) {
-            return false;
+            return null;
         }
 
         $flat = [];
