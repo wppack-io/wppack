@@ -493,6 +493,10 @@ final class WpressArchive implements \Countable
 
         while (!feof($this->handle)) {
             $offset = ftell($this->handle);
+            if ($offset === false) {
+                return null;
+            }
+
             $headerData = fread($this->handle, Header::SIZE);
 
             if ($headerData === false || \strlen($headerData) < Header::SIZE) {

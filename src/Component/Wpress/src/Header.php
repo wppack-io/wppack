@@ -47,6 +47,9 @@ final class Header
         }
 
         $fields = unpack(self::UNPACK_FORMAT, $data);
+        if ($fields === false) {
+            throw new InvalidArgumentException('Failed to unpack header data.');
+        }
 
         return new self(
             name: rtrim($fields['name'], "\0"),

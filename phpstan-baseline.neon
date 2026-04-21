@@ -907,42 +907,6 @@ parameters:
 			path: src/Component/Wpress/src/ContentProcessor/CompressedContentProcessor.php
 
 		-
-			message: '#^Cannot access offset ''crc32'' on array\|false\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: src/Component/Wpress/src/Header.php
-
-		-
-			message: '#^Cannot access offset ''mtime'' on array\|false\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: src/Component/Wpress/src/Header.php
-
-		-
-			message: '#^Cannot access offset ''name'' on array\|false\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: src/Component/Wpress/src/Header.php
-
-		-
-			message: '#^Cannot access offset ''prefix'' on array\|false\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: src/Component/Wpress/src/Header.php
-
-		-
-			message: '#^Cannot access offset ''size'' on array\|false\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: src/Component/Wpress/src/Header.php
-
-		-
-			message: '#^Method WPPack\\Component\\Wpress\\WpressArchive\:\:findEofOffset\(\) should return int\|null but returns int\|false\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Component/Wpress/src/WpressArchive.php
-
-		-
 			message: '#^Parameter \#1 \$data of static method WPPack\\Component\\Wpress\\Header\:\:fromBinary\(\) expects string, string\|false given\.$#'
 			identifier: argument.type
 			count: 1
