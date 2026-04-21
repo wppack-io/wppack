@@ -19,6 +19,12 @@ use WPPack\Component\Cache\Adapter\AbstractHashableAdapter;
  * Base adapter for ext-redis and ext-relay standalone connections.
  *
  * Subclasses only need to implement getName() and createConnection().
+ *
+ * phpredis / Relay stubs type many methods as `bool|Redis|Relay\Relay`
+ * because the client is returned when chaining inside MULTI / pipeline
+ * mode. In this adapter we never enter MULTI mode on the shared
+ * connection, so runtime returns are always scalar. Call sites narrow
+ * explicitly and treat any object return as an invariant violation.
  */
 abstract class AbstractNativeAdapter extends AbstractHashableAdapter
 {
@@ -57,6 +63,10 @@ abstract class AbstractNativeAdapter extends AbstractHashableAdapter
         $values = $this->getConnection()->mget($keys);
         $results = [];
 
+        if (!\is_array($values)) {
+            return \array_fill_keys($keys, null);
+        }
+
         foreach ($keys as $i => $key) {
             $value = $values[$i] ?? false;
             $results[$key] = $value === false ? null : (string) $value;
@@ -74,12 +84,11 @@ abstract class AbstractNativeAdapter extends AbstractHashableAdapter
         }
 
         $connection = $this->getConnection();
+        $result = $ttl > 0
+            ? $connection->setex($key, $ttl, $value)
+            : $connection->set($key, $value);
 
-        if ($ttl > 0) {
-            return $connection->setex($key, $ttl, $value);
-        }
-
-        return $connection->set($key, $value);
+        return \is_bool($result) && $result;
     }
 
     protected function doSetMultiple(array $values, int $ttl = 0): array
@@ -89,7 +98,7 @@ abstract class AbstractNativeAdapter extends AbstractHashableAdapter
 
             if ($keys !== []) {
                 $connection = $this->getConnection();
-                $pipeline = $connection->pipeline();
+                $pipeline = $this->openPipeline($connection);
 
                 foreach ($keys as $key) {
                     $pipeline->del($key);
@@ -102,8 +111,7 @@ abstract class AbstractNativeAdapter extends AbstractHashableAdapter
         }
 
         $connection = $this->getConnection();
-
-        $pipeline = $connection->pipeline();
+        $pipeline = $this->openPipeline($connection);
 
         foreach ($values as $key => $value) {
             if ($ttl > 0) {
@@ -113,7 +121,7 @@ abstract class AbstractNativeAdapter extends AbstractHashableAdapter
             }
         }
 
-        $pipelineResults = $pipeline->exec();
+        $pipelineResults = self::asList($pipeline->exec());
 
         $results = [];
         $i = 0;
@@ -157,13 +165,13 @@ abstract class AbstractNativeAdapter extends AbstractHashableAdapter
         }
 
         $connection = $this->getConnection();
-        $pipeline = $connection->pipeline();
+        $pipeline = $this->openPipeline($connection);
 
         foreach ($keys as $key) {
             $this->asyncFlush ? $pipeline->unlink($key) : $pipeline->del($key);
         }
 
-        $pipelineResults = $pipeline->exec();
+        $pipelineResults = self::asList($pipeline->exec());
         $results = [];
 
         foreach ($keys as $i => $key) {
@@ -181,7 +189,9 @@ abstract class AbstractNativeAdapter extends AbstractHashableAdapter
             return null;
         }
 
-        return $connection->incrby($key, $offset);
+        $result = $connection->incrby($key, $offset);
+
+        return \is_int($result) ? $result : null;
     }
 
     protected function doDecrement(string $key, int $offset = 1): ?int
@@ -192,14 +202,16 @@ abstract class AbstractNativeAdapter extends AbstractHashableAdapter
             return null;
         }
 
-        return $connection->decrby($key, $offset);
+        $result = $connection->decrby($key, $offset);
+
+        return \is_int($result) ? $result : null;
     }
 
     protected function doHashGetAll(string $key): array
     {
         $result = $this->getConnection()->hGetAll($key);
 
-        if ($result === false || $result === []) {
+        if (!\is_array($result) || $result === []) {
             return [];
         }
 
@@ -224,7 +236,9 @@ abstract class AbstractNativeAdapter extends AbstractHashableAdapter
             return true;
         }
 
-        return $this->getConnection()->hMSet($key, $fields);
+        $result = $this->getConnection()->hMSet($key, $fields);
+
+        return \is_bool($result) && $result;
     }
 
     protected function doHashDeleteMultiple(string $key, array $fields): bool
@@ -248,7 +262,9 @@ abstract class AbstractNativeAdapter extends AbstractHashableAdapter
         $connection = $this->getConnection();
 
         if ($prefix === '') {
-            return $connection->flushdb();
+            $result = $connection->flushdb();
+
+            return \is_bool($result) && $result;
         }
 
         return $this->deleteByPrefix($connection, $prefix);
@@ -331,6 +347,34 @@ abstract class AbstractNativeAdapter extends AbstractHashableAdapter
     }
 
     /**
+     * Open a pipeline on the given connection, asserting that the client
+     * returned itself (non-MULTI invariant for this adapter).
+     *
+     * @param \Redis|\Relay\Relay $connection
+     * @return \Redis|\Relay\Relay
+     */
+    private function openPipeline(object $connection): object
+    {
+        $pipeline = $connection->pipeline();
+
+        if (!$pipeline instanceof \Redis && !$pipeline instanceof \Relay\Relay) {
+            throw new \RuntimeException('Redis pipeline() did not return the client');
+        }
+
+        return $pipeline;
+    }
+
+    /**
+     * Narrow a pipeline `exec()` return to a positional result list.
+     *
+     * @return list<mixed>
+     */
+    private static function asList(mixed $result): array
+    {
+        return \is_array($result) ? \array_values($result) : [];
+    }
+
+    /**
      * @param \Redis|\Relay\Relay $connection
      */
     private function deleteByPrefix(object $connection, string $prefix): bool
@@ -341,7 +385,7 @@ abstract class AbstractNativeAdapter extends AbstractHashableAdapter
         do {
             $keys = $connection->scan($cursor, $pattern, 100);
 
-            if ($keys !== false && $keys !== []) {
+            if (\is_array($keys) && $keys !== []) {
                 $this->asyncFlush ? $connection->unlink(...$keys) : $connection->del(...$keys);
             }
         } while ($cursor > 0);

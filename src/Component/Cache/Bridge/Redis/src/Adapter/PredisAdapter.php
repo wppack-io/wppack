@@ -108,6 +108,10 @@ final class PredisAdapter extends AbstractHashableAdapter
             }
         });
 
+        if (!\is_array($responses)) {
+            return \array_fill_keys(\array_keys($values), false);
+        }
+
         $i = 0;
         foreach ($values as $key => $value) {
             $response = $responses[$i] ?? null;
@@ -165,6 +169,10 @@ final class PredisAdapter extends AbstractHashableAdapter
                 }
             }
         });
+
+        if (!\is_array($responses)) {
+            return \array_fill_keys($keys, false);
+        }
 
         foreach ($keys as $i => $key) {
             $results[$key] = ($responses[$i] ?? 0) >= 0;

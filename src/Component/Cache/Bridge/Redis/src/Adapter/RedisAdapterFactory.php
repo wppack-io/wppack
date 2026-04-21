@@ -254,10 +254,11 @@ final class RedisAdapterFactory implements AdapterFactoryInterface
             $params['redis_sentinel'] = $redisSentinel;
 
             // Build sentinel hosts
-            if (isset($params['hosts'])) {
+            $hosts = $params['hosts'] ?? null;
+            if (\is_array($hosts)) {
                 $sentinelHosts = [];
-                foreach ($params['hosts'] as $hostSpec) {
-                    $parts = explode(':', $hostSpec);
+                foreach ($hosts as $hostSpec) {
+                    $parts = explode(':', (string) $hostSpec);
                     $sentinelHosts[] = [
                         'host' => $parts[0],
                         'port' => isset($parts[1]) ? (int) $parts[1] : 26379,

@@ -19,6 +19,12 @@ use WPPack\Component\Cache\Adapter\AbstractHashableAdapter;
  * Base adapter for ext-redis and ext-relay cluster connections.
  *
  * Subclasses only need to implement getName() and createConnection().
+ *
+ * Relay cluster stubs type several methods as returning the cluster
+ * client itself for chaining in MULTI mode. This adapter never enters
+ * MULTI mode on the shared connection, so runtime returns are always
+ * scalar; call sites narrow explicitly and treat any object return as
+ * an invariant violation.
  */
 abstract class AbstractNativeClusterAdapter extends AbstractHashableAdapter
 {
@@ -57,6 +63,10 @@ abstract class AbstractNativeClusterAdapter extends AbstractHashableAdapter
         $values = $this->getConnection()->mget($keys);
         $results = [];
 
+        if (!\is_array($values)) {
+            return \array_fill_keys($keys, null);
+        }
+
         foreach ($keys as $i => $key) {
             $value = $values[$i] ?? false;
             $results[$key] = $value === false ? null : (string) $value;
@@ -74,12 +84,11 @@ abstract class AbstractNativeClusterAdapter extends AbstractHashableAdapter
         }
 
         $connection = $this->getConnection();
+        $result = $ttl > 0
+            ? $connection->setex($key, $ttl, $value)
+            : $connection->set($key, $value);
 
-        if ($ttl > 0) {
-            return $connection->setex($key, $ttl, $value);
-        }
-
-        return $connection->set($key, $value);
+        return \is_bool($result) && $result;
     }
 
     protected function doSetMultiple(array $values, int $ttl = 0): array
@@ -98,11 +107,10 @@ abstract class AbstractNativeClusterAdapter extends AbstractHashableAdapter
         $results = [];
 
         foreach ($values as $key => $value) {
-            if ($ttl > 0) {
-                $results[$key] = $connection->setex($key, $ttl, $value);
-            } else {
-                $results[$key] = $connection->set($key, $value);
-            }
+            $raw = $ttl > 0
+                ? $connection->setex($key, $ttl, $value)
+                : $connection->set($key, $value);
+            $results[$key] = \is_bool($raw) && $raw;
         }
 
         return $results;
@@ -156,7 +164,9 @@ abstract class AbstractNativeClusterAdapter extends AbstractHashableAdapter
             return null;
         }
 
-        return $connection->incrby($key, $offset);
+        $result = $connection->incrby($key, $offset);
+
+        return \is_int($result) ? $result : null;
     }
 
     protected function doDecrement(string $key, int $offset = 1): ?int
@@ -167,14 +177,16 @@ abstract class AbstractNativeClusterAdapter extends AbstractHashableAdapter
             return null;
         }
 
-        return $connection->decrby($key, $offset);
+        $result = $connection->decrby($key, $offset);
+
+        return \is_int($result) ? $result : null;
     }
 
     protected function doHashGetAll(string $key): array
     {
         $result = $this->getConnection()->hGetAll($key);
 
-        if ($result === false || $result === []) {
+        if (!\is_array($result) || $result === []) {
             return [];
         }
 
@@ -199,7 +211,9 @@ abstract class AbstractNativeClusterAdapter extends AbstractHashableAdapter
             return true;
         }
 
-        return $this->getConnection()->hMSet($key, $fields);
+        $result = $this->getConnection()->hMSet($key, $fields);
+
+        return \is_bool($result) && $result;
     }
 
     protected function doHashDeleteMultiple(string $key, array $fields): bool
@@ -330,7 +344,7 @@ abstract class AbstractNativeClusterAdapter extends AbstractHashableAdapter
             do {
                 $keys = $connection->scan($cursor, $master, $pattern, 100);
 
-                if ($keys !== false && $keys !== []) {
+                if (\is_array($keys) && $keys !== []) {
                     foreach ($keys as $key) {
                         $this->asyncFlush ? $connection->unlink($key) : $connection->del($key);
                     }
