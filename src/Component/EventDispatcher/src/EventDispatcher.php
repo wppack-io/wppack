@@ -22,7 +22,10 @@ final class EventDispatcher implements EventDispatcherInterface
     /**
      * Wrapped listeners indexed by hook name, priority, and sequence.
      *
-     * @var array<string, array<int, list<array{original: callable, wrapped: \Closure}>>>
+     * Inner sequence is `array<int, ...>` (not list) because
+     * `removeListener()` uses `unset()` which leaves holes.
+     *
+     * @var array<string, array<int, array<int, array{original: callable, wrapped: \Closure}>>>
      */
     private array $wrappedListeners = [];
 
@@ -38,11 +41,11 @@ final class EventDispatcher implements EventDispatcherInterface
     }
 
     /**
-     * @param string                          $event        FQCN or WordPress hook name
-     * @param callable                        $listener     Listener callable
-     * @param int                             $priority     Priority (WordPress style: lower = earlier)
-     * @param int                             $acceptedArgs Number of arguments for WordPress hooks (default: PHP_INT_MAX = all)
-     * @param string|null $eventClass  Event class for WordPress hooks
+     * @param string      $event        FQCN or WordPress hook name
+     * @param callable    $listener     Listener callable
+     * @param int         $priority     Priority (WordPress style: lower = earlier)
+     * @param int         $acceptedArgs Number of arguments for WordPress hooks (default: PHP_INT_MAX = all)
+     * @param string|null $eventClass   Event class for WordPress hooks
      */
     public function addListener(
         string $event,
@@ -104,15 +107,18 @@ final class EventDispatcher implements EventDispatcherInterface
     public function addSubscriber(EventSubscriberInterface $subscriber): void
     {
         foreach ($subscriber::getSubscribedEvents() as $event => $params) {
-            if (\is_string($params)) {
-                $this->addListener($event, [$subscriber, $params]);
-            } elseif (\is_string($params[0] ?? null)) {
-                $this->addSubscriberListener($event, $subscriber, $params);
-            } else {
-                /** @var list<array{string, int}|array{string, int, int}|array{string, int, int, class-string<WordPressEvent>}> $params */
-                foreach ($params as $p) {
-                    $this->addSubscriberListener($event, $subscriber, $p);
+            foreach ($this->normalizeSubscriberParams($params) as $spec) {
+                $callback = [$subscriber, $spec['method']];
+                if (!\is_callable($callback)) {
+                    continue;
                 }
+                $this->addListener(
+                    $event,
+                    $callback,
+                    $spec['priority'],
+                    $spec['acceptedArgs'],
+                    $spec['eventClass'],
+                );
             }
         }
     }
@@ -120,14 +126,12 @@ final class EventDispatcher implements EventDispatcherInterface
     public function removeSubscriber(EventSubscriberInterface $subscriber): void
     {
         foreach ($subscriber::getSubscribedEvents() as $event => $params) {
-            if (\is_string($params)) {
-                $this->removeListener($event, [$subscriber, $params]);
-            } elseif (\is_string($params[0] ?? null)) {
-                $this->removeListener($event, [$subscriber, $params[0]], $params[1] ?? 10);
-            } else {
-                foreach ($params as $p) {
-                    $this->removeListener($event, [$subscriber, $p[0]], $p[1] ?? 10);
+            foreach ($this->normalizeSubscriberParams($params) as $spec) {
+                $callback = [$subscriber, $spec['method']];
+                if (!\is_callable($callback)) {
+                    continue;
                 }
+                $this->removeListener($event, $callback, $spec['priority']);
             }
         }
     }
@@ -138,19 +142,78 @@ final class EventDispatcher implements EventDispatcherInterface
     }
 
     /**
-     * @param array<int, mixed> $params
+     * Flatten the polymorphic `getSubscribedEvents()` value shape into a
+     * uniform list of listener specs.
+     *
+     * Accepted input forms (per EventSubscriberInterface contract):
+     *  - `'methodName'`
+     *  - `['methodName', priority]`
+     *  - `['methodName', priority, acceptedArgs]`
+     *  - `['methodName', priority, acceptedArgs, eventClass]`
+     *  - `[['methodName1', priority], ['methodName2', priority], ...]`
+     *
+     * @param string|array<int, mixed> $params
+     *
+     * @return list<array{method: string, priority: int, acceptedArgs: int, eventClass: class-string<WordPressEvent>|null}>
      */
-    private function addSubscriberListener(string $event, EventSubscriberInterface $subscriber, array $params): void
+    private function normalizeSubscriberParams(string|array $params): array
     {
-        /** @var string $method */
-        $method = $params[0];
-        /** @var int $priority */
-        $priority = $params[1] ?? 10;
-        /** @var int $acceptedArgs */
-        $acceptedArgs = $params[2] ?? \PHP_INT_MAX;
-        /** @var string|null $eventClass */
-        $eventClass = $params[3] ?? null;
+        if (\is_string($params)) {
+            return [$this->makeSpec($params)];
+        }
 
-        $this->addListener($event, [$subscriber, $method], $priority, $acceptedArgs, $eventClass);
+        // Single tuple: first element is the method name string
+        if (\is_string($params[0] ?? null)) {
+            return [$this->tupleToSpec($params)];
+        }
+
+        // List of tuples
+        $specs = [];
+        foreach ($params as $tuple) {
+            if (\is_array($tuple) && \is_string($tuple[0] ?? null)) {
+                $specs[] = $this->tupleToSpec($tuple);
+            }
+        }
+
+        return $specs;
+    }
+
+    /**
+     * @param array<int, mixed> $tuple
+     *
+     * @return array{method: string, priority: int, acceptedArgs: int, eventClass: class-string<WordPressEvent>|null}
+     */
+    private function tupleToSpec(array $tuple): array
+    {
+        $method = $tuple[0] ?? null;
+        $priority = $tuple[1] ?? 10;
+        $acceptedArgs = $tuple[2] ?? \PHP_INT_MAX;
+        $eventClass = $tuple[3] ?? null;
+
+        return $this->makeSpec(
+            \is_string($method) ? $method : '',
+            \is_int($priority) ? $priority : 10,
+            \is_int($acceptedArgs) ? $acceptedArgs : \PHP_INT_MAX,
+            \is_string($eventClass) && is_subclass_of($eventClass, WordPressEvent::class) ? $eventClass : null,
+        );
+    }
+
+    /**
+     * @param class-string<WordPressEvent>|null $eventClass
+     *
+     * @return array{method: string, priority: int, acceptedArgs: int, eventClass: class-string<WordPressEvent>|null}
+     */
+    private function makeSpec(
+        string $method,
+        int $priority = 10,
+        int $acceptedArgs = \PHP_INT_MAX,
+        ?string $eventClass = null,
+    ): array {
+        return [
+            'method' => $method,
+            'priority' => $priority,
+            'acceptedArgs' => $acceptedArgs,
+            'eventClass' => $eventClass,
+        ];
     }
 }
