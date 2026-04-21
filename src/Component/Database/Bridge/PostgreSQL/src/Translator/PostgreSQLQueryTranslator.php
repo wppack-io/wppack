@@ -160,7 +160,10 @@ final class PostgreSQLQueryTranslator implements QueryTranslatorInterface
         // stand-alone ROLLBACK/COMMIT, which the library flags with "No
         // transaction was previously started", still flows through.
         if ($parser->errors !== []) {
-            $messages = array_map(static fn(\Throwable $e): string => $e->getMessage(), $parser->errors);
+            $messages = array_values(array_map(
+                static fn(\Throwable $e): string => $e->getMessage(),
+                $parser->errors,
+            ));
 
             if ($parser->statements === []) {
                 $this->logger?->error('PostgreSQL query translation failed', [

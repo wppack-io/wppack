@@ -176,7 +176,10 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
         // combination of "errors AND no statement produced" as a hard
         // translation failure: anything else is a hint we log but continue.
         if ($parser->errors !== []) {
-            $messages = array_map(static fn(\Throwable $e): string => $e->getMessage(), $parser->errors);
+            $messages = array_values(array_map(
+                static fn(\Throwable $e): string => $e->getMessage(),
+                $parser->errors,
+            ));
 
             if ($parser->statements === []) {
                 $this->logger?->error('SQLite query translation failed', [

@@ -241,12 +241,6 @@ parameters:
 			path: src/Component/Database/Bridge/PostgreSQL/src/Translator/PostgreSQLQueryTranslator.php
 
 		-
-			message: '#^Parameter \#3 \$parserErrors of class WPPack\\Component\\Database\\Exception\\ParserFailureException constructor expects list\<string\>, non\-empty\-array\<string\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Component/Database/Bridge/PostgreSQL/src/Translator/PostgreSQLQueryTranslator.php
-
-		-
 			message: '#^Parameter \#2 \$params of method WPPack\\Component\\Database\\Driver\\AbstractDriver\:\:executeQuery\(\) expects list\<mixed\>, array given\.$#'
 			identifier: argument.type
 			count: 1
@@ -302,12 +296,6 @@ parameters:
 
 		-
 			message: '#^Parameter \#1 \$tokens of class WPPack\\Component\\Database\\Sql\\QueryRewriter constructor expects list\<PhpMyAdmin\\SqlParser\\Token\>, array\<PhpMyAdmin\\SqlParser\\Token\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Component/Database/Bridge/Sqlite/src/Translator/SqliteQueryTranslator.php
-
-		-
-			message: '#^Parameter \#3 \$parserErrors of class WPPack\\Component\\Database\\Exception\\ParserFailureException constructor expects list\<string\>, non\-empty\-array\<string\> given\.$#'
 			identifier: argument.type
 			count: 1
 			path: src/Component/Database/Bridge/Sqlite/src/Translator/SqliteQueryTranslator.php
