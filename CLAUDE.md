@@ -83,10 +83,11 @@ Distributed as WordPress plugins. Built on top of Components.
 ## Component & Plugin Catalogue
 
 The authoritative catalogue of components, bridges, and plugins — along with
-descriptions and layer classification — lives in the docs tree:
+descriptions and concern-domain category — lives in the docs tree:
 
 - [docs/components/README.md](docs/components/README.md) — every component and
-  bridge, grouped by layer (Infrastructure / Abstraction / Feature / Application).
+  bridge, grouped by the 8 concern-domain categories (Substrate / Data /
+  Content / Identity & Security / HTTP / Presentation / Admin / Utility).
 - [docs/plugins/README.md](docs/plugins/README.md) — distributable WordPress
   plugins built on the components.
 
