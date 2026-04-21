@@ -7,3 +7,6 @@ package-lock.json
 
 /docs/specifications/
 .claude/
+
+# make-pot (@wp-blocks/make-pot) side-effect lint log
+audit.log
