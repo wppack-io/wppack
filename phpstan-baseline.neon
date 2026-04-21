@@ -571,18 +571,6 @@ parameters:
 			path: src/Component/Widget/src/AbstractWidget.php
 
 		-
-			message: '#^Cannot access offset 1 on array\|false\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: src/Component/Wpress/src/ContentProcessor/ChainContentProcessor.php
-
-		-
-			message: '#^Cannot access offset 1 on array\|false\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: src/Component/Wpress/src/ContentProcessor/CompressedContentProcessor.php
-
-		-
 			message: '#^Parameter \#2 \$length of function fread expects int\<1, max\>, int\<min, \-1\>\|int\<1, max\> given\.$#'
 			identifier: argument.type
 			count: 1

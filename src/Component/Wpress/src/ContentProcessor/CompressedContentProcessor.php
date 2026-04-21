@@ -45,6 +45,9 @@ final class CompressedContentProcessor implements ContentProcessorInterface
             }
 
             $sizeData = unpack('N', substr($data, $offset, self::SIZE_HEADER_LENGTH));
+            if ($sizeData === false) {
+                throw new ArchiveException('Compressed data is truncated: failed to unpack size header.');
+            }
             $chunkSize = $sizeData[1];
             $offset += self::SIZE_HEADER_LENGTH;
 

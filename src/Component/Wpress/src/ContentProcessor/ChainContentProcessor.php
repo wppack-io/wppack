@@ -60,6 +60,9 @@ final class ChainContentProcessor implements ContentProcessorInterface
             }
 
             $sizeData = unpack('N', substr($data, $offset, self::SIZE_HEADER_LENGTH));
+            if ($sizeData === false) {
+                throw new ArchiveException('Chain data is truncated: failed to unpack size header.');
+            }
             $chunkSize = $sizeData[1];
             $offset += self::SIZE_HEADER_LENGTH;
 
