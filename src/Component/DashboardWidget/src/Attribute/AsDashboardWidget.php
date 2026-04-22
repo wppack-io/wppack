@@ -16,6 +16,10 @@ namespace WPPack\Component\DashboardWidget\Attribute;
 #[\Attribute(\Attribute::TARGET_CLASS)]
 final class AsDashboardWidget
 {
+    /**
+     * @param 'column3'|'column4'|'normal'|'side' $context
+     * @param 'core'|'default'|'high'|'low'       $priority
+     */
     public function __construct(
         public readonly string $id,
         public readonly string $label,

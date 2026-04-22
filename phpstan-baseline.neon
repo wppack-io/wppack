@@ -25,24 +25,6 @@ parameters:
 			path: src/Component/Cache/src/ObjectCache.php
 
 		-
-			message: '#^Parameter \#6 \$context of function wp_add_dashboard_widget expects ''column3''\|''column4''\|''normal''\|''side'', string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Component/DashboardWidget/src/AbstractDashboardWidget.php
-
-		-
-			message: '#^Parameter \#7 \$priority of function wp_add_dashboard_widget expects ''core''\|''default''\|''high''\|''low'', string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Component/DashboardWidget/src/AbstractDashboardWidget.php
-
-		-
-			message: '#^Trying to invoke \$this\(WPPack\\Component\\DashboardWidget\\AbstractDashboardWidget\) but it might not be a callable\.$#'
-			identifier: callable.nonCallable
-			count: 1
-			path: src/Component/DashboardWidget/src/AbstractDashboardWidget.php
-
-		-
 			message: '#^Parameter \#2 \$params of method WPPack\\Component\\Database\\Driver\\AbstractDriver\:\:executeQuery\(\) expects list\<mixed\>, array given\.$#'
 			identifier: argument.type
 			count: 1

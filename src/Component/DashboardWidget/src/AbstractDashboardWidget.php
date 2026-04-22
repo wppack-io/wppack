@@ -22,7 +22,11 @@ abstract class AbstractDashboardWidget
 {
     public readonly string $id;
     public readonly string $label;
+
+    /** @var 'column3'|'column4'|'normal'|'side' */
     public readonly string $context;
+
+    /** @var 'core'|'default'|'high'|'low' */
     public readonly string $priority;
 
     /** @var list<IsGranted> */
@@ -66,6 +70,13 @@ abstract class AbstractDashboardWidget
 
         return $this->renderer->render($template, $context);
     }
+
+    /**
+     * Render the widget body. Concrete widgets return the HTML string
+     * from their __invoke(); handleRender() is the WordPress-facing
+     * echo shim.
+     */
+    abstract public function __invoke(): string;
 
     /** @internal */
     public function handleRender(): void
