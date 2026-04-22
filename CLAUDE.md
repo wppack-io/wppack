@@ -158,6 +158,20 @@ time. Apply pre-emptively when touching the listed surface:
   subsequent `$x->method()` fails type-check unless preceded by
   `is_object($x)`. Group all `method_exists` chains under one
   `is_object` guard at top of the loop / branch.
+- **Nullable property narrow (level 8)**: PHPStan doesn't re-check a
+  property across method calls. Use `@phpstan-assert !null $this->x`
+  on guard methods (`ensureConnected()`), `@phpstan-assert-if-true`
+  on `is*(): bool` guards, or copy into a local after the null check.
+- **Nullable default → conditional return type**:
+  `Dsn::getOption(string, ?string $default = null): ?string` returns
+  non-null when `$default` is. Annotate
+  `@phpstan-return ($default is null ? ?string : string)` so callers
+  passing a default don't need a dead `?? $default`.
+- **DSN host & credential handling**: never silently default
+  `getHost()` / `getUser()` / `getPassword()` — malformed DSN would
+  leak creds to localhost or send empty-USER to the wire. Throw on
+  missing host; pass `?string` through to the driver. Details in
+  [maintainer-notes § DSN fallbacks](docs/architecture/maintainer-notes.md#dsn-fallbacks-must-fail-loud).
 
 ### Consistency Checks for Documentation & Component Updates
 
