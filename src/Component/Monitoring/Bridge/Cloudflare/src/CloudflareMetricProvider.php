@@ -279,7 +279,9 @@ final class CloudflareMetricProvider implements MetricProviderInterface
 
             switch ($source) {
                 case 'sum':
-                    $sumFields[] = $config;
+                    if (\is_string($config)) {
+                        $sumFields[] = $config;
+                    }
                     $needsZone = true;
                     break;
                 case 'uniq':
@@ -289,6 +291,9 @@ final class CloudflareMetricProvider implements MetricProviderInterface
                 case 'computed':
                     // Add dependency fields
                     foreach ((array) $config as $dep) {
+                        if (!\is_string($dep)) {
+                            continue;
+                        }
                         $depMapping = self::FIELD_MAP[$dep] ?? null;
                         if ($depMapping !== null && $depMapping[0] === 'sum') {
                             $sumFields[] = $depMapping[1];
@@ -301,8 +306,10 @@ final class CloudflareMetricProvider implements MetricProviderInterface
                     $needsZone = true;
                     break;
                 case 'waf':
-                    $alias = self::WAF_ALIASES[$metric->metricName] ?? $metric->metricName;
-                    $wafAliases[$alias] = $config;
+                    if ($config === null || \is_string($config)) {
+                        $alias = self::WAF_ALIASES[$metric->metricName] ?? $metric->metricName;
+                        $wafAliases[$alias] = $config;
+                    }
                     break;
             }
         }
@@ -689,7 +696,7 @@ GRAPHQL;
             'timeout' => 30,
         ]);
 
-        if (is_wp_error($response)) {
+        if ($response instanceof \WP_Error) {
             $this->logger?->error('Cloudflare API request failed: {error}', ['error' => $response->get_error_message()]);
 
             throw new \RuntimeException('Cloudflare API request failed: ' . $response->get_error_message());

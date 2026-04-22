@@ -98,9 +98,8 @@ readonly class UserAttributeMapper implements UserAttributeMapperInterface
             }
         }
 
-        $event = $this->dispatcher->dispatch(
-            new ScimUserAttributesMappedEvent($data, $meta, $scimAttributes),
-        );
+        $event = new ScimUserAttributesMappedEvent($data, $meta, $scimAttributes);
+        $this->dispatcher->dispatch($event);
 
         return ['data' => $event->getData(), 'meta' => $event->getMeta()];
     }
@@ -147,9 +146,8 @@ readonly class UserAttributeMapper implements UserAttributeMapperInterface
             }
         }
 
-        $event = $this->dispatcher->dispatch(
-            new ScimUserSerializedEvent($scimAttributes, $user),
-        );
+        $event = new ScimUserSerializedEvent($scimAttributes, $user);
+        $this->dispatcher->dispatch($event);
 
         return $event->getScimAttributes();
     }

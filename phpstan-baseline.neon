@@ -325,24 +325,6 @@ parameters:
 			path: src/Component/Monitoring/Bridge/CloudWatch/src/CloudWatchMetricProvider.php
 
 		-
-			message: '#^Cannot call method get_error_message\(\) on array\|WP_Error\.$#'
-			identifier: method.nonObject
-			count: 2
-			path: src/Component/Monitoring/Bridge/Cloudflare/src/CloudflareMetricProvider.php
-
-		-
-			message: '#^Method WPPack\\Component\\Monitoring\\Bridge\\Cloudflare\\CloudflareMetricProvider\:\:analyzeRequirements\(\) should return array\{needsZone\: bool, sumFields\: list\<string\>, needsUniq\: bool, needsStatusMap\: bool, wafAliases\: array\<string, string\|null\>\} but returns array\{needsZone\: bool, sumFields\: list\<200\|300\|400\|500\|array\{''requests'', ''cachedRequests''\}\|string\|null\>, needsUniq\: bool, needsStatusMap\: bool, wafAliases\: array\<string, 200\|300\|400\|500\|array\{''requests'', ''cachedRequests''\}\|string\|null\>\}\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Component/Monitoring/Bridge/Cloudflare/src/CloudflareMetricProvider.php
-
-		-
-			message: '#^Parameter \#1 \$array of function array_unique expects an array of values castable to string, list\<int\|list\<string\>\|string\|null\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Component/Monitoring/Bridge/Cloudflare/src/CloudflareMetricProvider.php
-
-		-
 			message: '#^Cannot cast int\|WP_Post to int\.$#'
 			identifier: cast.int
 			count: 1
@@ -395,24 +377,6 @@ parameters:
 			identifier: argument.type
 			count: 3
 			path: src/Component/Scim/src/Controller/GroupController.php
-
-		-
-			message: '#^Call to an undefined method object\:\:getData\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: src/Component/Scim/src/Mapping/UserAttributeMapper.php
-
-		-
-			message: '#^Call to an undefined method object\:\:getMeta\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: src/Component/Scim/src/Mapping/UserAttributeMapper.php
-
-		-
-			message: '#^Call to an undefined method object\:\:getScimAttributes\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: src/Component/Scim/src/Mapping/UserAttributeMapper.php
 
 		-
 			message: '#^Parameter \#1 \$length of function random_bytes expects int\<1, max\>, int given\.$#'
