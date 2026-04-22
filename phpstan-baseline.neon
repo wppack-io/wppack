@@ -343,18 +343,6 @@ parameters:
 			path: src/Component/Security/Bridge/SAML/src/SamlAuthenticator.php
 
 		-
-			message: '#^Call to an undefined method object\:\:getUserMeta\(\)\.$#'
-			identifier: method.notFound
-			count: 2
-			path: src/Component/Security/Bridge/SAML/src/UserResolution/SamlUserResolver.php
-
-		-
-			message: '#^Call to an undefined method object\:\:getUserdata\(\)\.$#'
-			identifier: method.notFound
-			count: 2
-			path: src/Component/Security/Bridge/SAML/src/UserResolution/SamlUserResolver.php
-
-		-
 			message: '#^Method WPPack\\Component\\Security\\Authentication\\Passport\\Passport\:\:getBadge\(\) should return \(T of WPPack\\Component\\Security\\Authentication\\Passport\\Badge\\BadgeInterface\)\|null but returns WPPack\\Component\\Security\\Authentication\\Passport\\Badge\\BadgeInterface\|null\.$#'
 			identifier: return.type
 			count: 1

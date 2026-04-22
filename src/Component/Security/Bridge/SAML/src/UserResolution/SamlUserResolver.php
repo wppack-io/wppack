@@ -150,9 +150,8 @@ final class SamlUserResolver implements SamlUserResolverInterface
         }
 
         if ($this->dispatcher !== null) {
-            $event = $this->dispatcher->dispatch(
-                new SamlUserAttributesMappedEvent($userdata, $userMeta, $attributes, $nameId, isNewUser: true),
-            );
+            $event = new SamlUserAttributesMappedEvent($userdata, $userMeta, $attributes, $nameId, isNewUser: true);
+            $this->dispatcher->dispatch($event);
             $userdata = $event->getUserdata();
             $userMeta = $event->getUserMeta();
         }
@@ -251,9 +250,8 @@ final class SamlUserResolver implements SamlUserResolverInterface
         }
 
         if ($this->dispatcher !== null) {
-            $event = $this->dispatcher->dispatch(
-                new SamlUserAttributesMappedEvent($userdata, $userMeta, $attributes, $nameId, isNewUser: false),
-            );
+            $event = new SamlUserAttributesMappedEvent($userdata, $userMeta, $attributes, $nameId, isNewUser: false);
+            $this->dispatcher->dispatch($event);
             $userdata = $event->getUserdata();
             $userMeta = $event->getUserMeta();
 
