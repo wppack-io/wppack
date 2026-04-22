@@ -265,11 +265,11 @@ trait DataApiDriverTrait
         $driver = $this;
 
         $executeQuery = static function (array $params) use ($driver, $sql): Result {
-            return $driver->executeQuery($sql, $params);
+            return $driver->executeQuery($sql, \array_values($params));
         };
 
         $executeStatement = static function (array $params) use ($driver, $sql): int {
-            return $driver->executeStatement($sql, $params);
+            return $driver->executeStatement($sql, \array_values($params));
         };
 
         $close = static function (): void {};

@@ -166,11 +166,13 @@ final class SqliteDriver extends AbstractDriver
             return $value === null ? 0 : mb_strlen($value);
         }, 1);
 
-        $pdo->createFunction('FIELD', static function (mixed $search, ...$values): int {
-            foreach ($values as $i => $val) {
+        $pdo->createFunction('FIELD', static function (mixed $search, mixed ...$values): int {
+            $i = 1;
+            foreach ($values as $val) {
                 if ((string) $val === (string) $search) {
-                    return $i + 1;
+                    return $i;
                 }
+                ++$i;
             }
 
             return 0;
@@ -266,7 +268,9 @@ final class SqliteDriver extends AbstractDriver
             $stmt = $pdo->prepare('INSERT OR IGNORE INTO _wppack_locks (lock_name, lock_time) VALUES (?, strftime(\'%s\', \'now\'))');
             $stmt->execute([$name]);
 
-            return (int) (bool) $pdo->query('SELECT changes()')->fetchColumn();
+            $changes = $pdo->query('SELECT changes()');
+
+            return $changes !== false && (bool) $changes->fetchColumn() ? 1 : 0;
         }, 2);
 
         $pdo->createFunction('RELEASE_LOCK', static function (?string $name) use ($pdo): int {
@@ -277,7 +281,9 @@ final class SqliteDriver extends AbstractDriver
             $stmt = $pdo->prepare('DELETE FROM _wppack_locks WHERE lock_name = ?');
             $stmt->execute([$name]);
 
-            return (int) (bool) $pdo->query('SELECT changes()')->fetchColumn();
+            $changes = $pdo->query('SELECT changes()');
+
+            return $changes !== false && (bool) $changes->fetchColumn() ? 1 : 0;
         }, 1);
 
         $pdo->createFunction('IS_FREE_LOCK', static function (?string $name) use ($pdo): int {

@@ -380,7 +380,7 @@ final class ObjectCache
 
         if ($this->adapter !== null && !$this->isNonPersistent($group)) {
             $fullKey = $this->buildKey($key, $group);
-            $this->adapter->set($fullKey, $this->shouldSerialize() ? \serialize($newValue) : $newValue);
+            $this->adapter->set($fullKey, $this->shouldSerialize() ? \serialize($newValue) : (string) $newValue);
         }
 
         return $newValue;
@@ -528,8 +528,9 @@ final class ObjectCache
             return null;
         }
 
+        $keyString = (string) $key;
         foreach ($this->config->hashStrategies as $strategy) {
-            if ($strategy->supports($key, $group)) {
+            if ($strategy->supports($keyString, $group)) {
                 return $strategy;
             }
         }

@@ -7,58 +7,10 @@ parameters:
 			path: src/Component/Cache/drop-in/object-cache.php
 
 		-
-			message: '#^Parameter \#1 \$key of method WPPack\\Component\\Cache\\Strategy\\HashStrategyInterface\:\:supports\(\) expects string, int\|string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Component/Cache/src/ObjectCache.php
-
-		-
-			message: '#^Parameter \#2 \$value of method WPPack\\Component\\Cache\\Adapter\\AdapterInterface\:\:set\(\) expects string, int\<0, max\>\|string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Component/Cache/src/ObjectCache.php
-
-		-
-			message: '#^Parameter \#2 \$params of method WPPack\\Component\\Database\\Driver\\AbstractDriver\:\:executeQuery\(\) expects list\<mixed\>, array given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Component/Database/Bridge/MySQLDataApi/src/MySQLDataApiDriver.php
-
-		-
-			message: '#^Parameter \#2 \$params of method WPPack\\Component\\Database\\Driver\\AbstractDriver\:\:executeStatement\(\) expects list\<mixed\>, array given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Component/Database/Bridge/MySQLDataApi/src/MySQLDataApiDriver.php
-
-		-
 			message: '#^Method WPPack\\Component\\Database\\Bridge\\PostgreSQL\\PostgreSQLDriver\:\:quoteStringLiteral\(\) should return string but returns string\|false\.$#'
 			identifier: return.type
 			count: 1
 			path: src/Component/Database/Bridge/PostgreSQL/src/PostgreSQLDriver.php
-
-		-
-			message: '#^Parameter \#2 \$params of method WPPack\\Component\\Database\\Driver\\AbstractDriver\:\:executeQuery\(\) expects list\<mixed\>, array given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Component/Database/Bridge/PostgreSQLDataApi/src/PostgreSQLDataApiDriver.php
-
-		-
-			message: '#^Parameter \#2 \$params of method WPPack\\Component\\Database\\Driver\\AbstractDriver\:\:executeStatement\(\) expects list\<mixed\>, array given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Component/Database/Bridge/PostgreSQLDataApi/src/PostgreSQLDataApiDriver.php
-
-		-
-			message: '#^Binary operation "\+" between int\|string and 1 results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: src/Component/Database/Bridge/Sqlite/src/SqliteDriver.php
-
-		-
-			message: '#^Cannot call method fetchColumn\(\) on PDOStatement\|false\.$#'
-			identifier: method.nonObject
-			count: 2
-			path: src/Component/Database/Bridge/Sqlite/src/SqliteDriver.php
 
 		-
 			message: '#^Parameter \#2 \$params of method WPPack\\Component\\Database\\Driver\\MySQLDriver\:\:bindAndExecute\(\) expects list\<mixed\>, array given\.$#'
