@@ -132,9 +132,6 @@ final class MemcachedAdapterFactory implements AdapterFactoryInterface
             return;
         }
 
-        // Single-host DSN
-        $host = $dsn->getHost() ?? $options['host'] ?? '127.0.0.1';
-        $port = $dsn->getPort() ?? (int) ($options['port'] ?? 11211);
         $weight = (int) ($options['weight'] ?? $dsn->getOption('weight') ?? 0);
 
         // Unix socket: memcached:///var/run/memcached.sock
@@ -144,6 +141,17 @@ final class MemcachedAdapterFactory implements AdapterFactoryInterface
 
             return;
         }
+
+        // Single-host DSN
+        $host = $dsn->getHost() ?? $options['host'] ?? null;
+        if ($host === null) {
+            throw new \InvalidArgumentException(sprintf(
+                'Memcached DSN "%s" is missing a host; refusing to silently fall back to localhost.',
+                $dsn->getScheme() . '://…',
+            ));
+        }
+
+        $port = $dsn->getPort() ?? (int) ($options['port'] ?? 11211);
 
         $client->addServer($host, $port, $weight);
     }

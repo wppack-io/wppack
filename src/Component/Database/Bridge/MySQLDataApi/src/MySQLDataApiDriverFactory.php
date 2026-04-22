@@ -18,6 +18,7 @@ use WPPack\Component\Database\Driver\DriverDefinition;
 use WPPack\Component\Database\Driver\DriverFactoryInterface;
 use WPPack\Component\Database\Driver\DriverField;
 use WPPack\Component\Database\Driver\DriverInterface;
+use WPPack\Component\Database\Exception\ConnectionException;
 use WPPack\Component\Dsn\Dsn;
 
 /**
@@ -45,9 +46,17 @@ class MySQLDataApiDriverFactory implements DriverFactoryInterface
 
     public function create(Dsn $dsn, array $options = []): DriverInterface
     {
-        $resourceArn = $dsn->getHost() ?? '';
+        $resourceArn = $dsn->getHost();
+        if ($resourceArn === null || $resourceArn === '') {
+            throw new ConnectionException('MySQL Data API DSN is missing the resource ARN (host component).');
+        }
+
         $database = ltrim($dsn->getPath() ?? '', '/');
         $secretArn = $dsn->getOption('secret_arn', '');
+        if ($secretArn === '') {
+            throw new ConnectionException('MySQL Data API DSN is missing the secret_arn option.');
+        }
+
         $region = $options['region'] ?? $dsn->getOption('region') ?? $this->extractRegionFromArn($resourceArn) ?? 'us-east-1';
 
         $client = new RdsDataServiceClient([

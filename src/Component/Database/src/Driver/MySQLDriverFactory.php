@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace WPPack\Component\Database\Driver;
 
+use WPPack\Component\Database\Exception\ConnectionException;
 use WPPack\Component\Dsn\Dsn;
 
 final class MySQLDriverFactory implements DriverFactoryInterface
@@ -38,8 +39,16 @@ final class MySQLDriverFactory implements DriverFactoryInterface
 
     public function create(Dsn $dsn, array $options = []): DriverInterface
     {
+        $host = $dsn->getHost();
+        if ($host === null || $host === '') {
+            throw new ConnectionException(sprintf(
+                'MySQL DSN is missing the host component: %s',
+                $dsn->getScheme() . '://…',
+            ));
+        }
+
         return new MySQLDriver(
-            host: $dsn->getHost() ?? '127.0.0.1',
+            host: $host,
             username: $dsn->getUser() ?? '',
             password: $dsn->getPassword() ?? '',
             database: ltrim($dsn->getPath() ?? '', '/'),

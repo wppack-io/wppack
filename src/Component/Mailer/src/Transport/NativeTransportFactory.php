@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace WPPack\Component\Mailer\Transport;
 
 use WPPack\Component\Dsn\Dsn;
+use WPPack\Component\Mailer\Exception\InvalidArgumentException;
 use WPPack\Component\Mailer\Exception\UnsupportedSchemeException;
 
 final class NativeTransportFactory implements TransportFactoryInterface
@@ -43,7 +44,7 @@ final class NativeTransportFactory implements TransportFactoryInterface
         return match ($dsn->getScheme()) {
             'native' => new NativeTransport(),
             'smtp', 'smtps' => new SmtpTransport(
-                host: $dsn->getHost() ?? 'localhost',
+                host: $dsn->getHost() ?? throw new InvalidArgumentException(sprintf('SMTP "%s" DSN must include a host.', $dsn->getScheme())),
                 port: $dsn->getPort() ?? ($dsn->getScheme() === 'smtps' ? 465 : 587),
                 username: $dsn->getUser(),
                 password: $dsn->getPassword(),

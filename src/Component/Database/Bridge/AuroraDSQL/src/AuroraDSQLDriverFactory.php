@@ -17,6 +17,7 @@ use WPPack\Component\Database\Driver\DriverDefinition;
 use WPPack\Component\Database\Driver\DriverFactoryInterface;
 use WPPack\Component\Database\Driver\DriverField;
 use WPPack\Component\Database\Driver\DriverInterface;
+use WPPack\Component\Database\Exception\ConnectionException;
 use WPPack\Component\Dsn\Dsn;
 
 /**
@@ -44,7 +45,11 @@ final class AuroraDSQLDriverFactory implements DriverFactoryInterface
 
     public function create(Dsn $dsn, array $options = []): DriverInterface
     {
-        $endpoint = $dsn->getHost() ?? '';
+        $endpoint = $dsn->getHost();
+        if ($endpoint === null || $endpoint === '') {
+            throw new ConnectionException('Aurora DSQL DSN is missing the endpoint (host component).');
+        }
+
         $region = $options['region'] ?? $dsn->getOption('region') ?? $this->extractRegionFromEndpoint($endpoint) ?? 'us-east-1';
 
         $occMaxRetries = $dsn->getOption('occMaxRetries');

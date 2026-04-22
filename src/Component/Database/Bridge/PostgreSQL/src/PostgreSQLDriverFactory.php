@@ -17,6 +17,7 @@ use WPPack\Component\Database\Driver\DriverDefinition;
 use WPPack\Component\Database\Driver\DriverFactoryInterface;
 use WPPack\Component\Database\Driver\DriverField;
 use WPPack\Component\Database\Driver\DriverInterface;
+use WPPack\Component\Database\Exception\ConnectionException;
 use WPPack\Component\Dsn\Dsn;
 
 final class PostgreSQLDriverFactory implements DriverFactoryInterface
@@ -42,8 +43,16 @@ final class PostgreSQLDriverFactory implements DriverFactoryInterface
 
     public function create(Dsn $dsn, array $options = []): DriverInterface
     {
+        $host = $dsn->getHost();
+        if ($host === null || $host === '') {
+            throw new ConnectionException(sprintf(
+                'PostgreSQL DSN is missing the host component: %s',
+                $dsn->getScheme() . '://…',
+            ));
+        }
+
         return new PostgreSQLDriver(
-            host: $dsn->getHost() ?? '127.0.0.1',
+            host: $host,
             username: $dsn->getUser() ?? '',
             password: $dsn->getPassword() ?? '',
             database: ltrim($dsn->getPath() ?? '', '/'),
