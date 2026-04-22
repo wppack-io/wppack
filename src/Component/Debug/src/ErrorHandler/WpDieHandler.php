@@ -213,7 +213,7 @@ final class WpDieHandler
             $messageText = $message->get_error_message();
             $wpErrorCodes = \array_values(\array_filter(
                 $message->get_error_codes(),
-                static fn ($c): bool => \is_string($c),
+                static fn($c): bool => \is_string($c),
             ));
             $wpErrorData = [];
             foreach ($wpErrorCodes as $code) {
