@@ -208,7 +208,7 @@ final class Filesystem
     }
 
     /**
-     * @param array<string, array{type: string, files?: array<string, mixed>}> $list
+     * @param array<string, array<string, mixed>> $list
      * @param list<string> $result
      */
     private function flattenDirlist(array $list, string $prefix, array &$result): void
@@ -217,8 +217,10 @@ final class Filesystem
             $path = $prefix === '' ? (string) $name : $prefix . '/' . $name;
             $result[] = $path;
 
-            if (isset($info['files'])) {
-                $this->flattenDirlist($info['files'], $path, $result);
+            if (isset($info['files']) && \is_array($info['files'])) {
+                /** @var array<string, array<string, mixed>> $children */
+                $children = $info['files'];
+                $this->flattenDirlist($children, $path, $result);
             }
         }
     }

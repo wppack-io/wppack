@@ -13,30 +13,6 @@ parameters:
 			path: src/Component/DependencyInjection/src/ContainerBuilder.php
 
 		-
-			message: '#^Parameter \#1 \$list of method WPPack\\Component\\Filesystem\\Filesystem\:\:flattenDirlist\(\) expects array\<string, array\{type\: string, files\?\: array\<string, mixed\>\}\>, array\<string, array\{name\: string, perms\: string, permsn\: string, owner\: string\|false, size\: int\|string\|false, lastmodunix\: int\|string\|false, lastmod\: string\|false, time\: string\|false, \.\.\.\}\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Component/Filesystem/src/Filesystem.php
-
-		-
-			message: '#^Method WPPack\\Component\\Filesystem\\WordPress\\UploadPath\:\:uploadDir\(\) should return array\{path\: string, url\: string, subdir\: string, basedir\: string, baseurl\: string, error\: string\|false\} but returns array\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Component/Filesystem/src/WordPress/UploadPath.php
-
-		-
-			message: '#^Method WPPack\\Component\\HttpFoundation\\File\\UploadedFile\:\:wpHandleUpload\(\) should return array\{error\: string\}\|array\{file\: string, url\: string, type\: string\} but returns array\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Component/HttpFoundation/src/File/UploadedFile.php
-
-		-
-			message: '#^Parameter \#1 \$query of class WPPack\\Component\\HttpFoundation\\Request constructor expects array\<string, mixed\>, array\<int\|string, mixed\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Component/HttpFoundation/src/Request.php
-
-		-
 			message: '#^Method WPPack\\Component\\Mailer\\Bridge\\SendGrid\\Transport\\SendGridApiTransport\:\:buildPersonalization\(\) should return array\{to\: list\<array\{email\: string, name\?\: string\}\>, cc\?\: list\<array\{email\: string, name\?\: string\}\>, bcc\?\: list\<array\{email\: string, name\?\: string\}\>\} but returns array\{to\: array\<array\{email\: string, name\?\: string\}\>, cc\?\: non\-empty\-array\<array\{email\: string, name\?\: string\}\>, bcc\?\: non\-empty\-array\<array\{email\: string, name\?\: string\}\>\}\.$#'
 			identifier: return.type
 			count: 1

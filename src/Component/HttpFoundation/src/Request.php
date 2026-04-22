@@ -92,13 +92,20 @@ class Request
             /** @var array<string, mixed> $server */
             $server = wp_unslash($_SERVER);
         } else {
+            /** @var array<string, mixed> $query */
             $query = $_GET;
+            /** @var array<string, mixed> $post */
             $post = $_POST;
+            /** @var array<string, mixed> $cookies */
             $cookies = $_COOKIE;
+            /** @var array<string, mixed> $server */
             $server = $_SERVER;
         }
 
-        return new self($query, $post, [], $cookies, $_FILES, $server);
+        /** @var array<string, mixed> $files */
+        $files = $_FILES;
+
+        return new self($query, $post, [], $cookies, $files, $server);
     }
 
     /**
@@ -274,11 +281,16 @@ class Request
         $server = array_merge($defaults, $server);
 
         if (\in_array(strtoupper($method), ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
-            $query = $queryParams;
+            $merged = $queryParams;
             $post = $parameters;
         } else {
-            $query = array_merge($queryParams, $parameters);
+            $merged = array_merge($queryParams, $parameters);
             $post = [];
+        }
+
+        $query = [];
+        foreach ($merged as $key => $value) {
+            $query[(string) $key] = $value;
         }
 
         return new self($query, $post, [], $cookies, $files, $server, $content);

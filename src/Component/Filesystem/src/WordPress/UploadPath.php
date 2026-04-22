@@ -62,6 +62,9 @@ final class UploadPath
      */
     private function uploadDir(): array
     {
-        return wp_upload_dir();
+        /** @var array{path: string, url: string, subdir: string, basedir: string, baseurl: string, error: string|false} $dir */
+        $dir = wp_upload_dir();
+
+        return $dir;
     }
 }
