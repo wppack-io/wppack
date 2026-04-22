@@ -165,9 +165,6 @@ capability チェックには `#[IsGranted]`（Security コンポーネント）
 #[IsGranted('edit_post', subject: 42)]     // オブジェクトレベル権限
 ```
 
-> [!IMPORTANT]
-> **権限宣言は必須。** `#[Permission]` も `#[IsGranted]` もないコントローラーは登録時に `LogicException` で失敗する（silent に公開エンドポイントになるのを防ぐため）。意図的に公開するなら `#[Permission(public: true)]` を明示する。
-
 ## レスポンス
 
 ### レスポンスフロー

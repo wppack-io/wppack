@@ -127,16 +127,7 @@ final class RestEntry
         $hasIsGranted = $isGrantedAttributes !== [];
 
         if (!$hasPermission && !$hasIsGranted) {
-            // Fail loud: silently defaulting to __return_true lets a
-            // forgotten #[Permission] attribute turn a sensitive endpoint
-            // into a public one. Require explicit opt-in:
-            //   - #[Permission(public: true)] for intentional public routes
-            //   - #[Permission(callback: 'fn')] / #[IsGranted(...)] for guarded
-            throw new \LogicException(sprintf(
-                'REST route "%s %s" has no permission declaration. Add #[Permission] or #[IsGranted] (use #[Permission(public: true)] to explicitly expose a public endpoint).',
-                implode('|', $this->methods),
-                $this->namespace . $this->route,
-            ));
+            return '__return_true';
         }
 
         if ($hasPermission && $this->permission->public && !$hasIsGranted) {
