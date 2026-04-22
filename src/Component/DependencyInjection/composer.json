@@ -7,7 +7,7 @@
     "php": "^8.2",
     "psr/container": "^2.0",
     "symfony/dependency-injection": "^6.4",
-    "wordpress/core-implementation": "^6.3"
+    "wordpress/core-implementation": "^6.7"
   },
   "suggest": {
     "wppack/http-foundation": "Required for ContainerValueResolver"

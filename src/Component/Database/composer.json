@@ -6,7 +6,7 @@
   "require": {
     "php": "^8.2",
     "psr/log": "^3.0",
-    "wordpress/core-implementation": "^6.3",
+    "wordpress/core-implementation": "^6.7",
     "wppack/dsn": "^1.0"
   },
   "autoload": {

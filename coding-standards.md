@@ -331,7 +331,7 @@ directly, declare the dependency in its `composer.json`:
 
 ```json
 "require": {
-  "wordpress/core-implementation": "^6.3"
+  "wordpress/core-implementation": "^6.7"
 }
 ```
 

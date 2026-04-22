@@ -6,7 +6,7 @@
   "require": {
     "php": "^8.2",
     "psr/event-dispatcher": "^1.0",
-    "wordpress/core-implementation": "^6.3"
+    "wordpress/core-implementation": "^6.7"
   },
   "autoload": {
     "psr-4": {

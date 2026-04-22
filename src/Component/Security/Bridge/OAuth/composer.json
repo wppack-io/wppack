@@ -6,7 +6,7 @@
   "require": {
     "php": "^8.2",
     "firebase/php-jwt": "^7.0",
-    "wordpress/core-implementation": "^6.3",
+    "wordpress/core-implementation": "^6.7",
     "wppack/security": "^1.0",
     "wppack/site": "^1.0"
   },

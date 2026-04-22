@@ -6,7 +6,7 @@
   "require": {
     "php": "^8.2",
     "twig/twig": "^3.0",
-    "wordpress/core-implementation": "^6.3",
+    "wordpress/core-implementation": "^6.7",
     "wppack/escaper": "^1.0",
     "wppack/sanitizer": "^1.0",
     "wppack/templating": "^1.0"

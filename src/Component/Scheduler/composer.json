@@ -6,7 +6,7 @@
   "require": {
     "php": "^8.2",
     "dragonmantank/cron-expression": "^3.0",
-    "wordpress/core-implementation": "^6.3",
+    "wordpress/core-implementation": "^6.7",
     "wppack/messenger": "^1.0"
   },
   "suggest": {

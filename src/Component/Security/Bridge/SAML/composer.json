@@ -6,7 +6,7 @@
   "require": {
     "php": "^8.2",
     "litesaml/lightsaml": "^4.0",
-    "wordpress/core-implementation": "^6.3",
+    "wordpress/core-implementation": "^6.7",
     "wppack/http-foundation": "^1.0",
     "wppack/security": "^1.0",
     "wppack/site": "^1.0"

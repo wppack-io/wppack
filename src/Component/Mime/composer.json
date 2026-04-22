@@ -5,7 +5,7 @@
   "license": "MIT",
   "require": {
     "php": "^8.2",
-    "wordpress/core-implementation": "^6.3"
+    "wordpress/core-implementation": "^6.7"
   },
   "require-dev": {
     "wppack/dependency-injection": "^1.0"
