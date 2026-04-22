@@ -271,7 +271,7 @@ feat(Admin,DashboardWidget,Setting): add render() shortcut
 Run these before every commit. CI fails if they do not pass.
 
 ```bash
-vendor/bin/phpstan analyse                      # level 6 across all components
+vendor/bin/phpstan analyse                      # level 8 across all components
 vendor/bin/php-cs-fixer fix --dry-run --diff    # check only
 vendor/bin/php-cs-fixer fix                     # apply fixes
 ```

@@ -14,7 +14,7 @@ duplicated from those.
 1. **Tests must pass before every commit.** `vendor/bin/phpunit` for the
    touched component(s) at minimum; full suite before push when the
    change crosses component boundaries.
-2. **PHPStan must be clean (level 7).** `vendor/bin/phpstan analyse`
+2. **PHPStan must be clean (level 8).** `vendor/bin/phpstan analyse`
    shows `[OK] No errors`. Don't lower the level. Don't add baseline
    entries without explanation in the commit message — they're tech
    debt receipts.

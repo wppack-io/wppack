@@ -108,8 +108,13 @@ class UploadedFile extends File
 
         $target = rtrim($directory, '/') . '/' . $filename;
 
-        if (!is_dir($directory)) {
-            @mkdir($directory, 0777, true);
+        // Atomically create the directory. is_dir() + mkdir() is a TOCTOU
+        // race — another process / request could create the directory
+        // between the two calls, or we could hit a permissions error that
+        // @ would silently swallow. Request recursive creation, and if
+        // mkdir returns false, tolerate only the "already exists" case.
+        if (!@mkdir($directory, 0777, true) && !is_dir($directory)) {
+            throw new FileException(sprintf('Unable to create the directory "%s".', $directory));
         }
 
         if (!@move_uploaded_file($this->getPathname(), $target)) {

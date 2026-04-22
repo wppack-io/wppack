@@ -38,7 +38,7 @@ and theme ecosystem.
   PSR-16 / PSR-18 contracts, so they mock cleanly and swap cleanly. IDE
   autocomplete, PHPStan guarantees, and refactoring safety you can't get
   from WordPress core alone.
-- **Quality you can depend on.** **PHPStan level 6** on 114k LOC of source,
+- **Quality you can depend on.** **PHPStan level 8** on 114k LOC of source,
   php-cs-fixer on PER Coding Style, 149k LOC of tests (1.31:1 test/production
   ratio), and a 16-job CI matrix — PHP 8.2 / 8.3 / 8.4 / 8.5 × mysql / sqlite /
   postgresql / legacy wpdb — green on every push. 122 interfaces and
@@ -126,7 +126,7 @@ composer install
 # Start backing services (MySQL, PostgreSQL, Redis, etc.)
 docker compose up -d --wait
 
-# Static analysis (PHPStan level 6)
+# Static analysis (PHPStan level 8)
 vendor/bin/phpstan analyse
 
 # Coding style (PER Coding Style)
