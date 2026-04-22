@@ -978,7 +978,9 @@ final class PostgreSQLQueryTranslator implements QueryTranslatorInterface
         $indexStatements = [];
         $triggers = [];
 
-        foreach ($stmt->fields as $field) {
+        $fields = \is_array($stmt->fields) ? $stmt->fields : [];
+
+        foreach ($fields as $field) {
             if ($field->type !== null) {
                 $parts[] = $this->buildColumnDef($field);
 
@@ -2575,10 +2577,13 @@ final class PostgreSQLQueryTranslator implements QueryTranslatorInterface
                 continue;
             }
 
-            $args[$argIndex][] = $rw->skip();
+            $consumed = $rw->skip();
+            if ($consumed !== null) {
+                $args[$argIndex][] = $consumed;
+            }
         }
 
-        return $args;
+        return \array_values($args);
     }
 
     /**

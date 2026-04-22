@@ -37,24 +37,6 @@ parameters:
 			path: src/Component/Database/Bridge/PostgreSQL/src/PostgreSQLDriver.php
 
 		-
-			message: '#^Argument of an invalid type array\<PhpMyAdmin\\SqlParser\\Components\\CreateDefinition\>\|PhpMyAdmin\\SqlParser\\Components\\ArrayObj supplied for foreach, only iterables are supported\.$#'
-			identifier: foreach.nonIterable
-			count: 1
-			path: src/Component/Database/Bridge/PostgreSQL/src/Translator/PostgreSQLQueryTranslator.php
-
-		-
-			message: '#^Method WPPack\\Component\\Database\\Bridge\\PostgreSQL\\Translator\\PostgreSQLQueryTranslator\:\:extractFunctionArgs\(\) should return list\<list\<PhpMyAdmin\\SqlParser\\Token\>\>\|null but returns non\-empty\-array\<int\<0, max\>, list\<PhpMyAdmin\\SqlParser\\Token\|null\>\>\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Component/Database/Bridge/PostgreSQL/src/Translator/PostgreSQLQueryTranslator.php
-
-		-
-			message: '#^Parameter \#1 \$tokens of class WPPack\\Component\\Database\\Sql\\QueryRewriter constructor expects list\<PhpMyAdmin\\SqlParser\\Token\>, array\<PhpMyAdmin\\SqlParser\\Token\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Component/Database/Bridge/PostgreSQL/src/Translator/PostgreSQLQueryTranslator.php
-
-		-
 			message: '#^Parameter \#2 \$params of method WPPack\\Component\\Database\\Driver\\AbstractDriver\:\:executeQuery\(\) expects list\<mixed\>, array given\.$#'
 			identifier: argument.type
 			count: 1
@@ -77,42 +59,6 @@ parameters:
 			identifier: method.nonObject
 			count: 2
 			path: src/Component/Database/Bridge/Sqlite/src/SqliteDriver.php
-
-		-
-			message: '#^Access to an undefined property object\:\:\$token\.$#'
-			identifier: property.notFound
-			count: 1
-			path: src/Component/Database/Bridge/Sqlite/src/Translator/SqliteQueryTranslator.php
-
-		-
-			message: '#^Access to an undefined property object\:\:\$type\.$#'
-			identifier: property.notFound
-			count: 1
-			path: src/Component/Database/Bridge/Sqlite/src/Translator/SqliteQueryTranslator.php
-
-		-
-			message: '#^Argument of an invalid type array\<PhpMyAdmin\\SqlParser\\Components\\CreateDefinition\>\|PhpMyAdmin\\SqlParser\\Components\\ArrayObj supplied for foreach, only iterables are supported\.$#'
-			identifier: foreach.nonIterable
-			count: 2
-			path: src/Component/Database/Bridge/Sqlite/src/Translator/SqliteQueryTranslator.php
-
-		-
-			message: '#^Method WPPack\\Component\\Database\\Bridge\\Sqlite\\Translator\\SqliteQueryTranslator\:\:extractFunctionArgs\(\) should return list\<list\<PhpMyAdmin\\SqlParser\\Token\>\>\|null but returns non\-empty\-array\<int\<0, max\>, list\<PhpMyAdmin\\SqlParser\\Token\|null\>\>\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Component/Database/Bridge/Sqlite/src/Translator/SqliteQueryTranslator.php
-
-		-
-			message: '#^Parameter \#1 \$identifier of method WPPack\\Component\\Database\\Bridge\\Sqlite\\Translator\\SqliteQueryTranslator\:\:quoteId\(\) expects string, bool\|float\|int\|string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Component/Database/Bridge/Sqlite/src/Translator/SqliteQueryTranslator.php
-
-		-
-			message: '#^Parameter \#1 \$tokens of class WPPack\\Component\\Database\\Sql\\QueryRewriter constructor expects list\<PhpMyAdmin\\SqlParser\\Token\>, array\<PhpMyAdmin\\SqlParser\\Token\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Component/Database/Bridge/Sqlite/src/Translator/SqliteQueryTranslator.php
 
 		-
 			message: '#^Parameter \#2 \$params of method WPPack\\Component\\Database\\Driver\\MySQLDriver\:\:bindAndExecute\(\) expects list\<mixed\>, array given\.$#'

@@ -34,7 +34,7 @@ trait QueryTranslatorHelpersTrait
      */
     private function createRewriter(Parser $parser): QueryRewriter
     {
-        return new QueryRewriter($parser->list->tokens, $parser->list->count);
+        return new QueryRewriter(\array_values($parser->list->tokens), $parser->list->count);
     }
 
     /**

@@ -653,7 +653,9 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
         $pkColumnName = null;
         $autoIncrementCol = null;
 
-        foreach ($stmt->fields as $field) {
+        $fields = \is_array($stmt->fields) ? $stmt->fields : [];
+
+        foreach ($fields as $field) {
             if ($field->key !== null && $field->key->type === 'PRIMARY KEY' && isset($field->key->columns[0]['name'])) {
                 $pkColumnName = $field->key->columns[0]['name'];
             }
@@ -671,7 +673,7 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
         $triggers = [];
         $cacheInserts = [];
 
-        foreach ($stmt->fields as $field) {
+        foreach ($fields as $field) {
             if ($field->type !== null) {
                 $parts[] = $this->buildColumnDef($field, $mergePk ? $pkColumnName : null);
 
@@ -953,7 +955,8 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
 
         if ($isChange && $alter->unknown !== []) {
             // CHANGE: first unknown token is the new column name
-            $newName = $alter->unknown[0]->value ?? '';
+            $newNameRaw = $alter->unknown[0]->value ?? '';
+            $newName = \is_string($newNameRaw) ? $newNameRaw : '';
 
             if ($newName !== '' && $newName !== $oldName) {
                 return [\sprintf(
@@ -2197,7 +2200,7 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
         // PlaceholderConverter, not numeric literals.
         $rw->skip(); // LIMIT keyword
 
-        $isLimitValue = static function (?object $t): bool {
+        $isLimitValue = static function (?Token $t): bool {
             if ($t === null) {
                 return false;
             }
@@ -2368,10 +2371,13 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
                 continue;
             }
 
-            $args[$argIndex][] = $rw->skip();
+            $consumed = $rw->skip();
+            if ($consumed !== null) {
+                $args[$argIndex][] = $consumed;
+            }
         }
 
-        return $args;
+        return \array_values($args);
     }
 
     /**
