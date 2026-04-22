@@ -83,15 +83,30 @@ class UploadedFile extends File
             throw new FileException($this->getErrorMessage());
         }
 
-        // Strip any directory separators the client may have sent in either
-        // the caller-supplied name or the browser-supplied original name;
-        // a '../' in \$this->originalName would otherwise escape \$directory.
-        $basename = basename($name ?? $this->originalName);
-        if ($basename === '' || $basename === '.' || $basename === '..' || str_contains($basename, "\0")) {
-            throw new FileException(sprintf('Invalid target filename "%s".', $name ?? $this->originalName));
+        // \$name is caller-provided (caller may pass 'subdir/foo' for a
+        // nested target), so we only refuse the one input that is never
+        // legitimate: NUL. \$this->originalName is client-provided via
+        // \$_FILES and MUST be sanitized: '../../../etc/evil' or
+        // '..\\..\\evil' (on Windows) would otherwise escape \$directory
+        // via move_uploaded_file.
+        if ($name !== null) {
+            if (str_contains($name, "\0")) {
+                throw new FileException('Target filename contains a NUL byte.');
+            }
+            $filename = $name;
+        } else {
+            // Normalize backslashes first: PHP's basename() treats \ as a
+            // separator only on Windows, but move_uploaded_file on any OS
+            // won't stop a path like '..\\evil' from resolving if the
+            // webserver is Windows.
+            $normalized = str_replace('\\', '/', $this->originalName);
+            $filename = basename($normalized);
+            if ($filename === '' || $filename === '.' || $filename === '..' || str_contains($filename, "\0")) {
+                throw new FileException(sprintf('Invalid uploaded filename "%s".', $this->originalName));
+            }
         }
 
-        $target = rtrim($directory, '/') . '/' . $basename;
+        $target = rtrim($directory, '/') . '/' . $filename;
 
         if (!is_dir($directory)) {
             @mkdir($directory, 0777, true);
