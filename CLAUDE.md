@@ -39,69 +39,39 @@ modern PHP.
 
 ## Architecture Principles
 
-### Cloud-First
-
-WPPack runs in cloud / serverless environments (Lambda, Cloud Functions,
-Fargate, Aurora Serverless) as first-class citizens. Local and
-server-based installations work through graceful fallbacks — never the
-other way round.
-
-- Stateless by default; state-keeping components ask for a cache /
-  storage adapter via DI.
-- Transparent reconnects (Database gone-away, OCC retry on DSQL),
-  cold-start friendly DI (lazy resolution).
-- Examples: Messenger (SQS / Lambda → sync fallback), Scheduler
-  (EventBridge → WP-Cron fallback), Cache (Redis / DynamoDB / APCu /
-  Memcached).
-
-### Multi-Cloud Support (AWS / GCP / Azure)
-
-Core interfaces are cloud-agnostic; provider-specific code lives in
-Bridge packages (naming: `wppack/{provider}-{component}`). AWS-first,
-GCP / Azure expand incrementally. Full bridge list lives in
-[docs/components/README.md](docs/components/README.md); deeper rationale
-in [docs/architecture/infrastructure.md](docs/architecture/infrastructure.md).
+- **Cloud-first**: Lambda / Cloud Functions / Fargate / Aurora
+  Serverless are first-class targets; local fallbacks (sync Messenger,
+  WP-Cron Scheduler, APCu Cache) come next. Stateless by default,
+  transparent reconnects, cold-start-friendly DI. Details:
+  [docs/architecture/infrastructure.md](docs/architecture/infrastructure.md).
+- **Multi-cloud via bridges**: core interfaces are cloud-agnostic;
+  provider code lives in `wppack/{provider}-{component}` bridge
+  packages. AWS-first, GCP / Azure incremental.
 
 ## Package Categories
 
-### Component (Library)
-WordPress components. Installed via `composer require`.
-- Namespace: `WPPack\Component\{Name}\`
-- Package name: `wppack/{name}`
-- Directory: `src/Component/{Name}/`
-
-### Plugin (WordPress Plugin)
-Distributed as WordPress plugins. Built on top of Components.
-- Namespace: `WPPack\Plugin\{Name}\`
-- Package name: `wppack/{name}`
-- Directory: `src/Plugin/{Name}/`
+| Type | Namespace | Directory | Package |
+|------|-----------|-----------|---------|
+| Component (library) | `WPPack\Component\{Name}\` | `src/Component/{Name}/` | `wppack/{name}` |
+| Plugin (WordPress plugin) | `WPPack\Plugin\{Name}\` | `src/Plugin/{Name}/` | `wppack/{name}` |
 
 ## Component & Plugin Catalogue
 
-The authoritative catalogue lives in the docs tree:
-
-- [docs/components/README.md](docs/components/README.md) — every
-  component and bridge, grouped by the 8 concern-domain categories
-  (Substrate / Data / Content / Identity & Security / HTTP /
-  Presentation / Admin / Utility).
-- [docs/plugins/README.md](docs/plugins/README.md) — distributable
-  WordPress plugins built on the components.
-
-Do not duplicate the package list here — update the docs instead.
-Monorepo directory layout: [docs/architecture/monorepo.md](docs/architecture/monorepo.md).
+Authoritative list (don't duplicate here):
+- [docs/components/README.md](docs/components/README.md) — components
+  + bridges, grouped by the 8 concern-domain categories (Substrate /
+  Data / Content / Identity & Security / HTTP / Presentation / Admin /
+  Utility).
+- [docs/plugins/README.md](docs/plugins/README.md) — distributable plugins.
+- [docs/architecture/monorepo.md](docs/architecture/monorepo.md) — directory layout.
 
 ## Dependency Graph
 
-Per-package dependencies are declared in each `composer.json` and flow
-through Composer PSR-4 autoload. Components are grouped by
-**concern-domain category** (Substrate / Data / Content / Identity &
-Security / HTTP / Presentation / Admin / Utility). Graph must stay
-acyclic; Substrate and Utility may be depended on freely, other
-categories should reference each other only where semantically
-meaningful.
-
-`wordpress/core-implementation` is declared by every package whose
-`src/` calls a WordPress function directly. See
+Per-package `composer.json` declares deps; autoload is PSR-4. Graph
+stays acyclic: Substrate + Utility are free to depend on, other
+categories only reference each other when semantically meaningful.
+Packages whose `src/` calls WP functions declare
+`wordpress/core-implementation`. See
 [coding-standards.md § Adding a Component](coding-standards.md#adding-a-component).
 
 ## Coding Conventions
