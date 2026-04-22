@@ -169,12 +169,18 @@ final class OAuthAuthenticator implements AuthenticatorInterface
                 throw new AuthenticationException('OAuth authentication failed.');
             }
 
-            $jwks = $this->jwksProvider->getKeys($this->provider->getJwksUri());
+            $jwksUri = $this->provider->getJwksUri();
+            $issuer = $this->provider->getIssuer();
+            if ($jwksUri === null || $issuer === null) {
+                throw new AuthenticationException('OIDC provider is missing jwks_uri or issuer.');
+            }
+
+            $jwks = $this->jwksProvider->getKeys($jwksUri);
             $claims = $this->idTokenValidator->validate(
                 $tokenSet->getIdToken(),
                 $storedState->getNonce(),
                 $this->configuration->getClientId(),
-                $this->provider->getIssuer(),
+                $issuer,
                 $jwks,
             );
             $subject = (string) ($claims['sub'] ?? '');

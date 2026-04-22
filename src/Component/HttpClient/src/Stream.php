@@ -111,6 +111,9 @@ final class Stream implements StreamInterface
         return $this->resource === null || feof($this->resource);
     }
 
+    /**
+     * @phpstan-assert-if-true !null $this->resource
+     */
     public function isSeekable(): bool
     {
         return $this->resource !== null && $this->seekable;
@@ -132,6 +135,9 @@ final class Stream implements StreamInterface
         $this->seek(0);
     }
 
+    /**
+     * @phpstan-assert-if-true !null $this->resource
+     */
     public function isWritable(): bool
     {
         return $this->resource !== null && $this->writable;
@@ -151,6 +157,9 @@ final class Stream implements StreamInterface
         return $result;
     }
 
+    /**
+     * @phpstan-assert-if-true !null $this->resource
+     */
     public function isReadable(): bool
     {
         return $this->resource !== null && $this->readable;

@@ -186,7 +186,7 @@ final class SamlAuthenticator implements AuthenticatorInterface
     {
         $user = $token->getUser();
 
-        if ($this->sessionManager !== null && $this->lastNameId !== null) {
+        if ($user !== null && $this->sessionManager !== null && $this->lastNameId !== null) {
             $this->sessionManager->save($user->ID, $this->lastNameId, $this->lastSessionIndex);
         }
 
@@ -221,11 +221,15 @@ final class SamlAuthenticator implements AuthenticatorInterface
         }
 
         $credential = $this->authFactory->createCredential();
+        $publicKey = $credential->getPublicKey();
+        if ($publicKey === null) {
+            throw new AuthenticationException('IdP credential has no public key for signature validation.');
+        }
 
         // Try response-level signature first
         $signature = $response->getSignature();
         if ($signature instanceof AbstractSignatureReader) {
-            $signature->validate($credential->getPublicKey());
+            $signature->validate($publicKey);
 
             return;
         }
@@ -235,7 +239,7 @@ final class SamlAuthenticator implements AuthenticatorInterface
         if ($assertion !== null) {
             $assertionSignature = $assertion->getSignature();
             if ($assertionSignature instanceof AbstractSignatureReader) {
-                $assertionSignature->validate($credential->getPublicKey());
+                $assertionSignature->validate($publicKey);
 
                 return;
             }

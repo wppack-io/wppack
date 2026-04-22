@@ -46,7 +46,12 @@ final class UserBadge implements BadgeInterface
                 throw new \LogicException('No user loader configured. Call setUser() or provide a user loader.');
             }
 
-            $this->user = ($this->userLoader)($this->userIdentifier);
+            $loaded = ($this->userLoader)($this->userIdentifier);
+            if (!$loaded instanceof \WP_User) {
+                throw new \LogicException('User loader returned a non-WP_User value.');
+            }
+
+            $this->user = $loaded;
         }
 
         return $this->user;

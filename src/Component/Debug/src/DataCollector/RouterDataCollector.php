@@ -223,7 +223,7 @@ final class RouterDataCollector extends AbstractDataCollector
                 $parts[] = [
                     'slug' => $partSlug,
                     'source' => $part->source,
-                    'area' => $part->area,
+                    'area' => $part->area ?? '',
                 ];
             } else {
                 $parts[] = [

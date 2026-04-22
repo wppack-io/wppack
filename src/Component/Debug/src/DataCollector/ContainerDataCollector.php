@@ -91,6 +91,10 @@ final class ContainerDataCollector extends AbstractDataCollector
     private function collectFromContainer(): void
     {
         $builder = $this->containerBuilder;
+        if ($builder === null) {
+            return;
+        }
+
         $services = [];
         $publicCount = 0;
         $privateCount = 0;

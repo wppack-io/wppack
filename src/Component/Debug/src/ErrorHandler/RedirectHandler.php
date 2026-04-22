@@ -186,6 +186,10 @@ final class RedirectHandler
 
     private function collectProfile(int $statusCode): void
     {
+        if ($this->profile === null) {
+            return;
+        }
+
         foreach ($this->collectors as $collector) {
             $collector->collect();
             $this->profile->addCollector($collector);
