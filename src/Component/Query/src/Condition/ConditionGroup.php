@@ -72,7 +72,7 @@ final class ConditionGroup
     /**
      * @param array<string, mixed> $parameters
      *
-     * @return array<string, mixed>
+     * @return array<int|string, mixed>
      */
     public function toMetaQuery(array $parameters): array
     {
@@ -82,7 +82,7 @@ final class ConditionGroup
     /**
      * @param array<string, mixed> $parameters
      *
-     * @return array<string, mixed>
+     * @return array<int|string, mixed>
      */
     public function toTaxQuery(array $parameters): array
     {
@@ -121,9 +121,12 @@ final class ConditionGroup
     }
 
     /**
+     * Produce a WP meta/tax-query compatible array. The shape mixes the
+     * literal `'relation'` string key with numeric-indexed sub-clauses.
+     *
      * @param array<string, mixed> $parameters
      *
-     * @return array<string, mixed>
+     * @return array<int|string, mixed>
      */
     private function toQuery(string $prefix, array $parameters): array
     {
@@ -165,7 +168,7 @@ final class ConditionGroup
 
     /**
      * @param array<string, mixed> $parameters
-     * @param list<array<string, mixed>> $target
+     * @param list<array<int|string, mixed>> $target
      */
     private function collectClause(ParsedExpression $expr, string $prefix, array $parameters, array &$target): void
     {
@@ -178,7 +181,7 @@ final class ConditionGroup
 
     /**
      * @param array<string, mixed> $parameters
-     * @param list<array<string, mixed>> $target
+     * @param list<array<int|string, mixed>> $target
      */
     private function collectNestedGroup(self $group, string $prefix, array $parameters, array &$target): void
     {

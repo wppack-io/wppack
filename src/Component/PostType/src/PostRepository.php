@@ -26,7 +26,10 @@ final readonly class PostRepository implements PostRepositoryInterface
 
     public function findAll(array $args = []): array
     {
-        return get_posts($args);
+        return \array_values(\array_filter(
+            get_posts($args),
+            static fn ($p): bool => $p instanceof \WP_Post,
+        ));
     }
 
     public function insert(array $data): int
@@ -106,6 +109,8 @@ final readonly class PostRepository implements PostRepositoryInterface
             'no_found_rows' => true,
         ]);
 
-        return $posts !== [] ? (int) $posts[0] : null;
+        $first = $posts[0] ?? null;
+
+        return \is_int($first) ? $first : null;
     }
 }

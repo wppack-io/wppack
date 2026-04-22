@@ -301,46 +301,10 @@ parameters:
 			path: src/Component/Monitoring/Bridge/CloudWatch/src/CloudWatchMetricProvider.php
 
 		-
-			message: '#^Cannot cast int\|WP_Post to int\.$#'
-			identifier: cast.int
-			count: 1
-			path: src/Component/PostType/src/PostRepository.php
-
-		-
-			message: '#^Method WPPack\\Component\\PostType\\PostRepository\:\:findAll\(\) should return list\<WP_Post\> but returns array\<int\|WP_Post\>\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Component/PostType/src/PostRepository.php
-
-		-
-			message: '#^Method WPPack\\Component\\Query\\Condition\\ConditionGroup\:\:toQuery\(\) should return array\<string, mixed\> but returns array\<int\|string, array\<int\|string, mixed\>\|string\>\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Component/Query/src/Condition/ConditionGroup.php
-
-		-
-			message: '#^Method WPPack\\Component\\Query\\Condition\\ConditionGroup\:\:toQuery\(\) should return array\<string, mixed\> but returns array\<int\|string, array\<string, mixed\>\|string\>\.$#'
-			identifier: return.type
-			count: 2
-			path: src/Component/Query/src/Condition/ConditionGroup.php
-
-		-
 			message: '#^Parameter \$prefix of class WPPack\\Component\\Query\\Wql\\ParsedExpression constructor expects ''meta''\|''post''\|''tax''\|''term''\|''user'', string given\.$#'
 			identifier: argument.type
 			count: 1
 			path: src/Component/Query/src/Wql/ExpressionParser.php
-
-		-
-			message: '#^Method WPPack\\Component\\Role\\RoleProvider\:\:all\(\) should return array\<string, array\{name\: string, capabilities\: array\<string, bool\>\}\> but returns array\<array\>\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Component/Role/src/RoleProvider.php
-
-		-
-			message: '#^Method WPPack\\Component\\Role\\RoleProvider\:\:find\(\) should return array\{name\: string, capabilities\: array\<string, bool\>\}\|null but returns array\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Component/Role/src/RoleProvider.php
 
 		-
 			message: '#^Parameter \#1 \$object of static method DateTimeImmutable\:\:createFromMutable\(\) expects DateTime, DateTime\|false given\.$#'
@@ -395,18 +359,6 @@ parameters:
 			identifier: return.type
 			count: 1
 			path: src/Component/Security/src/Authentication/Passport/Passport.php
-
-		-
-			message: '#^Method WPPack\\Component\\Serializer\\Normalizer\\ObjectNormalizer\:\:resolveClassName\(\) should return class\-string\|null but returns string\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Component/Serializer/src/Normalizer/ObjectNormalizer.php
-
-		-
-			message: '#^Method WPPack\\Component\\Serializer\\Normalizer\\ObjectNormalizer\:\:resolveClassName\(\) should return class\-string\|null but returns string\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Component/Serializer/src/Normalizer/ObjectNormalizer.php
 
 		-
 			message: '#^Property WPPack\\Component\\Serializer\\Serializer\:\:\$encoders \(list\<WPPack\\Component\\Serializer\\Encoder\\DecoderInterface\|WPPack\\Component\\Serializer\\Encoder\\EncoderInterface\>\) does not accept array\<WPPack\\Component\\Serializer\\Encoder\\DecoderInterface\|WPPack\\Component\\Serializer\\Encoder\\EncoderInterface\>\.$#'

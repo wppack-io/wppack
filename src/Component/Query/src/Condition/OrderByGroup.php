@@ -45,7 +45,7 @@ final class OrderByGroup
     }
 
     /**
-     * @param array<string, mixed> $metaQuery Existing meta_query (named clauses may be injected)
+     * @param array<int|string, mixed> $metaQuery Existing meta_query (named clauses may be injected)
      * @return array<string, mixed> Merge-ready args (orderby, order, meta_key, meta_type)
      */
     public function toArgs(array &$metaQuery): array

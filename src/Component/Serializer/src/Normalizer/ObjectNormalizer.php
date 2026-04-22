@@ -153,14 +153,20 @@ final class ObjectNormalizer implements NormalizerInterface, DenormalizerInterfa
      */
     private function resolveClassName(?\ReflectionType $type): ?string
     {
-        if ($type instanceof \ReflectionNamedType) {
-            return !$type->isBuiltin() ? $type->getName() : null;
+        if ($type instanceof \ReflectionNamedType && !$type->isBuiltin()) {
+            $name = $type->getName();
+            if (\class_exists($name) || \interface_exists($name)) {
+                return $name;
+            }
         }
 
         if ($type instanceof \ReflectionUnionType) {
             foreach ($type->getTypes() as $innerType) {
                 if ($innerType instanceof \ReflectionNamedType && !$innerType->isBuiltin()) {
-                    return $innerType->getName();
+                    $name = $innerType->getName();
+                    if (\class_exists($name) || \interface_exists($name)) {
+                        return $name;
+                    }
                 }
             }
         }

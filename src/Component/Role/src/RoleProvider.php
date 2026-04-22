@@ -20,13 +20,9 @@ readonly class RoleProvider
      */
     public function find(string $roleName): ?array
     {
-        $wpRoles = wp_roles();
+        $role = wp_roles()->roles[$roleName] ?? null;
 
-        if (!isset($wpRoles->roles[$roleName])) {
-            return null;
-        }
-
-        return $wpRoles->roles[$roleName];
+        return $role !== null ? $this->normalizeRole($role) : null;
     }
 
     /**
@@ -34,7 +30,42 @@ readonly class RoleProvider
      */
     public function all(): array
     {
-        return wp_roles()->roles;
+        $roles = [];
+        foreach (wp_roles()->roles as $name => $role) {
+            $normalized = $this->normalizeRole($role);
+            if ($normalized !== null) {
+                $roles[$name] = $normalized;
+            }
+        }
+
+        return $roles;
+    }
+
+    /**
+     * WP stubs type `wp_roles()->roles` as `array<string, array>` (no
+     * shape). Validate/narrow to the project contract before returning.
+     *
+     * @param array<string, mixed> $role
+     *
+     * @return array{name: string, capabilities: array<string, bool>}|null
+     */
+    private function normalizeRole(array $role): ?array
+    {
+        $name = $role['name'] ?? null;
+        $capabilities = $role['capabilities'] ?? null;
+
+        if (!\is_string($name) || !\is_array($capabilities)) {
+            return null;
+        }
+
+        $narrowedCaps = [];
+        foreach ($capabilities as $cap => $has) {
+            if (\is_string($cap) && \is_bool($has)) {
+                $narrowedCaps[$cap] = $has;
+            }
+        }
+
+        return ['name' => $name, 'capabilities' => $narrowedCaps];
     }
 
     /**
