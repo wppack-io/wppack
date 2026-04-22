@@ -869,7 +869,7 @@ class WPPackWpdb extends \wpdb
                 sql: $sql,
                 paramsSummary: $this->paramsSummary($params),
                 elapsedMs: $elapsedMs,
-                rowCount: $isSelect ? \count($this->last_result) : $this->rows_affected,
+                rowCount: $isSelect ? \count($this->last_result ?? []) : $this->rows_affected,
                 driverName: $driverName,
             ));
         }
@@ -900,7 +900,7 @@ class WPPackWpdb extends \wpdb
             }
         }
 
-        return $isSelect ? \count($this->last_result) : $this->rows_affected;
+        return $isSelect ? \count($this->last_result ?? []) : $this->rows_affected;
     }
 
     /**
@@ -1341,7 +1341,7 @@ class WPPackWpdb extends \wpdb
             return $data;
         }
 
-        $processed = $this->process_fields($table, $data, $format);
+        $processed = $this->process_fields($table, $data, $format ?? '');
 
         if ($processed === false) {
             return null;

@@ -266,7 +266,13 @@ final class DatabaseManager
 
     public function prepare(string $query, mixed ...$args): string
     {
-        return $this->wpdb->prepare($query, ...$args);
+        $prepared = $this->wpdb->prepare($query, ...$args);
+
+        if ($prepared === null) {
+            throw new \InvalidArgumentException(\sprintf('wpdb::prepare() returned null for query "%s".', $query));
+        }
+
+        return $prepared;
     }
 
     /**

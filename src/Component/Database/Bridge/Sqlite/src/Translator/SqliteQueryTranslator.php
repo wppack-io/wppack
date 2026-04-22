@@ -114,7 +114,7 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
 
         // DO expr → SELECT expr (MySQL no-op / connection ping)
         if (preg_match('/^\s*DO\s+/i', $trimmed)) {
-            return [preg_replace('/^\s*DO\s+/i', 'SELECT ', $trimmed)];
+            return [(string) preg_replace('/^\s*DO\s+/i', 'SELECT ', $trimmed)];
         }
 
         // DROP TEMPORARY TABLE → DROP TABLE — SQLite has no TEMPORARY
@@ -383,7 +383,7 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
         $columns = [];
         $values = [];
 
-        foreach ($stmt->set as $set) {
+        foreach ($stmt->set ?? [] as $set) {
             $columns[] = $this->quoteId($set->column);
             $values[] = $set->value;
         }
@@ -484,7 +484,7 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
         $quotedTable = $this->quoteId($table);
 
         $joinClauses = [];
-        foreach ($stmt->join as $join) {
+        foreach ($stmt->join ?? [] as $join) {
             $joinKeyword = self::joinKeywordFromType($join->type ?? 'JOIN');
             $joinTable = $join->expr->table ?? $join->expr->expr ?? '';
             $joinAlias = $join->expr->alias ?? '';
@@ -543,7 +543,7 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
             $stmt instanceof DeleteStatement => $stmt->from[0]->table ?? null,
         };
 
-        if ($tableName === null) {
+        if ($tableName === null || $stmt->limit === null) {
             return $this->rewriteTokens($parser);
         }
 
@@ -563,6 +563,9 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
         $orderParts = [];
         if ($stmt->order !== null) {
             foreach ($stmt->order as $order) {
+                if ($order->expr === null) {
+                    continue;
+                }
                 $orderParts[] = $order->expr->expr . ' ' . $order->type->value;
             }
         }
@@ -734,7 +737,7 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
     private function buildColumnDef(\PhpMyAdmin\SqlParser\Components\CreateDefinition $field, ?string $mergedPkColumn): string
     {
         $name = $this->quoteId($field->name ?? '');
-        $type = $this->mapSqliteType($field->type !== null ? $field->type->name : '');
+        $type = $this->mapSqliteType($field->type !== null ? ($field->type->name ?? '') : '');
 
         $clauses = [$name, $type];
 
@@ -844,7 +847,7 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
             return '';
         }
 
-        $type = $field->type->name;
+        $type = $field->type->name ?? '';
         $params = $field->type->parameters;
 
         if ($params !== []) {
@@ -987,7 +990,7 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
             return [];
         }
 
-        $name = $stmt->table->table;
+        $name = $stmt->table->table ?? '';
         $quoted = '"' . str_replace('"', '""', $name) . '"';
 
         return [

@@ -343,9 +343,12 @@ class MySQLDriver extends AbstractDriver
         if ($exception !== null) {
             $errno = $exception->getCode();
             $message = $exception->getMessage();
-        } else {
+        } elseif ($this->connection !== null) {
             $errno = $this->connection->errno;
             $message = $this->connection->error;
+        } else {
+            $errno = 0;
+            $message = 'Unknown database error (no active connection).';
         }
 
         if ($errno === 2006 || $errno === 2013) {
@@ -439,10 +442,17 @@ class MySQLDriver extends AbstractDriver
         $this->inTx = false;
     }
 
+    /**
+     * @phpstan-assert !null $this->connection
+     */
     private function ensureConnected(): void
     {
         if ($this->connection === null) {
             $this->connect();
+        }
+
+        if ($this->connection === null) {
+            throw new DriverException('Database connection is not established.');
         }
     }
 
@@ -466,6 +476,7 @@ class MySQLDriver extends AbstractDriver
      */
     private function executePrepared(string $sql, array $params, bool $fetchRows): Result
     {
+        $this->ensureConnected();
         $stmt = $this->connection->prepare($sql);
 
         if ($stmt === false) {

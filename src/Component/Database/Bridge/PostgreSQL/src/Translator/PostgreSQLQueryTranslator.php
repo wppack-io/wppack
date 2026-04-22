@@ -117,7 +117,7 @@ final class PostgreSQLQueryTranslator implements QueryTranslatorInterface
 
         // DO expr → SELECT expr (MySQL no-op / connection ping)
         if (preg_match('/^\s*DO\s+/i', $trimmed)) {
-            return [preg_replace('/^\s*DO\s+/i', 'SELECT ', $trimmed)];
+            return [(string) preg_replace('/^\s*DO\s+/i', 'SELECT ', $trimmed)];
         }
 
         // DROP TEMPORARY TABLE → DROP TABLE — PostgreSQL has no TEMPORARY
@@ -690,7 +690,7 @@ final class PostgreSQLQueryTranslator implements QueryTranslatorInterface
         $onGroups = [];
         $fromAlias = $alias !== '' ? $alias : $table;
 
-        foreach ($stmt->join as $join) {
+        foreach ($stmt->join ?? [] as $join) {
             $joinTable = $join->expr->table ?? $join->expr->expr ?? '';
             $joinAlias = $join->expr->alias ?? '';
             $usingParts[] = $this->quoteId($joinTable) . ($joinAlias !== '' ? ' ' . $joinAlias : '');
@@ -775,7 +775,7 @@ final class PostgreSQLQueryTranslator implements QueryTranslatorInterface
             $stmt instanceof DeleteStatement => $stmt->from[0]->table ?? null,
         };
 
-        if ($tableName === null) {
+        if ($tableName === null || $stmt->limit === null) {
             return $this->rewriteTokens($parser);
         }
 
@@ -793,6 +793,9 @@ final class PostgreSQLQueryTranslator implements QueryTranslatorInterface
         $orderParts = [];
         if ($stmt->order !== null) {
             foreach ($stmt->order as $order) {
+                if ($order->expr === null) {
+                    continue;
+                }
                 $orderParts[] = $order->expr->expr . ' ' . $order->type->value;
             }
         }
@@ -1020,7 +1023,7 @@ final class PostgreSQLQueryTranslator implements QueryTranslatorInterface
     private function buildColumnDef(\PhpMyAdmin\SqlParser\Components\CreateDefinition $field): string
     {
         $name = $this->quoteId($field->name ?? '');
-        $typeName = $field->type !== null ? strtoupper($field->type->name) : '';
+        $typeName = $field->type !== null ? strtoupper($field->type->name ?? '') : '';
 
         // Map MySQL type → PostgreSQL type
         $type = $this->mapPostgreSQLType($typeName);
@@ -2282,7 +2285,7 @@ final class PostgreSQLQueryTranslator implements QueryTranslatorInterface
         $columns = [];
         $values = [];
 
-        foreach ($stmt->set as $set) {
+        foreach ($stmt->set ?? [] as $set) {
             $columns[] = $this->quoteId($set->column);
             $values[] = $set->value;
         }

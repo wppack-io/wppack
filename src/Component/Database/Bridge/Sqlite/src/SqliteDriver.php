@@ -419,10 +419,17 @@ final class SqliteDriver extends AbstractDriver
         $this->inTx = false;
     }
 
+    /**
+     * @phpstan-assert !null $this->pdo
+     */
     private function ensureConnected(): void
     {
         if ($this->pdo === null) {
             $this->connect();
+        }
+
+        if ($this->pdo === null) {
+            throw new DriverException('Database connection is not established.');
         }
     }
 }

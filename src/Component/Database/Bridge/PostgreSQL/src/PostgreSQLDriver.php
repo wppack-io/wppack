@@ -482,10 +482,17 @@ class PostgreSQLDriver extends AbstractDriver
         $this->inTx = false;
     }
 
+    /**
+     * @phpstan-assert !null $this->connection
+     */
     protected function ensureConnected(): void
     {
         if ($this->connection === null) {
             $this->connect();
+        }
+
+        if ($this->connection === null) {
+            throw new DriverException('Database connection is not established.');
         }
     }
 
