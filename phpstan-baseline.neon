@@ -37,12 +37,6 @@ parameters:
 			path: src/Component/DependencyInjection/src/ContainerBuilder.php
 
 		-
-			message: '#^Parameter \#1 \$objectOrClass of class ReflectionClass constructor expects class\-string\<T of object\>\|T of object, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Component/DependencyInjection/src/ServiceDiscovery.php
-
-		-
 			message: '#^Parameter \#1 \$list of method WPPack\\Component\\Filesystem\\Filesystem\:\:flattenDirlist\(\) expects array\<string, array\{type\: string, files\?\: array\<string, mixed\>\}\>, array\<string, array\{name\: string, perms\: string, permsn\: string, owner\: string\|false, size\: int\|string\|false, lastmodunix\: int\|string\|false, lastmod\: string\|false, time\: string\|false, \.\.\.\}\> given\.$#'
 			identifier: argument.type
 			count: 1
@@ -77,24 +71,6 @@ parameters:
 			identifier: return.type
 			count: 1
 			path: src/Component/Media/src/Storage/ImageEditor/StorageImageEditor.php
-
-		-
-			message: '#^Parameter \#1 \$objectOrClass of class ReflectionClass constructor expects class\-string\<T of object\>\|T of object, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Component/Messenger/src/DependencyInjection/RegisterMessageHandlersPass.php
-
-		-
-			message: '#^Method WPPack\\Component\\Messenger\\Envelope\:\:last\(\) should return \(T of WPPack\\Component\\Messenger\\Stamp\\StampInterface\)\|null but returns WPPack\\Component\\Messenger\\Stamp\\StampInterface\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Component/Messenger/src/Envelope.php
-
-		-
-			message: '#^Property WPPack\\Component\\Messenger\\Handler\\HandlerLocator\:\:\$handlers \(array\<class\-string, list\<WPPack\\Component\\Messenger\\Handler\\HandlerDescriptor\>\>\) does not accept non\-empty\-array\<string, list\<WPPack\\Component\\Messenger\\Handler\\HandlerDescriptor\>\>\.$#'
-			identifier: assign.propertyType
-			count: 1
-			path: src/Component/Messenger/src/Handler/HandlerLocator.php
 
 		-
 			message: '#^Parameter \#1 \$input of class AsyncAws\\CloudWatch\\ValueObject\\MetricStat constructor expects array\{Metric\: array\|AsyncAws\\CloudWatch\\ValueObject\\Metric, Period\: int, Stat\: string, Unit\?\: ''Bits''\|''Bits/Second''\|''Bytes''\|''Bytes/Second''\|''Count''\|''Count/Second''\|''Gigabits''\|''Gigabits/Second''\|''Gigabytes''\|''Gigabytes/Second''\|''Kilobits''\|''Kilobits/Second''\|''Kilobytes''\|''Kilobytes/Second''\|''Megabits''\|''Megabits/Second''\|''Megabytes''\|''Megabytes/Second''\|''Microseconds''\|''Milliseconds''\|''None''\|''Percent''\|''Seconds''\|''Terabits''\|''Terabits/Second''\|''Terabytes''\|''Terabytes/Second''\|''UNKNOWN_TO_SDK''\|null\}, array\{Metric\: AsyncAws\\CloudWatch\\ValueObject\\Metric, Period\: int, Stat\: string, Unit\?\: non\-empty\-string\} given\.$#'
@@ -149,12 +125,6 @@ parameters:
 			identifier: return.type
 			count: 1
 			path: src/Component/Security/src/Authentication/Passport/Passport.php
-
-		-
-			message: '#^Property WPPack\\Component\\Serializer\\Serializer\:\:\$encoders \(list\<WPPack\\Component\\Serializer\\Encoder\\DecoderInterface\|WPPack\\Component\\Serializer\\Encoder\\EncoderInterface\>\) does not accept array\<WPPack\\Component\\Serializer\\Encoder\\DecoderInterface\|WPPack\\Component\\Serializer\\Encoder\\EncoderInterface\>\.$#'
-			identifier: assign.propertyType
-			count: 1
-			path: src/Component/Serializer/src/Serializer.php
 
 		-
 			message: '#^Parameter \#1 \$callback of function array_map expects \(callable\(int\|WP_Site\)\: mixed\)\|null, Closure\(WP_Site\)\: string given\.$#'

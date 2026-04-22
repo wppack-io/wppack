@@ -86,7 +86,9 @@ final class Envelope
             return null;
         }
 
-        return $stamps[array_key_last($stamps)];
+        $stamp = $stamps[array_key_last($stamps)];
+
+        return $stamp instanceof $stampClass ? $stamp : null;
     }
 
     /**

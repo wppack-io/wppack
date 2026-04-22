@@ -63,6 +63,9 @@ final class ServiceDiscovery
         }
     }
 
+    /**
+     * @param class-string $className
+     */
     private function registerClass(string $className): void
     {
         $reflection = new \ReflectionClass($className);

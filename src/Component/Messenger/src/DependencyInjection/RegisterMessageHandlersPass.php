@@ -60,6 +60,9 @@ final class RegisterMessageHandlersPass implements CompilerPassInterface
         }
     }
 
+    /**
+     * @param class-string $handlerClass
+     */
     private function resolveMessageClass(string $handlerClass): ?string
     {
         $reflection = new \ReflectionClass($handlerClass);

@@ -30,6 +30,9 @@ final class HandlerLocator implements HandlerLocatorInterface
         }
     }
 
+    /**
+     * @param class-string $messageClass
+     */
     public function addHandler(string $messageClass, callable $handler, string $name = ''): void
     {
         if ($name === '' && is_array($handler) && \count($handler) >= 2) {
