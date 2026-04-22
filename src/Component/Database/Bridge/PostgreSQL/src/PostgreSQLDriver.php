@@ -107,7 +107,12 @@ class PostgreSQLDriver extends AbstractDriver
     {
         $this->ensureConnected();
 
-        return pg_escape_literal($this->connection, $value);
+        $quoted = pg_escape_literal($this->connection, $value);
+        if ($quoted === false) {
+            throw new DriverException('Failed to quote string literal.');
+        }
+
+        return $quoted;
     }
 
     public function escapeStringContent(string $value): string

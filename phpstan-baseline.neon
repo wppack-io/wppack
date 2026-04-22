@@ -7,30 +7,6 @@ parameters:
 			path: src/Component/Cache/drop-in/object-cache.php
 
 		-
-			message: '#^Method WPPack\\Component\\Database\\Bridge\\PostgreSQL\\PostgreSQLDriver\:\:quoteStringLiteral\(\) should return string but returns string\|false\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Component/Database/Bridge/PostgreSQL/src/PostgreSQLDriver.php
-
-		-
-			message: '#^Parameter \#2 \$params of method WPPack\\Component\\Database\\Driver\\MySQLDriver\:\:bindAndExecute\(\) expects list\<mixed\>, array given\.$#'
-			identifier: argument.type
-			count: 2
-			path: src/Component/Database/src/Driver/MySQLDriver.php
-
-		-
-			message: '#^Offset ''type'' might not exist on array\{function\: string, line\?\: int, file\?\: string, class\?\: class\-string, type\?\: ''\-\>''\|''\:\:'', args\?\: list\<mixed\>, object\?\: object\}\.$#'
-			identifier: offsetAccess.notFound
-			count: 1
-			path: src/Component/Database/src/WPPackWpdb.php
-
-		-
-			message: '#^Parameter \#2 \$data of function fwrite expects string, string\|false given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Component/DatabaseExport/src/Writer/JsonWriter.php
-
-		-
 			message: '#^Method WPPack\\Component\\DependencyInjection\\ContainerBuilder\:\:findTaggedServiceIds\(\) should return array\<string, list\<array\<string, mixed\>\>\> but returns array\<string, array\>\.$#'
 			identifier: return.type
 			count: 1
@@ -119,4 +95,3 @@ parameters:
 			identifier: argument.type
 			count: 2
 			path: src/Plugin/OAuthLoginPlugin/src/Configuration/OAuthLoginConfiguration.php
-

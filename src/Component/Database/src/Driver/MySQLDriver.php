@@ -371,7 +371,7 @@ class MySQLDriver extends AbstractDriver
         }
 
         $executeQuery = function (array $params) use ($stmt): Result {
-            $this->bindAndExecute($stmt, $params);
+            $this->bindAndExecute($stmt, array_values($params));
 
             $result = $stmt->get_result();
 
@@ -387,7 +387,7 @@ class MySQLDriver extends AbstractDriver
         };
 
         $executeStatement = function (array $params) use ($stmt): int {
-            $this->bindAndExecute($stmt, $params);
+            $this->bindAndExecute($stmt, array_values($params));
 
             return (int) $stmt->affected_rows;
         };

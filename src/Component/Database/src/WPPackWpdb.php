@@ -1065,7 +1065,8 @@ class WPPackWpdb extends \wpdb
             }
 
             if ($class !== '') {
-                $callers[] = "{$class}{$frame['type']}{$frame['function']}";
+                $type = $frame['type'] ?? '::';
+                $callers[] = "{$class}{$type}{$frame['function']}";
             } else {
                 $callers[] = $frame['function'];
             }
