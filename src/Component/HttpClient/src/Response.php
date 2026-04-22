@@ -97,6 +97,9 @@ final class Response implements ResponseInterface
         return implode(', ', $this->getHeader($name));
     }
 
+    /**
+     * @param string|list<string> $value
+     */
     public function withHeader(string $name, $value): static
     {
         $clone = clone $this;
@@ -112,6 +115,9 @@ final class Response implements ResponseInterface
         return $clone;
     }
 
+    /**
+     * @param string|list<string> $value
+     */
     public function withAddedHeader(string $name, $value): static
     {
         $clone = clone $this;

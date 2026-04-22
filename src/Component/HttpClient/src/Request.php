@@ -109,6 +109,9 @@ final class Request implements RequestInterface
         return implode(', ', $this->getHeader($name));
     }
 
+    /**
+     * @param string|list<string> $value
+     */
     public function withHeader(string $name, $value): static
     {
         $clone = clone $this;
@@ -124,6 +127,9 @@ final class Request implements RequestInterface
         return $clone;
     }
 
+    /**
+     * @param string|list<string> $value
+     */
     public function withAddedHeader(string $name, $value): static
     {
         $clone = clone $this;

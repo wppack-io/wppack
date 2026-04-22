@@ -55,24 +55,6 @@ parameters:
 			path: src/Component/Filesystem/src/WordPress/UploadPath.php
 
 		-
-			message: '#^Property WPPack\\Component\\HttpClient\\Request\:\:\$headers \(array\<string, list\<string\>\>\) does not accept non\-empty\-array\<string, array\<string\>\>\.$#'
-			identifier: assign.propertyType
-			count: 3
-			path: src/Component/HttpClient/src/Request.php
-
-		-
-			message: '#^Property WPPack\\Component\\HttpClient\\Response\:\:\$headerValues \(array\<string, list\<string\>\>\) does not accept non\-empty\-array\<string, array\<string\>\>\.$#'
-			identifier: assign.propertyType
-			count: 3
-			path: src/Component/HttpClient/src/Response.php
-
-		-
-			message: '#^Parameter \#2 \$length of function fread expects int\<1, max\>, int given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Component/HttpClient/src/Stream.php
-
-		-
 			message: '#^Method WPPack\\Component\\HttpFoundation\\File\\UploadedFile\:\:wpHandleUpload\(\) should return array\{error\: string\}\|array\{file\: string, url\: string, type\: string\} but returns array\.$#'
 			identifier: return.type
 			count: 1
