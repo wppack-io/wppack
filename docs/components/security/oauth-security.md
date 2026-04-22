@@ -673,7 +673,7 @@ $configuration = new OAuthConfiguration(
     scopes: ['openid', 'email', 'profile'],
 );
 
-$provider = new AzureProvider(
+$provider = new EntraIdProvider(
     configuration: $configuration,
     tenantId: 'your-tenant-id',
 );
