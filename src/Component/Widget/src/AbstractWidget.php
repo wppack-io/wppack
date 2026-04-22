@@ -32,6 +32,15 @@ abstract class AbstractWidget extends \WP_Widget
     }
 
     /**
+     * Render the widget body. Concrete widgets return the HTML string
+     * from their __invoke().
+     *
+     * @param array<string, mixed> $args
+     * @param array<string, mixed> $instance
+     */
+    abstract public function __invoke(array $args, array $instance): string;
+
+    /**
      * @param array<string, mixed> $args
      * @param array<string, mixed> $instance
      */

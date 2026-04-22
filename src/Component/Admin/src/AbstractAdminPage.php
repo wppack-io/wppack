@@ -92,6 +92,13 @@ abstract class AbstractAdminPage
         return $this->renderer->render($template, $context);
     }
 
+    /**
+     * Render the admin page body. Concrete pages return the HTML string
+     * from their __invoke(); handleRender() is the WordPress-facing
+     * echo shim.
+     */
+    abstract public function __invoke(): string;
+
     /** @internal */
     public function handleRender(): void
     {

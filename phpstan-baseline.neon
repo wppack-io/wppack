@@ -1,12 +1,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Trying to invoke \$this\(WPPack\\Component\\Admin\\AbstractAdminPage\) but it might not be a callable\.$#'
-			identifier: callable.nonCallable
-			count: 1
-			path: src/Component/Admin/src/AbstractAdminPage.php
-
-		-
 			message: '#^Function wp_cache_add_multiple\(\) should return array\<string, bool\> but returns array\<int\|string, bool\>\.$#'
 			identifier: return.type
 			count: 1
@@ -461,12 +455,6 @@ parameters:
 			identifier: return.type
 			count: 1
 			path: src/Component/Taxonomy/src/TermRepository.php
-
-		-
-			message: '#^Trying to invoke \$this\(WPPack\\Component\\Widget\\AbstractWidget\) but it might not be a callable\.$#'
-			identifier: callable.nonCallable
-			count: 1
-			path: src/Component/Widget/src/AbstractWidget.php
 
 		-
 			message: '#^Parameter \#2 \$length of function fread expects int\<1, max\>, int\<min, \-1\>\|int\<1, max\> given\.$#'
