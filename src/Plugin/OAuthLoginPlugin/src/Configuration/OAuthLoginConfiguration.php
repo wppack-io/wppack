@@ -107,7 +107,7 @@ final readonly class OAuthLoginConfiguration
                 domain: isset($p['domain']) ? (string) $p['domain'] : null,
                 hostedDomain: isset($p['hosted_domain']) ? (string) $p['hosted_domain'] : null,
                 discoveryUrl: isset($p['discovery_url']) ? (string) $p['discovery_url'] : null,
-                scopes: isset($p['scopes']) && \is_array($p['scopes']) ? $p['scopes'] : null,
+                scopes: isset($p['scopes']) && \is_array($p['scopes']) ? array_values(array_map('strval', $p['scopes'])) : null,
                 autoProvision: (bool) ($p['auto_provision'] ?? $globalAutoProvision),
                 buttonStyle: isset($p['button_style']) ? (string) $p['button_style'] : null,
             );
@@ -157,7 +157,7 @@ final readonly class OAuthLoginConfiguration
                 domain: isset($p['domain']) ? (string) $p['domain'] : null,
                 hostedDomain: isset($p['hosted_domain']) ? (string) $p['hosted_domain'] : null,
                 discoveryUrl: isset($p['discovery_url']) ? (string) $p['discovery_url'] : null,
-                scopes: isset($p['scopes']) && \is_array($p['scopes']) ? $p['scopes'] : null,
+                scopes: isset($p['scopes']) && \is_array($p['scopes']) ? array_values(array_map('strval', $p['scopes'])) : null,
                 autoProvision: (bool) ($p['auto_provision'] ?? $globalAutoProvision),
                 buttonStyle: isset($p['button_style']) ? (string) $p['button_style'] : null,
             );

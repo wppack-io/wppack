@@ -77,6 +77,9 @@ final class ExpressionParser
             $allowed = implode(', ', array_unique(array_keys($this->prefixMap)));
             throw new \InvalidArgumentException(sprintf('Unknown prefix "%s". Allowed: %s.', $rawPrefix, $allowed));
         }
+        if (!\in_array($prefix, ['meta', 'tax', 'post', 'user', 'term'], true)) {
+            throw new \InvalidArgumentException(sprintf('Prefix "%s" is not a supported target.', $prefix));
+        }
 
         // Parse operator and optional placeholder from remainder
         [$operator, $placeholder] = $this->parseOperatorAndPlaceholder($remainder, $expression);

@@ -87,6 +87,7 @@ class StorageImageEditor extends \WP_Image_Editor_Imagick
             $this->tempFiles[] = $localFilename;
         }
 
+        /** @var \WP_Error|array{path: string, file: string, width: int, height: int, mime-type: string} $result */
         $result = parent::_save($image, $localFilename, $mimeType);
 
         if ($result instanceof \WP_Error) {

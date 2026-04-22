@@ -53,9 +53,10 @@ final class ActionSchedulerCollector
             $scheduledDate = null;
 
             if (method_exists($schedule, 'get_date') && $schedule->get_date() !== null) {
-                $scheduledDate = \DateTimeImmutable::createFromMutable(
-                    \DateTime::createFromFormat('U', (string) $schedule->get_date()->getTimestamp()),
-                );
+                $parsed = \DateTime::createFromFormat('U', (string) $schedule->get_date()->getTimestamp());
+                if ($parsed !== false) {
+                    $scheduledDate = \DateTimeImmutable::createFromMutable($parsed);
+                }
             }
 
             $actions[] = [

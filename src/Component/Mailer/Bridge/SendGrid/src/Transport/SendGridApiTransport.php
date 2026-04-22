@@ -102,26 +102,26 @@ final class SendGridApiTransport extends AbstractApiTransport
     private function buildPersonalization(PhpMailer $phpMailer): array
     {
         $personalization = [
-            'to' => array_map(
+            'to' => array_values(array_map(
                 fn(array $a): array => $this->formatEmailAddress($a[0], $a[1]),
                 $phpMailer->getToAddresses(),
-            ),
+            )),
         ];
 
         $cc = $phpMailer->getCcAddresses();
         if (!empty($cc)) {
-            $personalization['cc'] = array_map(
+            $personalization['cc'] = array_values(array_map(
                 fn(array $a): array => $this->formatEmailAddress($a[0], $a[1]),
                 $cc,
-            );
+            ));
         }
 
         $bcc = $phpMailer->getBccAddresses();
         if (!empty($bcc)) {
-            $personalization['bcc'] = array_map(
+            $personalization['bcc'] = array_values(array_map(
                 fn(array $a): array => $this->formatEmailAddress($a[0], $a[1]),
                 $bcc,
-            );
+            ));
         }
 
         return $personalization;

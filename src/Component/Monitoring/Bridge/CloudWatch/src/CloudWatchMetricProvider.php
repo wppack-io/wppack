@@ -445,6 +445,7 @@ final class CloudWatchMetricProvider implements MetricProviderInterface
                 $metricStat['Unit'] = $metric->unit;
             }
 
+            /** @var array{Metric: Metric, Period: int, Stat: string, Unit?: \AsyncAws\CloudWatch\Enum\StandardUnit::*} $metricStat */
             $queries[] = new MetricDataQuery([
                 'Id' => $queryId,
                 'MetricStat' => new MetricStat($metricStat),

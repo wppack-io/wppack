@@ -185,7 +185,12 @@ function wp_cache_add(string $key, mixed $data, string $group = '', int $expire 
  */
 function wp_cache_add_multiple(array $data, string $group = '', int $expire = 0): array
 {
-    return wp_cache_instance()->addMultiple($data, $group, $expire);
+    $results = [];
+    foreach (wp_cache_instance()->addMultiple($data, $group, $expire) as $key => $ok) {
+        $results[(string) $key] = $ok;
+    }
+
+    return $results;
 }
 
 function wp_cache_replace(string $key, mixed $data, string $group = '', int $expire = 0): bool
