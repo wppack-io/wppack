@@ -28,7 +28,7 @@ final readonly class PostRepository implements PostRepositoryInterface
     {
         return \array_values(\array_filter(
             get_posts($args),
-            static fn ($p): bool => $p instanceof \WP_Post,
+            static fn($p): bool => $p instanceof \WP_Post,
         ));
     }
 
