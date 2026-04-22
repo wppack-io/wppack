@@ -50,7 +50,7 @@ final class AzureTransportFactory implements TransportFactoryInterface
             throw new InvalidArgumentException(sprintf('Azure "%s" DSN must contain a resource name (user) and access key (password).', $dsn->getScheme()));
         }
 
-        $apiVersion = $dsn->getOption('api_version', '2024-07-01-preview');
+        $apiVersion = $dsn->getOption('api_version', '2024-07-01-preview') ?? '2024-07-01-preview';
 
         return new AzureApiTransport(
             resourceName: $resourceName,

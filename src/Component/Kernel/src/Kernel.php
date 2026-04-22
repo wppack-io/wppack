@@ -207,7 +207,8 @@ class Kernel
         }
 
         // 3. Compile the container
-        $this->container = $builder->compile();
+        $container = $builder->compile();
+        $this->container = $container;
 
         // Set the synthetic Request service instance
         $builder->getSymfonyBuilder()->set(Request::class, $request);
@@ -215,16 +216,16 @@ class Kernel
         // 4. Boot all plugins and themes
         foreach ($this->plugins as $plugin) {
             $this->loadTextDomains($plugin);
-            $plugin->boot($this->container);
+            $plugin->boot($container);
         }
 
         foreach ($this->themes as $theme) {
-            $theme->boot($this->container);
+            $theme->boot($container);
         }
 
         $this->booted = true;
 
-        return $this->container;
+        return $container;
     }
 
     public function getContainer(): Container

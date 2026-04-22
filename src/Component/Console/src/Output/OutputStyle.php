@@ -114,7 +114,7 @@ final class OutputStyle
     public function ask(string $question, ?string $default = null): string
     {
         if ($this->output instanceof WpCliOutput) {
-            return (string) \cli\prompt($question, $default);
+            return (string) \cli\prompt($question, $default ?? false);
         }
 
         $prompt = $default !== null ? sprintf('%s [%s]', $question, $default) : $question;

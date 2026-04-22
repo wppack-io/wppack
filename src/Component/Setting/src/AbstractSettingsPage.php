@@ -209,7 +209,7 @@ abstract class AbstractSettingsPage
             add_settings_section(
                 $section->id,
                 $section->title,
-                $section->renderCallback,
+                $section->renderCallback ?? static fn() => null,
                 $this->slug,
             );
 

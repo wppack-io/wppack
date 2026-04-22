@@ -40,12 +40,14 @@ abstract class AbstractCommand
     /** @internal */
     public function getDefinition(): InputDefinition
     {
-        if ($this->definition === null) {
-            $this->definition = new InputDefinition();
-            $this->configure($this->definition);
+        $definition = $this->definition;
+        if ($definition === null) {
+            $definition = new InputDefinition();
+            $this->configure($definition);
+            $this->definition = $definition;
         }
 
-        return $this->definition;
+        return $definition;
     }
 
     /** @internal */

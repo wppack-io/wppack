@@ -43,11 +43,11 @@ final class NativeTransportFactory implements TransportFactoryInterface
         return match ($dsn->getScheme()) {
             'native' => new NativeTransport(),
             'smtp', 'smtps' => new SmtpTransport(
-                host: $dsn->getHost(),
+                host: $dsn->getHost() ?? 'localhost',
                 port: $dsn->getPort() ?? ($dsn->getScheme() === 'smtps' ? 465 : 587),
                 username: $dsn->getUser(),
                 password: $dsn->getPassword(),
-                encryption: $dsn->getScheme() === 'smtps' ? 'ssl' : $dsn->getOption('encryption', 'tls'),
+                encryption: $dsn->getScheme() === 'smtps' ? 'ssl' : ($dsn->getOption('encryption', 'tls') ?? 'tls'),
             ),
             'null' => new NullTransport(),
             default => throw new UnsupportedSchemeException($dsn),

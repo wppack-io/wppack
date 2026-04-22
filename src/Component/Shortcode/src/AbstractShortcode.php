@@ -60,16 +60,18 @@ abstract class AbstractShortcode
             return $atts;
         }
 
-        if ($this->cachedResolver === null) {
-            $this->cachedResolver = new OptionsResolver();
-            $this->configureAttributes($this->cachedResolver);
+        $resolver = $this->cachedResolver;
+        if ($resolver === null) {
+            $resolver = new OptionsResolver();
+            $this->configureAttributes($resolver);
+            $this->cachedResolver = $resolver;
         }
 
         // Apply shortcode_atts() for WordPress filter compatibility
-        $defaults = $this->cachedResolver->resolve([]);
+        $defaults = $resolver->resolve([]);
         $atts = shortcode_atts($defaults, $atts, $this->name);
 
-        return $this->cachedResolver->resolve($atts);
+        return $resolver->resolve($atts);
     }
 
     private function hasConfigureAttributesOverride(): bool

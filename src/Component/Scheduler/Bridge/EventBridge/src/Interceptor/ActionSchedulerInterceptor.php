@@ -213,6 +213,16 @@ final class ActionSchedulerInterceptor
      */
     private function resolveExpression(\ActionScheduler_Schedule $schedule): array
     {
+        if ($schedule instanceof \ActionScheduler_SimpleSchedule) {
+            $date = $schedule->get_date();
+            $timestamp = $date !== null ? $date->getTimestamp() : time();
+
+            return [
+                $this->scheduleFactory->fromTimestamp($timestamp)['expression'],
+                true,
+            ];
+        }
+
         return match (true) {
             $schedule instanceof \ActionScheduler_CronSchedule => [
                 $this->scheduleFactory->fromCronExpression($schedule->get_recurrence())['expression'],
@@ -221,10 +231,6 @@ final class ActionSchedulerInterceptor
             $schedule instanceof \ActionScheduler_IntervalSchedule => [
                 $this->scheduleFactory->fromWpCronInterval((int) $schedule->get_recurrence())['expression'],
                 false,
-            ],
-            $schedule instanceof \ActionScheduler_SimpleSchedule => [
-                $this->scheduleFactory->fromTimestamp($schedule->get_date()->getTimestamp())['expression'],
-                true,
             ],
             // NullSchedule = async action, fire immediately
             default => [

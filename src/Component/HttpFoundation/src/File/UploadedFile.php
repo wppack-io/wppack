@@ -105,6 +105,7 @@ class UploadedFile extends File
     public function wpHandleUpload(array $overrides = []): array
     {
         $fileArray = $this->toFilesArray();
+        $fileArray['size'] ??= 0;
 
         /** @var array{file: string, url: string, type: string}|array{error: string} $result */
         $result = wp_handle_upload($fileArray, $overrides);

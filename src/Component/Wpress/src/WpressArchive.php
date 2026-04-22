@@ -343,6 +343,9 @@ final class WpressArchive implements \Countable
         return null;
     }
 
+    /**
+     * @phpstan-assert !null $this->index
+     */
     private function buildIndex(): void
     {
         if ($this->index !== null) {

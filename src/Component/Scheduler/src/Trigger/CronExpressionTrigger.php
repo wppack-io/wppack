@@ -38,6 +38,6 @@ final class CronExpressionTrigger implements TriggerInterface
 
     public function __toString(): string
     {
-        return $this->expression->getExpression();
+        return $this->expression->getExpression() ?? '';
     }
 }

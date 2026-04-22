@@ -57,7 +57,7 @@ final readonly class TermRepository implements TermRepositoryInterface
 
     public function exists(int|string $term, string $taxonomy = '', ?int $parentId = null): ?int
     {
-        $result = term_exists($term, $taxonomy !== '' ? $taxonomy : null, $parentId);
+        $result = term_exists($term, $taxonomy, $parentId);
 
         if (\is_array($result)) {
             return (int) $result['term_id'];

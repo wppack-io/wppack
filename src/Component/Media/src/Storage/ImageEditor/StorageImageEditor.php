@@ -80,7 +80,7 @@ class StorageImageEditor extends \WP_Image_Editor_Imagick
 
         $localFilename = $filename;
 
-        if ($isStreamWrapper) {
+        if ($isStreamWrapper && $filename !== null) {
             // Save to a temp file first, then copy to stream wrapper
             $extension = pathinfo($filename, \PATHINFO_EXTENSION);
             $localFilename = wp_tempnam('storage_save_' . ($extension !== '' ? '.' . $extension : ''));
@@ -94,7 +94,7 @@ class StorageImageEditor extends \WP_Image_Editor_Imagick
             return $result;
         }
 
-        if ($isStreamWrapper) {
+        if ($isStreamWrapper && $filename !== null) {
             $localPath = $result['path'];
             $contents = file_get_contents($localPath);
 
