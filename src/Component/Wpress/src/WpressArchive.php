@@ -48,6 +48,7 @@ final class WpressArchive implements \Countable
     public function __construct(
         private readonly string $path,
         int $flags = 0,
+        #[\SensitiveParameter]
         private readonly ?string $password = null,
     ) {
         $this->plainProcessor = new PlainContentProcessor();

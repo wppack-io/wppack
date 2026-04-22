@@ -28,10 +28,13 @@ final class TokenExchanger
      */
     public function exchange(
         string $tokenEndpoint,
+        #[\SensitiveParameter]
         string $code,
         string $redirectUri,
         string $clientId,
+        #[\SensitiveParameter]
         string $clientSecret,
+        #[\SensitiveParameter]
         ?string $codeVerifier = null,
     ): OAuthTokenSet {
         $params = [

@@ -33,6 +33,7 @@ final class ChainContentProcessor implements ContentProcessorInterface
     private readonly string $key;
 
     public function __construct(
+        #[\SensitiveParameter]
         private readonly string $password,
         private readonly string $compressionType = 'gzip',
     ) {

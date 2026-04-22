@@ -29,8 +29,10 @@ final class TokenRefresher
      */
     public function refresh(
         string $tokenEndpoint,
+        #[\SensitiveParameter]
         string $refreshToken,
         string $clientId,
+        #[\SensitiveParameter]
         string $clientSecret,
         ?array $scopes = null,
     ): OAuthTokenSet {
