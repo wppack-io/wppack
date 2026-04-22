@@ -196,7 +196,7 @@ All packages: in design phase (branch `1.x`, unreleased).
 | Run tests (single file) | `vendor/bin/phpunit path/to/Test.php` |
 | Coverage (HTML) | `XDEBUG_MODE=coverage vendor/bin/phpunit --coverage-html var/coverage` |
 | PHPStan | `vendor/bin/phpstan analyse --no-progress` |
-| Regenerate baseline | `vendor/bin/phpstan analyse --generate-baseline phpstan-baseline.neon` |
+| Regenerate baseline | `vendor/bin/phpstan analyse --generate-baseline phpstan-baseline.neon` (creates the file + wire it into `phpstan.neon`'s `includes:`) |
 | Code style fix | `vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.php <path>` |
 | Code style check | `vendor/bin/php-cs-fixer fix --dry-run --diff --ansi` |
 | Database integration (per engine) | see maintainer-notes.md § Database |
