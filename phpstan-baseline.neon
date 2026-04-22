@@ -7,12 +7,6 @@ parameters:
 			path: src/Component/Cache/drop-in/object-cache.php
 
 		-
-			message: '#^Method WPPack\\Component\\DependencyInjection\\ContainerBuilder\:\:findTaggedServiceIds\(\) should return array\<string, list\<array\<string, mixed\>\>\> but returns array\<string, array\>\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Component/DependencyInjection/src/ContainerBuilder.php
-
-		-
 			message: '#^Method WPPack\\Component\\Mailer\\Bridge\\SendGrid\\Transport\\SendGridApiTransport\:\:buildPersonalization\(\) should return array\{to\: list\<array\{email\: string, name\?\: string\}\>, cc\?\: list\<array\{email\: string, name\?\: string\}\>, bcc\?\: list\<array\{email\: string, name\?\: string\}\>\} but returns array\{to\: array\<array\{email\: string, name\?\: string\}\>, cc\?\: non\-empty\-array\<array\{email\: string, name\?\: string\}\>, bcc\?\: non\-empty\-array\<array\{email\: string, name\?\: string\}\>\}\.$#'
 			identifier: return.type
 			count: 1
@@ -41,30 +35,6 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: src/Component/Scheduler/Bridge/EventBridge/src/Collector/ActionSchedulerCollector.php
-
-		-
-			message: '#^Parameter \#1 \$members of static method WPPack\\Component\\Scim\\Controller\\GroupController\:\:extractMemberIds\(\) expects list\<array\<string, mixed\>\>, array\<mixed, mixed\> given\.$#'
-			identifier: argument.type
-			count: 3
-			path: src/Component/Scim/src/Controller/GroupController.php
-
-		-
-			message: '#^Parameter \#1 \$callback of function array_map expects \(callable\(int\|WP_Site\)\: mixed\)\|null, Closure\(WP_Site\)\: string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Component/Site/src/SiteRepository.php
-
-		-
-			message: '#^Method WPPack\\Component\\Taxonomy\\TermRepository\:\:addMeta\(\) should return int\|null but returns int\|WP_Error\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Component/Taxonomy/src/TermRepository.php
-
-		-
-			message: '#^Parameter \#2 \$length of function fread expects int\<1, max\>, int\<min, \-1\>\|int\<1, max\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Component/Wpress/src/WpressArchive.php
 
 		-
 			message: '#^Parameter \$scopes of class WPPack\\Plugin\\OAuthLoginPlugin\\Configuration\\ProviderConfiguration constructor expects list\<string\>\|null, array\<mixed, mixed\>\|null given\.$#'

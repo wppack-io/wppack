@@ -301,7 +301,7 @@ final class GroupController extends AbstractRestController
     }
 
     /**
-     * @param list<array<string, mixed>> $members
+     * @param array<mixed> $members
      *
      * @return list<int>
      */
@@ -309,7 +309,7 @@ final class GroupController extends AbstractRestController
     {
         $ids = [];
         foreach ($members as $member) {
-            if (!isset($member['value']) || $member['value'] === '' || !ctype_digit((string) $member['value'])) {
+            if (!\is_array($member) || !isset($member['value']) || $member['value'] === '' || !ctype_digit((string) $member['value'])) {
                 throw new InvalidValueException('Each member must have a numeric "value" attribute.');
             }
             $ids[] = (int) $member['value'];

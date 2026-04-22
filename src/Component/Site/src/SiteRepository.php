@@ -77,14 +77,17 @@ final readonly class SiteRepository implements SiteRepositoryInterface
         }
 
         // 'count' is not set, so get_sites returns array<int, WP_Site>;
-        // is_array() narrows away the int return that the stub also models.
+        // is_array() narrows away the int return that the stub also models,
+        // and the array_filter keeps the int-element union the stub admits.
         $sites = get_sites(['number' => 0]);
         if (!\is_array($sites)) {
             return [];
         }
 
+        $siteObjects = array_filter($sites, static fn($site): bool => $site instanceof \WP_Site);
+
         return array_values(array_unique(
-            array_map(static fn(\WP_Site $site): string => $site->domain, $sites),
+            array_map(static fn(\WP_Site $site): string => $site->domain, $siteObjects),
         ));
     }
 

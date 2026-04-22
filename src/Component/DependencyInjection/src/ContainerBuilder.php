@@ -100,7 +100,12 @@ class ContainerBuilder
      */
     public function findTaggedServiceIds(string $tag): array
     {
-        return $this->symfonyBuilder->findTaggedServiceIds($tag);
+        $result = [];
+        foreach ($this->symfonyBuilder->findTaggedServiceIds($tag) as $serviceId => $tags) {
+            $result[$serviceId] = array_values($tags);
+        }
+
+        return $result;
     }
 
     public function addCompilerPass(CompilerPassInterface $pass): self

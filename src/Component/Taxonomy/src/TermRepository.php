@@ -116,6 +116,10 @@ final readonly class TermRepository implements TermRepositoryInterface
     {
         $result = add_term_meta($termId, $key, $value, $unique);
 
+        if ($result instanceof \WP_Error) {
+            throw TermException::fromWpError($result);
+        }
+
         return $result === false ? null : $result;
     }
 

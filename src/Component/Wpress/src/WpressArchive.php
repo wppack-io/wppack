@@ -325,7 +325,7 @@ final class WpressArchive implements \Countable
             }
 
             if ($header->name === 'package.json') {
-                if ($header->size === 0) {
+                if ($header->size <= 0) {
                     return '{}';
                 }
 
