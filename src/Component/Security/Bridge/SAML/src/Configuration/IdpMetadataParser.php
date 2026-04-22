@@ -72,7 +72,7 @@ final class IdpMetadataParser
     {
         $response = wp_remote_get($url, ['timeout' => 30]);
 
-        if (is_wp_error($response)) {
+        if ($response instanceof \WP_Error) {
             throw new \InvalidArgumentException(\sprintf(
                 'Failed to fetch IdP metadata from URL "%s": %s',
                 $url,

@@ -74,7 +74,9 @@ class Passport
      */
     public function getBadge(string $badgeClass): ?BadgeInterface
     {
-        return $this->badges[$badgeClass] ?? null;
+        $badge = $this->badges[$badgeClass] ?? null;
+
+        return $badge instanceof $badgeClass ? $badge : null;
     }
 
     /**

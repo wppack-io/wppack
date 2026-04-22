@@ -320,7 +320,7 @@ final class SamlAuthenticator implements AuthenticatorInterface
         foreach ($assertion->getAllAttributeStatements() as $statement) {
             foreach ($statement->getAllAttributes() as $attribute) {
                 $name = $attribute->getName();
-                $values = $attribute->getAllAttributeValues();
+                $values = array_values($attribute->getAllAttributeValues());
                 if (isset($attributes[$name])) {
                     $attributes[$name] = array_merge($attributes[$name], $values);
                 } else {

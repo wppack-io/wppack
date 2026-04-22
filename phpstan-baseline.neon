@@ -97,36 +97,6 @@ parameters:
 			path: src/Component/Scim/src/Controller/GroupController.php
 
 		-
-			message: '#^Parameter \#1 \$length of function random_bytes expects int\<1, max\>, int given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Component/Security/Bridge/OAuth/src/Pkce/PkceGenerator.php
-
-		-
-			message: '#^Parameter \$transports of class WPPack\\Component\\Security\\Bridge\\Passkey\\Storage\\PasskeyCredential constructor expects list\<string\>, array\<string\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Component/Security/Bridge/Passkey/src/Controller/RegistrationController.php
-
-		-
-			message: '#^Cannot call method get_error_message\(\) on array\|WP_Error\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: src/Component/Security/Bridge/SAML/src/Configuration/IdpMetadataParser.php
-
-		-
-			message: '#^Method WPPack\\Component\\Security\\Bridge\\SAML\\SamlAuthenticator\:\:extractAttributes\(\) should return array\<string, list\<string\>\> but returns array\<string, array\<string\>\>\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Component/Security/Bridge/SAML/src/SamlAuthenticator.php
-
-		-
-			message: '#^Method WPPack\\Component\\Security\\Authentication\\Passport\\Passport\:\:getBadge\(\) should return \(T of WPPack\\Component\\Security\\Authentication\\Passport\\Badge\\BadgeInterface\)\|null but returns WPPack\\Component\\Security\\Authentication\\Passport\\Badge\\BadgeInterface\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Component/Security/src/Authentication/Passport/Passport.php
-
-		-
 			message: '#^Parameter \#1 \$callback of function array_map expects \(callable\(int\|WP_Site\)\: mixed\)\|null, Closure\(WP_Site\)\: string given\.$#'
 			identifier: argument.type
 			count: 1
@@ -150,8 +120,3 @@ parameters:
 			count: 2
 			path: src/Plugin/OAuthLoginPlugin/src/Configuration/OAuthLoginConfiguration.php
 
-		-
-			message: '#^Parameter \$transports of class WPPack\\Component\\Security\\Bridge\\Passkey\\Storage\\PasskeyCredential constructor expects list\<string\>, array\<string\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Plugin/PasskeyLoginPlugin/src/Activation/PasskeyActivationController.php

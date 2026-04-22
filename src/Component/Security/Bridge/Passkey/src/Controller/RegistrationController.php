@@ -140,7 +140,7 @@ final class RegistrationController extends AbstractRestController
                 credentialId: $credentialId,
                 publicKey: base64_encode($source->credentialPublicKey),
                 counter: $source->counter,
-                transports: $source->transports,
+                transports: array_values($source->transports),
                 deviceName: $deviceName,
                 aaguid: $aaguid,
                 backupEligible: $backupEligible,

@@ -35,7 +35,7 @@ final class PkceGenerator
             throw new \InvalidArgumentException('Code verifier length must be between 43 and 128 characters.');
         }
 
-        $bytes = random_bytes((int) ceil($length * 3 / 4));
+        $bytes = random_bytes(max(1, (int) ceil($length * 3 / 4)));
 
         return substr(self::base64UrlEncode($bytes), 0, $length);
     }
