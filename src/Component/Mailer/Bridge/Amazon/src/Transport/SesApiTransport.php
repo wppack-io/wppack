@@ -54,7 +54,7 @@ final class SesApiTransport extends AbstractApiTransport
         $replyTo = $phpMailer->getReplyToAddresses();
         if (!empty($replyTo)) {
             $request['ReplyToAddresses'] = array_map(
-                fn(array $addr): string => $this->formatAddress($addr),
+                fn (array $addr): string => $this->formatAddress(self::narrowAddressTuple($addr)),
                 $replyTo,
             );
         }
@@ -85,26 +85,26 @@ final class SesApiTransport extends AbstractApiTransport
     private function buildDestination(PhpMailer $phpMailer): array
     {
         $dest = [
-            'ToAddresses' => array_map(
-                fn(array $a): string => $this->formatAddress($a),
+            'ToAddresses' => \array_values(array_map(
+                fn (array $a): string => $this->formatAddress(self::narrowAddressTuple($a)),
                 $phpMailer->getToAddresses(),
-            ),
+            )),
         ];
 
         $cc = $phpMailer->getCcAddresses();
         if (!empty($cc)) {
-            $dest['CcAddresses'] = array_map(
-                fn(array $a): string => $this->formatAddress($a),
+            $dest['CcAddresses'] = \array_values(array_map(
+                fn (array $a): string => $this->formatAddress(self::narrowAddressTuple($a)),
                 $cc,
-            );
+            ));
         }
 
         $bcc = $phpMailer->getBccAddresses();
         if (!empty($bcc)) {
-            $dest['BccAddresses'] = array_map(
-                fn(array $a): string => $this->formatAddress($a),
+            $dest['BccAddresses'] = \array_values(array_map(
+                fn (array $a): string => $this->formatAddress(self::narrowAddressTuple($a)),
                 $bcc,
-            );
+            ));
         }
 
         return $dest;

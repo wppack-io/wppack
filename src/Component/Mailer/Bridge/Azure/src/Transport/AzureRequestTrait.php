@@ -37,7 +37,7 @@ trait AzureRequestTrait
         $replyTo = $phpMailer->getReplyToAddresses();
         if (!empty($replyTo)) {
             $payload['replyTo'] = array_map(
-                fn(array $addr): array => $this->formatRecipient($addr),
+                fn (array $addr): array => $this->formatRecipient(self::narrowAddressTuple($addr)),
                 $replyTo,
             );
         }
@@ -75,26 +75,26 @@ trait AzureRequestTrait
     private function buildRecipients(PhpMailer $phpMailer): array
     {
         $recipients = [
-            'to' => array_map(
-                fn(array $a): array => $this->formatRecipient($a),
+            'to' => \array_values(array_map(
+                fn (array $a): array => $this->formatRecipient(self::narrowAddressTuple($a)),
                 $phpMailer->getToAddresses(),
-            ),
+            )),
         ];
 
         $cc = $phpMailer->getCcAddresses();
         if (!empty($cc)) {
-            $recipients['cc'] = array_map(
-                fn(array $a): array => $this->formatRecipient($a),
+            $recipients['cc'] = \array_values(array_map(
+                fn (array $a): array => $this->formatRecipient(self::narrowAddressTuple($a)),
                 $cc,
-            );
+            ));
         }
 
         $bcc = $phpMailer->getBccAddresses();
         if (!empty($bcc)) {
-            $recipients['bcc'] = array_map(
-                fn(array $a): array => $this->formatRecipient($a),
+            $recipients['bcc'] = \array_values(array_map(
+                fn (array $a): array => $this->formatRecipient(self::narrowAddressTuple($a)),
                 $bcc,
-            );
+            ));
         }
 
         return $recipients;

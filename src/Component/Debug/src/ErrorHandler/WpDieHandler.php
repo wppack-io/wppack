@@ -211,7 +211,10 @@ final class WpDieHandler
 
         if ($message instanceof \WP_Error) {
             $messageText = $message->get_error_message();
-            $wpErrorCodes = $message->get_error_codes();
+            $wpErrorCodes = \array_values(\array_filter(
+                $message->get_error_codes(),
+                static fn ($c): bool => \is_string($c),
+            ));
             $wpErrorData = [];
             foreach ($wpErrorCodes as $code) {
                 $data = $message->get_error_data($code);
@@ -343,7 +346,7 @@ final class WpDieHandler
      */
     private function callPreviousHandler(callable|string|null $handler, string|\WP_Error $message, string $title, array $args): void
     {
-        if ($handler !== null) {
+        if ($handler !== null && \is_callable($handler)) {
             $handler($message, $title, $args);
 
             return;

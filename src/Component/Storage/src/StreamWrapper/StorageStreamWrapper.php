@@ -111,6 +111,10 @@ final class StorageStreamWrapper
             return false;
         }
 
+        if ($count < 1) {
+            return '';
+        }
+
         $data = fread($this->body, $count);
 
         return $data !== false ? $data : false;
@@ -208,7 +212,7 @@ final class StorageStreamWrapper
 
     public function stream_truncate(int $newSize): bool
     {
-        if ($this->body === null || !$this->writable) {
+        if ($this->body === null || !$this->writable || $newSize < 0) {
             return false;
         }
 

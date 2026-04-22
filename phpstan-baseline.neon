@@ -109,18 +109,6 @@ parameters:
 			path: src/Component/Debug/src/DataCollector/TranslationDataCollector.php
 
 		-
-			message: '#^Parameter \$wpErrorCodes of class WPPack\\Component\\Debug\\ErrorHandler\\WpErrorException constructor expects list\<string\>, array given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Component/Debug/src/ErrorHandler/WpDieHandler.php
-
-		-
-			message: '#^Trying to invoke \(callable\(\)\: mixed\)\|string but it might not be a callable\.$#'
-			identifier: callable.nonCallable
-			count: 1
-			path: src/Component/Debug/src/ErrorHandler/WpDieHandler.php
-
-		-
 			message: '#^Parameter \#1 \.\.\.\$arg1 of function min expects non\-empty\-array, list\<mixed\> given\.$#'
 			identifier: argument.type
 			count: 1
@@ -185,30 +173,6 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: src/Component/HttpFoundation/src/Request.php
-
-		-
-			message: '#^Method WPPack\\Component\\Mailer\\Bridge\\Amazon\\Transport\\SesApiTransport\:\:buildDestination\(\) should return array\{ToAddresses\: list\<string\>, CcAddresses\?\: list\<string\>, BccAddresses\?\: list\<string\>\} but returns array\{ToAddresses\: array\<string\>, CcAddresses\?\: non\-empty\-array\<string\>, BccAddresses\?\: non\-empty\-array\<string\>\}\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Component/Mailer/Bridge/Amazon/src/Transport/SesApiTransport.php
-
-		-
-			message: '#^Parameter \#1 \$addr of method WPPack\\Component\\Mailer\\Transport\\AbstractApiTransport\:\:formatAddress\(\) expects array\{string, string\}, array given\.$#'
-			identifier: argument.type
-			count: 4
-			path: src/Component/Mailer/Bridge/Amazon/src/Transport/SesApiTransport.php
-
-		-
-			message: '#^Method WPPack\\Component\\Mailer\\Bridge\\Azure\\Transport\\AzureApiTransport\:\:buildRecipients\(\) should return array\{to\: list\<array\{address\: string, displayName\?\: string\}\>, cc\?\: list\<array\{address\: string, displayName\?\: string\}\>, bcc\?\: list\<array\{address\: string, displayName\?\: string\}\>\} but returns array\{to\: array\<array\{address\: string, displayName\?\: string\}\>, cc\?\: non\-empty\-array\<array\{address\: string, displayName\?\: string\}\>, bcc\?\: non\-empty\-array\<array\{address\: string, displayName\?\: string\}\>\}\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Component/Mailer/Bridge/Azure/src/Transport/AzureApiTransport.php
-
-		-
-			message: '#^Parameter \#1 \$addr of method WPPack\\Component\\Mailer\\Bridge\\Azure\\Transport\\AzureApiTransport\:\:formatRecipient\(\) expects array\{string, string\}, array given\.$#'
-			identifier: argument.type
-			count: 4
-			path: src/Component/Mailer/Bridge/Azure/src/Transport/AzureApiTransport.php
 
 		-
 			message: '#^Method WPPack\\Component\\Mailer\\Bridge\\SendGrid\\Transport\\SendGridApiTransport\:\:buildPersonalization\(\) should return array\{to\: list\<array\{email\: string, name\?\: string\}\>, cc\?\: list\<array\{email\: string, name\?\: string\}\>, bcc\?\: list\<array\{email\: string, name\?\: string\}\>\} but returns array\{to\: array\<array\{email\: string, name\?\: string\}\>, cc\?\: non\-empty\-array\<array\{email\: string, name\?\: string\}\>, bcc\?\: non\-empty\-array\<array\{email\: string, name\?\: string\}\>\}\.$#'
@@ -305,18 +269,6 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: src/Component/Site/src/SiteRepository.php
-
-		-
-			message: '#^Parameter \#2 \$length of function fread expects int\<1, max\>, int given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Component/Storage/src/StreamWrapper/StorageStreamWrapper.php
-
-		-
-			message: '#^Parameter \#2 \$size of function ftruncate expects int\<0, max\>, int given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Component/Storage/src/StreamWrapper/StorageStreamWrapper.php
 
 		-
 			message: '#^Method WPPack\\Component\\Taxonomy\\TermRepository\:\:addMeta\(\) should return int\|null but returns int\|WP_Error\|null\.$#'
