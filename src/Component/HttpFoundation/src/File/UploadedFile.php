@@ -83,7 +83,15 @@ class UploadedFile extends File
             throw new FileException($this->getErrorMessage());
         }
 
-        $target = rtrim($directory, '/') . '/' . ($name ?? $this->originalName);
+        // Strip any directory separators the client may have sent in either
+        // the caller-supplied name or the browser-supplied original name;
+        // a '../' in \$this->originalName would otherwise escape \$directory.
+        $basename = basename($name ?? $this->originalName);
+        if ($basename === '' || $basename === '.' || $basename === '..' || str_contains($basename, "\0")) {
+            throw new FileException(sprintf('Invalid target filename "%s".', $name ?? $this->originalName));
+        }
+
+        $target = rtrim($directory, '/') . '/' . $basename;
 
         if (!is_dir($directory)) {
             @mkdir($directory, 0777, true);
