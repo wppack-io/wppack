@@ -59,7 +59,7 @@ final readonly class S3StorageConfiguration
         return [
             'scheme' => $parsed->getScheme(),
             'bucket' => $bucket,
-            'region' => $parsed->getOption('region', 'us-east-1') ?? 'us-east-1',
+            'region' => $parsed->getOption('region', 'us-east-1'),
             'accessKeyId' => $parsed->getUser() ?? '',
             'secretAccessKey' => $parsed->getPassword() ?? '',
         ];

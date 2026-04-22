@@ -44,7 +44,7 @@ final class MySQLDriverFactory implements DriverFactoryInterface
             password: $dsn->getPassword() ?? '',
             database: ltrim($dsn->getPath() ?? '', '/'),
             port: $dsn->getPort() ?? 3306,
-            charset: $dsn->getOption('charset', 'utf8mb4') ?? 'utf8mb4',
+            charset: $dsn->getOption('charset', 'utf8mb4'),
         );
     }
 

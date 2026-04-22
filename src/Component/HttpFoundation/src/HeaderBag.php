@@ -49,6 +49,9 @@ class HeaderBag implements \Countable
         return isset($this->headers[strtolower($key)]);
     }
 
+    /**
+     * @phpstan-return ($default is null ? ?string : string)
+     */
     public function get(string $key, ?string $default = null): ?string
     {
         $key = strtolower($key);

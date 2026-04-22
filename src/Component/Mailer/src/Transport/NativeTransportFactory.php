@@ -47,7 +47,7 @@ final class NativeTransportFactory implements TransportFactoryInterface
                 port: $dsn->getPort() ?? ($dsn->getScheme() === 'smtps' ? 465 : 587),
                 username: $dsn->getUser(),
                 password: $dsn->getPassword(),
-                encryption: $dsn->getScheme() === 'smtps' ? 'ssl' : ($dsn->getOption('encryption', 'tls') ?? 'tls'),
+                encryption: $dsn->getScheme() === 'smtps' ? 'ssl' : $dsn->getOption('encryption', 'tls'),
             ),
             'null' => new NullTransport(),
             default => throw new UnsupportedSchemeException($dsn),

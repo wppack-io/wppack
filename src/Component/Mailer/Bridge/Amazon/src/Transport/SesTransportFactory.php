@@ -114,7 +114,7 @@ final class SesTransportFactory implements TransportFactoryInterface
             'ses+smtp', 'ses+smtps' => new SesSmtpTransport(
                 username: $dsn->getUser() ?? '',
                 password: $dsn->getPassword() ?? '',
-                region: $dsn->getOption('region', 'us-east-1') ?? 'us-east-1',
+                region: $dsn->getOption('region', 'us-east-1'),
                 encryption: $dsn->getScheme() === 'ses+smtps' ? 'ssl' : 'tls',
                 port: $dsn->getPort() ?? ($dsn->getScheme() === 'ses+smtps' ? 465 : 587),
             ),

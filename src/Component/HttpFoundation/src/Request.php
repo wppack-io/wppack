@@ -305,7 +305,7 @@ class Request
     {
         $host = $this->headers->get('host', '');
 
-        if ($host === null || $host === '') {
+        if ($host === '') {
             $host = $this->server->getString('SERVER_NAME');
         }
 

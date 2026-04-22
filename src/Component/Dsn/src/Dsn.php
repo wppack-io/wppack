@@ -178,6 +178,9 @@ final class Dsn
         return $this->path;
     }
 
+    /**
+     * @phpstan-return ($default is null ? ?string : string)
+     */
     public function getOption(string $key, ?string $default = null): ?string
     {
         $value = $this->options[$key] ?? null;

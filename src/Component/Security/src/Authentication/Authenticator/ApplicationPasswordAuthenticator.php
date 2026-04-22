@@ -32,7 +32,7 @@ final class ApplicationPasswordAuthenticator implements StatelessAuthenticatorIn
 
     public function supports(Request $request): bool
     {
-        $authHeader = $request->headers->get('Authorization', '') ?? '';
+        $authHeader = $request->headers->get('Authorization', '');
 
         if (!str_starts_with($authHeader, 'Basic ')) {
             return false;
@@ -45,7 +45,7 @@ final class ApplicationPasswordAuthenticator implements StatelessAuthenticatorIn
 
     public function authenticate(Request $request): Passport
     {
-        $authHeader = $request->headers->get('Authorization', '') ?? '';
+        $authHeader = $request->headers->get('Authorization', '');
         $decoded = base64_decode(substr($authHeader, 6), true);
 
         if ($decoded === false || !str_contains($decoded, ':')) {

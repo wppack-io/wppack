@@ -47,7 +47,7 @@ class MySQLDataApiDriverFactory implements DriverFactoryInterface
     {
         $resourceArn = $dsn->getHost() ?? '';
         $database = ltrim($dsn->getPath() ?? '', '/');
-        $secretArn = $dsn->getOption('secret_arn', '') ?? '';
+        $secretArn = $dsn->getOption('secret_arn', '');
         $region = $options['region'] ?? $dsn->getOption('region') ?? $this->extractRegionFromArn($resourceArn) ?? 'us-east-1';
 
         $client = new RdsDataServiceClient([
