@@ -90,7 +90,7 @@ final class CeremonyManager
             authenticatorSelection: $authenticatorSelection,
             attestation: $this->config->attestation,
             excludeCredentials: $excludeCredentials,
-            timeout: $this->config->timeout,
+            timeout: $this->config->timeout > 0 ? $this->config->timeout : null,
         );
 
         $serializer = $this->createSerializer();
@@ -116,7 +116,7 @@ final class CeremonyManager
             challenge: random_bytes(32),
             rpId: $this->config->rpId ?: $this->extractDomain(),
             userVerification: $this->config->userVerification,
-            timeout: $this->config->timeout,
+            timeout: $this->config->timeout > 0 ? $this->config->timeout : null,
         );
 
         $serializer = $this->createSerializer();
@@ -144,7 +144,21 @@ final class CeremonyManager
 
         $this->transients->delete($challengeKey);
 
-        return $data;
+        $options = $data['options'] ?? null;
+        $optionsClass = $data['optionsClass'] ?? null;
+        $type = $data['type'] ?? null;
+
+        if (!\is_string($options) || !\is_string($optionsClass) || !\class_exists($optionsClass) || !\is_string($type)) {
+            return null;
+        }
+
+        $result = ['options' => $options, 'optionsClass' => $optionsClass, 'type' => $type];
+
+        if (isset($data['userId']) && \is_int($data['userId'])) {
+            $result['userId'] = $data['userId'];
+        }
+
+        return $result;
     }
 
     /**

@@ -361,24 +361,6 @@ parameters:
 			path: src/Component/Security/Bridge/OAuth/src/Pkce/PkceGenerator.php
 
 		-
-			message: '#^Method WPPack\\Component\\Security\\Bridge\\Passkey\\Ceremony\\CeremonyManager\:\:consumeChallenge\(\) should return array\{options\: string, optionsClass\: class\-string, userId\?\: int, type\: string\}\|null but returns array\<mixed, mixed\>\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Component/Security/Bridge/Passkey/src/Ceremony/CeremonyManager.php
-
-		-
-			message: '#^Parameter \$timeout of static method Webauthn\\PublicKeyCredentialCreationOptions\:\:create\(\) expects int\<1, max\>\|null, int given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Component/Security/Bridge/Passkey/src/Ceremony/CeremonyManager.php
-
-		-
-			message: '#^Parameter \$timeout of static method Webauthn\\PublicKeyCredentialRequestOptions\:\:create\(\) expects int\<1, max\>\|null, int given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Component/Security/Bridge/Passkey/src/Ceremony/CeremonyManager.php
-
-		-
 			message: '#^Parameter \$transports of class WPPack\\Component\\Security\\Bridge\\Passkey\\Storage\\PasskeyCredential constructor expects list\<string\>, array\<string\> given\.$#'
 			identifier: argument.type
 			count: 1
