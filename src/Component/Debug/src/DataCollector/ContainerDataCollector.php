@@ -152,7 +152,7 @@ final class ContainerDataCollector extends AbstractDataCollector
         $parameters = [];
         if (method_exists($builder, 'getParameterBag')) {
             $bag = $builder->getParameterBag();
-            if (method_exists($bag, 'all')) {
+            if (\is_object($bag) && method_exists($bag, 'all')) {
                 $parameters = $bag->all();
             }
         }

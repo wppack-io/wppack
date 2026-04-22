@@ -93,8 +93,13 @@ final class MailDataCollector extends AbstractDataCollector
     {
         $errorMessage = '';
 
-        if (method_exists($error, 'get_error_message')) {
+        if ($error instanceof \WP_Error) {
             $errorMessage = $error->get_error_message();
+        } elseif (\is_object($error) && method_exists($error, 'get_error_message')) {
+            $message = $error->get_error_message();
+            if (\is_string($message)) {
+                $errorMessage = $message;
+            }
         }
 
         $now = microtime(true);

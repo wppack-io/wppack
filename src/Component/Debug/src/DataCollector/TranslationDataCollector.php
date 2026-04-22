@@ -96,11 +96,13 @@ final class TranslationDataCollector extends AbstractDataCollector
 
     public function captureTextdomainUnloaded(string $domain): void
     {
-        $index = array_search($domain, $this->loadedDomains, true);
-        if ($index !== false) {
-            unset($this->loadedDomains[$index]);
-            $this->loadedDomains = array_values($this->loadedDomains);
+        $remaining = [];
+        foreach ($this->loadedDomains as $d) {
+            if ($d !== $domain) {
+                $remaining[] = $d;
+            }
         }
+        $this->loadedDomains = $remaining;
     }
 
     public function collect(): void

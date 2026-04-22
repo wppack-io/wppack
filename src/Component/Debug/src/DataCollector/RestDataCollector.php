@@ -32,7 +32,7 @@ final class RestDataCollector extends AbstractDataCollector
     {
         $server = rest_get_server();
         $allRoutes = $server->get_routes();
-        $namespaces = $server->get_namespaces();
+        $namespaces = array_values($server->get_namespaces());
 
         $routes = [];
         $totalRoutes = 0;
@@ -77,7 +77,7 @@ final class RestDataCollector extends AbstractDataCollector
             'is_rest_request' => $this->isRestRequest(),
             'current_request' => $this->collectCurrentRequest($allRoutes, $namespaces),
             'routes' => $routes,
-            'namespaces' => array_values($namespaces),
+            'namespaces' => $namespaces,
             'total_routes' => $totalRoutes,
             'total_namespaces' => count($namespaces),
         ];

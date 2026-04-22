@@ -104,8 +104,8 @@ final class PerformancePanelRenderer extends AbstractPanelRenderer implements Re
         $requestTimeFloat = (float) ($timeData['request_time_float'] ?? 0.0);
 
         // Calculate unmeasured time before profiling started
-        $phases = $timeData['phases'] ?? [];
-        $unmeasuredMs = $phases !== [] ? min(array_values($phases)) : 0.0;
+        $phases = array_values($timeData['phases'] ?? []);
+        $unmeasuredMs = $phases !== [] ? min($phases) : 0.0;
         $timelineTotal = ceil($totalTime);
         $unmeasuredPct = $timelineTotal > 0 ? ($unmeasuredMs / $timelineTotal) * 100 : 0.0;
 

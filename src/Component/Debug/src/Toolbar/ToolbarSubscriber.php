@@ -45,7 +45,8 @@ final class ToolbarSubscriber
             return;
         }
 
-        $this->collectProfile(http_response_code() ?: 200);
+        $code = http_response_code();
+        $this->collectProfile(\is_int($code) && $code > 0 ? $code : 200);
 
         echo $this->renderer->render();
     }

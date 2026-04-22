@@ -31,48 +31,6 @@ parameters:
 			path: src/Component/DatabaseExport/src/Writer/JsonWriter.php
 
 		-
-			message: '#^Cannot call method getMetrics\(\) on class\-string\|object\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: src/Component/Debug/src/DataCollector/CacheDataCollector.php
-
-		-
-			message: '#^Cannot call method all\(\) on class\-string\|object\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: src/Component/Debug/src/DataCollector/ContainerDataCollector.php
-
-		-
-			message: '#^Cannot call method get_error_message\(\) on class\-string\|object\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: src/Component/Debug/src/DataCollector/MailDataCollector.php
-
-		-
-			message: '#^Parameter \#2 \$namespaces of method WPPack\\Component\\Debug\\DataCollector\\RestDataCollector\:\:collectCurrentRequest\(\) expects list\<string\>, array\<string\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Component/Debug/src/DataCollector/RestDataCollector.php
-
-		-
-			message: '#^Property WPPack\\Component\\Debug\\DataCollector\\TranslationDataCollector\:\:\$loadedDomains \(list\<string\>\) does not accept array\<int\<0, max\>, string\>\.$#'
-			identifier: assign.propertyType
-			count: 1
-			path: src/Component/Debug/src/DataCollector/TranslationDataCollector.php
-
-		-
-			message: '#^Parameter \#1 \.\.\.\$arg1 of function min expects non\-empty\-array, list\<mixed\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Component/Debug/src/Toolbar/Panel/PerformancePanelRenderer.php
-
-		-
-			message: '#^Parameter \#1 \$statusCode of method WPPack\\Component\\Debug\\Toolbar\\ToolbarSubscriber\:\:collectProfile\(\) expects int, int\<min, \-1\>\|int\<1, max\>\|true given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Component/Debug/src/Toolbar/ToolbarSubscriber.php
-
-		-
 			message: '#^Method WPPack\\Component\\DependencyInjection\\ContainerBuilder\:\:findTaggedServiceIds\(\) should return array\<string, list\<array\<string, mixed\>\>\> but returns array\<string, array\>\.$#'
 			identifier: return.type
 			count: 1

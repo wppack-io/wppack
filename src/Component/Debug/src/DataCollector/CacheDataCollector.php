@@ -46,11 +46,11 @@ final class CacheDataCollector extends AbstractDataCollector
 
         global $wp_object_cache;
 
-        if (isset($wp_object_cache) && method_exists($wp_object_cache, 'getMetrics')) {
+        if (is_object($wp_object_cache) && method_exists($wp_object_cache, 'getMetrics')) {
             $metrics = $wp_object_cache->getMetrics();
             $hits = $metrics->hits;
             $misses = $metrics->misses;
-        } elseif (isset($wp_object_cache)) {
+        } elseif (is_object($wp_object_cache)) {
             if (isset($wp_object_cache->cache_hits) && is_numeric($wp_object_cache->cache_hits)) {
                 $hits = (int) $wp_object_cache->cache_hits;
             }
