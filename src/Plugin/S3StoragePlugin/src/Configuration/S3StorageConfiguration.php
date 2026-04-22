@@ -41,7 +41,7 @@ final readonly class S3StorageConfiguration
      *
      * DSN format: s3://accessKey:secretKey@bucket?region=ap-northeast-1
      *
-     * @return array{scheme: string, bucket: string, region: string, accessKeyId: string, secretAccessKey: string}
+     * @return array{scheme: string, bucket: string, region: string, accessKeyId: ?string, secretAccessKey: ?string}
      */
     public static function parseDsn(#[\SensitiveParameter] string $dsn): array
     {
@@ -60,8 +60,8 @@ final readonly class S3StorageConfiguration
             'scheme' => $parsed->getScheme(),
             'bucket' => $bucket,
             'region' => $parsed->getOption('region', 'us-east-1'),
-            'accessKeyId' => $parsed->getUser() ?? '',
-            'secretAccessKey' => $parsed->getPassword() ?? '',
+            'accessKeyId' => $parsed->getUser(),
+            'secretAccessKey' => $parsed->getPassword(),
         ];
     }
 
@@ -85,8 +85,8 @@ final readonly class S3StorageConfiguration
                 bucket: $parts['bucket'],
                 region: $parts['region'],
                 uploadsPath: $uploadsPath,
-                accessKeyId: $parts['accessKeyId'] !== '' ? $parts['accessKeyId'] : null,
-                secretAccessKey: $parts['secretAccessKey'] !== '' ? $parts['secretAccessKey'] : null,
+                accessKeyId: $parts['accessKeyId'],
+                secretAccessKey: $parts['secretAccessKey'],
             );
         }
 

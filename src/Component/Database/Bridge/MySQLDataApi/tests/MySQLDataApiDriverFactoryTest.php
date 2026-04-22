@@ -83,8 +83,10 @@ final class MySQLDataApiDriverFactoryTest extends TestCase
     #[Test]
     public function mysqlDataApiSchemeIsNotShadowedByPlainMySQL(): void
     {
+        $dsn = 'mysql+dataapi://arn:aws:rds:us-east-1:000:cluster/wp?secret_arn=arn:aws:secretsmanager:us-east-1:000:secret:test';
+
         if (class_exists(\AsyncAws\RdsDataService\RdsDataServiceClient::class)) {
-            $driver = Driver::fromDsn('mysql+dataapi://arn:aws:rds:us-east-1:000:cluster/wp');
+            $driver = Driver::fromDsn($dsn);
 
             self::assertInstanceOf(MySQLDataApiDriver::class, $driver);
             self::assertNotInstanceOf(MySQLDriver::class, $driver);
@@ -94,6 +96,6 @@ final class MySQLDataApiDriverFactoryTest extends TestCase
 
         $this->expectException(UnsupportedSchemeException::class);
 
-        Driver::fromDsn('mysql+dataapi://arn:aws:rds:us-east-1:000:cluster/wp');
+        Driver::fromDsn($dsn);
     }
 }

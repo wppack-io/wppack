@@ -31,9 +31,9 @@ class MySQLDriver extends AbstractDriver
 
     public function __construct(
         protected readonly string $host,
-        protected readonly string $username,
+        protected readonly ?string $username,
         #[\SensitiveParameter]
-        protected readonly string $password,
+        protected readonly ?string $password,
         protected readonly string $database,
         protected readonly int $port = 3306,
         protected readonly ?string $socket = null,
@@ -61,8 +61,8 @@ class MySQLDriver extends AbstractDriver
     {
         $driver = new self(
             host: '',
-            username: '',
-            password: '',
+            username: null,
+            password: null,
             database: '',
         );
         $driver->connection = $connection;

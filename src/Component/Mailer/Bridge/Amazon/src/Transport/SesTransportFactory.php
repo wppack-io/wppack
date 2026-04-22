@@ -15,6 +15,7 @@ namespace WPPack\Component\Mailer\Bridge\Amazon\Transport;
 
 use AsyncAws\Ses\SesClient;
 use WPPack\Component\Dsn\Dsn;
+use WPPack\Component\Mailer\Exception\InvalidArgumentException;
 use WPPack\Component\Mailer\Exception\UnsupportedSchemeException;
 use WPPack\Component\Mailer\Transport\TransportDefinition;
 use WPPack\Component\Mailer\Transport\TransportFactoryInterface;
@@ -112,8 +113,8 @@ final class SesTransportFactory implements TransportFactoryInterface
                 configurationSet: $dsn->getOption('configuration_set'),
             ),
             'ses+smtp', 'ses+smtps' => new SesSmtpTransport(
-                username: $dsn->getUser() ?? '',
-                password: $dsn->getPassword() ?? '',
+                username: $dsn->getUser() ?? throw new InvalidArgumentException(sprintf('SES "%s" DSN must include an SMTP username.', $dsn->getScheme())),
+                password: $dsn->getPassword() ?? throw new InvalidArgumentException(sprintf('SES "%s" DSN must include an SMTP password.', $dsn->getScheme())),
                 region: $dsn->getOption('region', 'us-east-1'),
                 encryption: $dsn->getScheme() === 'ses+smtps' ? 'ssl' : 'tls',
                 port: $dsn->getPort() ?? ($dsn->getScheme() === 'ses+smtps' ? 465 : 587),
@@ -133,8 +134,12 @@ final class SesTransportFactory implements TransportFactoryInterface
 
         $user = $dsn->getUser();
         if ($user !== null && $user !== '') {
+            $secret = $dsn->getPassword();
+            if ($secret === null || $secret === '') {
+                throw new InvalidArgumentException(sprintf('SES "%s" DSN supplies an accessKeyId but no secret; refusing to use empty credentials.', $dsn->getScheme()));
+            }
             $options['accessKeyId'] = $user;
-            $options['accessKeySecret'] = $dsn->getPassword() ?? '';
+            $options['accessKeySecret'] = $secret;
 
             $sessionToken = $dsn->getOption('session_token');
             if ($sessionToken !== null) {

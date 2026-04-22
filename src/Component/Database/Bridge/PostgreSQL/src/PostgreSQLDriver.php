@@ -32,9 +32,9 @@ class PostgreSQLDriver extends AbstractDriver
 
     public function __construct(
         protected readonly string $host,
-        protected readonly string $username,
+        protected readonly ?string $username,
         #[\SensitiveParameter]
-        protected readonly string $password,
+        protected readonly ?string $password,
         protected readonly string $database,
         protected readonly int $port = 5432,
         /**
@@ -66,7 +66,7 @@ class PostgreSQLDriver extends AbstractDriver
      */
     public static function fromPostgreSQLConnection(\PgSql\Connection $connection): self
     {
-        $driver = new self(host: '', username: '', password: '', database: '');
+        $driver = new self(host: '', username: null, password: null, database: '');
         $driver->connection = $connection;
         $driver->ownsConnection = false;
 
@@ -205,15 +205,23 @@ class PostgreSQLDriver extends AbstractDriver
     {
         $esc = static fn(string $v): string => "'" . str_replace(['\\', "'"], ['\\\\', "\\'"], $v) . "'";
 
-        return \sprintf(
-            'host=%s port=%d dbname=%s user=%s password=%s client_encoding=%s',
-            $esc($this->host),
-            $this->port,
-            $esc($this->database),
-            $esc($this->username),
-            $esc($this->password),
-            $esc('UTF8'),
-        );
+        // libpq falls back to $PGUSER / $PGPASSWORD (and .pgpass) when the
+        // corresponding key is omitted. Keep nulls out of the conn string
+        // so "not provided" and "explicit empty" stay distinguishable.
+        $parts = [
+            'host=' . $esc($this->host),
+            'port=' . $this->port,
+            'dbname=' . $esc($this->database),
+        ];
+        if ($this->username !== null) {
+            $parts[] = 'user=' . $esc($this->username);
+        }
+        if ($this->password !== null) {
+            $parts[] = 'password=' . $esc($this->password);
+        }
+        $parts[] = 'client_encoding=' . $esc('UTF8');
+
+        return implode(' ', $parts);
     }
 
     /**

@@ -43,10 +43,10 @@ final class AzureTransportFactory implements TransportFactoryInterface
             throw new UnsupportedSchemeException($dsn);
         }
 
-        $resourceName = $dsn->getUser() ?? '';
-        $accessKey = $dsn->getPassword() ?? '';
+        $resourceName = $dsn->getUser();
+        $accessKey = $dsn->getPassword();
 
-        if ($resourceName === '' || $accessKey === '') {
+        if ($resourceName === null || $resourceName === '' || $accessKey === null || $accessKey === '') {
             throw new InvalidArgumentException(sprintf('Azure "%s" DSN must contain a resource name (user) and access key (password).', $dsn->getScheme()));
         }
 

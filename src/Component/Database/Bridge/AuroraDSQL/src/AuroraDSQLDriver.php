@@ -114,13 +114,18 @@ class AuroraDSQLDriver extends PostgreSQLDriver
             return;
         }
 
+        // AuroraDSQL's own constructor always sets a non-null username
+        // (default 'admin'), but the parent property type is now ?string.
+        // Pin for the rest of this method.
+        $username = $this->username ?? 'admin';
+
         // Refresh token if auto-generated and approaching expiry
         if (!$this->hasStaticToken && $this->tokenExpiresAt !== null
             && new \DateTimeImmutable() >= $this->tokenExpiresAt) {
             $this->currentToken = $this->generateToken(
                 $this->host,
                 $this->region,
-                $this->username,
+                $username,
                 $this->tokenDurationSecs,
                 $this->credentialProvider,
             );
@@ -133,7 +138,7 @@ class AuroraDSQLDriver extends PostgreSQLDriver
             $esc($this->host),
             $this->port,
             $esc($this->database),
-            $esc($this->username),
+            $esc($username),
             $esc($this->currentToken),
             $esc('UTF8'),
         );

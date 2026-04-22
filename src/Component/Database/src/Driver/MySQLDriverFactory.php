@@ -49,8 +49,8 @@ final class MySQLDriverFactory implements DriverFactoryInterface
 
         return new MySQLDriver(
             host: $host,
-            username: $dsn->getUser() ?? '',
-            password: $dsn->getPassword() ?? '',
+            username: $dsn->getUser(),
+            password: $dsn->getPassword(),
             database: ltrim($dsn->getPath() ?? '', '/'),
             port: $dsn->getPort() ?? 3306,
             charset: $dsn->getOption('charset', 'utf8mb4'),

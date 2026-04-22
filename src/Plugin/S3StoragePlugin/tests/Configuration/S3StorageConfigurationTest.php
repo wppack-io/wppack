@@ -58,8 +58,8 @@ final class S3StorageConfigurationTest extends TestCase
         self::assertSame('s3', $result['scheme']);
         self::assertSame('my-bucket', $result['bucket']);
         self::assertSame('us-west-2', $result['region']);
-        self::assertSame('', $result['accessKeyId']);
-        self::assertSame('', $result['secretAccessKey']);
+        self::assertNull($result['accessKeyId']);
+        self::assertNull($result['secretAccessKey']);
     }
 
     #[Test]

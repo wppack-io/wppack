@@ -53,8 +53,8 @@ final class PostgreSQLDriverFactory implements DriverFactoryInterface
 
         return new PostgreSQLDriver(
             host: $host,
-            username: $dsn->getUser() ?? '',
-            password: $dsn->getPassword() ?? '',
+            username: $dsn->getUser(),
+            password: $dsn->getPassword(),
             database: ltrim($dsn->getPath() ?? '', '/'),
             port: $dsn->getPort() ?? 5432,
             searchPath: self::parseSearchPath($dsn),

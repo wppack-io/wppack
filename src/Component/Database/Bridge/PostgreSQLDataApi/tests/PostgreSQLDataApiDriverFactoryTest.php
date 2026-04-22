@@ -83,8 +83,10 @@ final class PostgreSQLDataApiDriverFactoryTest extends TestCase
     #[Test]
     public function postgresqlDataApiSchemeIsNotShadowedByPlainPostgreSQL(): void
     {
+        $dsn = 'pgsql+dataapi://arn:aws:rds:us-east-1:000:cluster/wp?secret_arn=arn:aws:secretsmanager:us-east-1:000:secret:test';
+
         if (class_exists(\AsyncAws\RdsDataService\RdsDataServiceClient::class)) {
-            $driver = Driver::fromDsn('pgsql+dataapi://arn:aws:rds:us-east-1:000:cluster/wp');
+            $driver = Driver::fromDsn($dsn);
 
             self::assertInstanceOf(PostgreSQLDataApiDriver::class, $driver);
             self::assertNotInstanceOf(PostgreSQLDriver::class, $driver);
@@ -94,6 +96,6 @@ final class PostgreSQLDataApiDriverFactoryTest extends TestCase
 
         $this->expectException(UnsupportedSchemeException::class);
 
-        Driver::fromDsn('pgsql+dataapi://arn:aws:rds:us-east-1:000:cluster/wp');
+        Driver::fromDsn($dsn);
     }
 }
