@@ -15,7 +15,6 @@ namespace WPPack\Component\Messenger;
 
 use WPPack\Component\Messenger\Middleware\MiddlewareInterface;
 use WPPack\Component\Messenger\Middleware\MiddlewareStack;
-use WPPack\Component\Messenger\Stamp\StampInterface;
 
 final class MessageBus implements MessageBusInterface
 {

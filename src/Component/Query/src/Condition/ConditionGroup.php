@@ -14,8 +14,6 @@ declare(strict_types=1);
 namespace WPPack\Component\Query\Condition;
 
 use WPPack\Component\Query\Wql\CompoundExpression;
-use WPPack\Component\Query\Wql\ExpressionNode;
-use WPPack\Component\Query\Wql\ExpressionParser;
 use WPPack\Component\Query\Wql\ParsedExpression;
 use WPPack\Component\Query\Wql\WqlParser;
 

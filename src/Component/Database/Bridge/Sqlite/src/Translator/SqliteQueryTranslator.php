@@ -27,7 +27,6 @@ use PhpMyAdmin\SqlParser\Token;
 use PhpMyAdmin\SqlParser\TokenType;
 use Psr\Log\LoggerInterface;
 use WPPack\Component\Database\Exception\ParserFailureException;
-use WPPack\Component\Database\Exception\TranslationException;
 use WPPack\Component\Database\Exception\UnsupportedFeatureException;
 use WPPack\Component\Database\Sql\QueryRewriter;
 use WPPack\Component\Database\Translator\QueryTranslatorHelpersTrait;
