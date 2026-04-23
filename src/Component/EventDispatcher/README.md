@@ -156,3 +156,8 @@ class MyTest extends TestCase
     }
 }
 ```
+
+## Further Reading
+
+See [docs/components/event-dispatcher/](../../../docs/components/event-dispatcher/) for the full reference and integration patterns.
+

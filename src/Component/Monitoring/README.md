@@ -83,6 +83,10 @@ interface MonitoringProviderInterface
 | CloudWatch | `wppack/cloudwatch-monitoring` | Query | AWS CloudWatch GetMetricData |
 | Mock | Built-in | Query | Deterministic random data for local development |
 
+## Further Reading
+
+See [docs/components/monitoring/](../../../docs/components/monitoring/) for the full provider catalogue and integration guide.
+
 ## License
 
 MIT

@@ -18,8 +18,9 @@ duplicated from those.
    shows `[OK] No errors`. Don't lower the level. Don't add baseline
    entries without explanation in the commit message — they're tech
    debt receipts.
-3. **Never push to `master`.** All work goes through `1.x` (current
-   pre-release branch). PRs target `1.x`.
+3. **`1.x` is the only long-lived branch.** All work goes there; PRs
+   target `1.x`. Don't create `master` / `main` — the remote has no
+   such branch, and pushing one would look like an accidental fork.
 4. **Never skip hooks or signing.** No `--no-verify`, no
    `--no-gpg-sign`. If a hook fails, fix the cause, don't bypass.
 5. **Secrets never in git.** `.env`, IAM credentials, OAuth secrets,

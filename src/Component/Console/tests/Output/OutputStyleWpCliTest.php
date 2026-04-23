@@ -53,10 +53,10 @@ final class OutputStyleWpCliTest extends TestCase
     {
         $style = new OutputStyle(new WpCliOutput());
 
-        // WP_CLI::success() requires logger; without one it's a no-op
+        // WP_CLI::success() requires logger; without one it's a no-op, so
+        // we only check the call path doesn't throw.
+        $this->expectNotToPerformAssertions();
         $style->success('All done');
-
-        self::assertTrue(true);
     }
 
     #[Test]
@@ -64,10 +64,9 @@ final class OutputStyleWpCliTest extends TestCase
     {
         $style = new OutputStyle(new WpCliOutput());
 
-        // WP_CLI::warning() requires logger; without one it's a no-op
+        // WP_CLI::warning() requires logger; without one it's a no-op.
+        $this->expectNotToPerformAssertions();
         $style->warning('Watch out');
-
-        self::assertTrue(true);
     }
 
     #[Test]
@@ -75,9 +74,8 @@ final class OutputStyleWpCliTest extends TestCase
     {
         $style = new OutputStyle(new WpCliOutput());
 
+        $this->expectNotToPerformAssertions();
         $style->info('Processing...');
-
-        self::assertTrue(true);
     }
 
     #[Test]
@@ -85,9 +83,8 @@ final class OutputStyleWpCliTest extends TestCase
     {
         $style = new OutputStyle(new WpCliOutput());
 
+        $this->expectNotToPerformAssertions();
         $style->line('plain text');
-
-        self::assertTrue(true);
     }
 
     #[Test]
@@ -95,9 +92,8 @@ final class OutputStyleWpCliTest extends TestCase
     {
         $style = new OutputStyle(new WpCliOutput());
 
+        $this->expectNotToPerformAssertions();
         $style->newLine(2);
-
-        self::assertTrue(true);
     }
 
     #[Test]
@@ -116,9 +112,8 @@ final class OutputStyleWpCliTest extends TestCase
 
         $style = new OutputStyle(new WpCliOutput());
 
+        $this->expectNotToPerformAssertions();
         $style->table(['Name', 'Age'], [['Alice', '30'], ['Bob', '25']]);
-
-        self::assertTrue(true);
     }
 
     #[Test]

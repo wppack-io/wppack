@@ -60,3 +60,7 @@ Follows Symfony Serializer's normalizer + encoder chain pattern:
 | Encoder | Format |
 |---|---|
 | `JsonEncoder` | JSON (`json_encode` / `json_decode` with `JSON_THROW_ON_ERROR`) |
+
+## Further Reading
+
+See [docs/components/serializer/](../../../docs/components/serializer/) for the full reference and custom normalizer guide.

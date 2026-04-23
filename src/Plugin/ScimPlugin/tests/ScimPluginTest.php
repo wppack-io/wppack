@@ -55,9 +55,8 @@ final class ScimPluginTest extends TestCase
         $plugin = new ScimPlugin(__FILE__);
 
         // ScimPlugin inherits the no-op onActivate from AbstractPlugin
+        $this->expectNotToPerformAssertions();
         $plugin->onActivate();
-
-        self::assertTrue(true);
     }
 
     #[Test]
@@ -66,9 +65,8 @@ final class ScimPluginTest extends TestCase
         $plugin = new ScimPlugin(__FILE__);
 
         // ScimPlugin inherits the no-op onDeactivate from AbstractPlugin
+        $this->expectNotToPerformAssertions();
         $plugin->onDeactivate();
-
-        self::assertTrue(true);
     }
 
     #[Test]
@@ -158,9 +156,12 @@ final class ScimPluginTest extends TestCase
         $container = new Container($symfonyContainer);
 
         $plugin = new ScimPlugin(__FILE__);
-        $plugin->boot($container);
 
-        self::assertTrue(true);
+        // Without AuthenticationManager in the container, boot must not
+        // register the determine_current_user filter (the code path
+        // branches on is_main_site()).
+        $this->expectNotToPerformAssertions();
+        $plugin->boot($container);
 
         remove_all_actions('admin_menu');
         remove_all_actions('admin_enqueue_scripts');

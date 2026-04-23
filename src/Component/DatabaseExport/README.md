@@ -60,6 +60,10 @@ $config = new ExportConfiguration(
 );
 ```
 
+## Further Reading
+
+See [docs/components/database-export/](../../../docs/components/database-export/) for the full reference, configuration guide, and extension points.
+
 ## License
 
 MIT

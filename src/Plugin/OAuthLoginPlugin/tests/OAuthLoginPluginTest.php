@@ -99,9 +99,8 @@ final class OAuthLoginPluginTest extends TestCase
         $plugin = new OAuthLoginPlugin(__FILE__);
 
         // Should not throw when router is null (boot() not called)
+        $this->expectNotToPerformAssertions();
         $plugin->onActivate();
-
-        self::assertTrue(true);
     }
 
     #[Test]
@@ -110,9 +109,8 @@ final class OAuthLoginPluginTest extends TestCase
         $plugin = new OAuthLoginPlugin(__FILE__);
 
         // Should not throw when router is null (boot() not called)
+        $this->expectNotToPerformAssertions();
         $plugin->onDeactivate();
-
-        self::assertTrue(true);
     }
 
     #[Test]

@@ -153,9 +153,8 @@ final class AmazonMailerPluginTest extends TestCase
         $container = new Container($symfonyContainer);
 
         // boot() without Mailer in container should not throw
+        $this->expectNotToPerformAssertions();
         $this->plugin->boot($container);
-
-        self::assertTrue(true);
 
         Mailer::reset();
     }

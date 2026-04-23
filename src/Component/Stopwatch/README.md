@@ -73,6 +73,10 @@ $events = $stopwatch->getEvents();
 
 - PHP 8.2+
 
+## Further Reading
+
+See [docs/components/stopwatch/](../../../docs/components/stopwatch/) for the full reference and Debug toolbar integration.
+
 ## License
 
 MIT
