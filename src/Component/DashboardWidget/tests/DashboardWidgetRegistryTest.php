@@ -35,26 +35,6 @@ final class DashboardWidgetRegistryTest extends TestCase
     }
 
     #[Test]
-    public function registerCallsWidgetRegister(): void
-    {
-        $widget = new RegistryTestDashboardWidget();
-
-        $this->registry->register($widget);
-
-        // If no exception was thrown, registration succeeded
-        self::assertTrue(true);
-    }
-
-    #[Test]
-    public function unregisterCallsRemoveMetaBox(): void
-    {
-        $this->registry->unregister('test_registry_widget');
-
-        // If no exception was thrown, removal succeeded
-        self::assertTrue(true);
-    }
-
-    #[Test]
     public function registerRegistersWidgetInMetaBoxes(): void
     {
         global $wp_meta_boxes;

@@ -115,9 +115,7 @@ final class ScimConfigurationTest extends TestCase
         // If the constant is defined from a previous test, this won't throw.
         // We only test this when the constant is NOT defined.
         if (\defined('SCIM_BEARER_TOKEN')) {
-            self::assertTrue(true);
-
-            return;
+            self::markTestSkipped('SCIM_BEARER_TOKEN is already defined from another test.');
         }
 
         $this->expectException(\RuntimeException::class);
@@ -133,9 +131,7 @@ final class ScimConfigurationTest extends TestCase
 
         // If the constant is defined from a previous test, the constant takes precedence.
         if (\defined('SCIM_BEARER_TOKEN')) {
-            self::assertTrue(true);
-
-            return;
+            self::markTestSkipped('SCIM_BEARER_TOKEN is already defined from another test.');
         }
 
         $this->expectException(\RuntimeException::class);
@@ -332,9 +328,7 @@ final class ScimConfigurationTest extends TestCase
     public function fromEnvironmentOrOptionsThrowsWhenNoToken(): void
     {
         if (\defined('SCIM_BEARER_TOKEN')) {
-            self::assertTrue(true);
-
-            return;
+            self::markTestSkipped('SCIM_BEARER_TOKEN is already defined from another test.');
         }
 
         delete_option(ScimConfiguration::OPTION_NAME);

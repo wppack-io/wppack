@@ -118,9 +118,9 @@ final class PrivateAttachmentAclSubscriberTest extends TestCase
         $metadata = ['sizes' => []];
 
         $event = new WordPressEvent('wp_generate_attachment_metadata', [$metadata, $this->attachmentId]);
-        $this->subscriber->setVisibilityOnGenerate($event);
 
         // Should not throw or set any visibility — just return early
-        self::assertTrue(true);
+        $this->expectNotToPerformAssertions();
+        $this->subscriber->setVisibilityOnGenerate($event);
     }
 }

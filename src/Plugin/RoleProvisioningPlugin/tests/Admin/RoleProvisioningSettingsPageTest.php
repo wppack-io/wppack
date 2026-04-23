@@ -23,25 +23,16 @@ use WPPack\Plugin\RoleProvisioningPlugin\Admin\RoleProvisioningSettingsPage;
 #[CoversClass(RoleProvisioningSettingsPage::class)]
 final class RoleProvisioningSettingsPageTest extends TestCase
 {
-    private string $buildDir;
+    use \WPPack\Component\Admin\Tests\Fixtures\BuildDirFixtureTrait;
 
     protected function setUp(): void
     {
-        $this->buildDir = sys_get_temp_dir() . '/wppack-role-test-' . uniqid() . '/js/build';
-        mkdir($this->buildDir, 0o777, true);
+        $this->createBuildDir('wppack-role');
     }
 
     protected function tearDown(): void
     {
-        $base = \dirname($this->buildDir, 2);
-        if (is_dir($base)) {
-            foreach (glob($this->buildDir . '/*') ?: [] as $f) {
-                @unlink($f);
-            }
-            @rmdir($this->buildDir);
-            @rmdir(\dirname($this->buildDir));
-            @rmdir($base);
-        }
+        $this->cleanupBuildDir();
         foreach (['wppack-role-provisioning-settings', 'wppack-role-provisioning-vendor'] as $handle) {
             wp_dequeue_script($handle);
             wp_dequeue_style($handle);

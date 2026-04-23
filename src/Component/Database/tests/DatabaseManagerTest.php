@@ -776,7 +776,7 @@ final class DatabaseManagerTest extends TestCase
             self::assertSame([], $result);
         } catch (QueryException) {
             // If QueryException is thrown, that's also acceptable
-            self::assertTrue(true);
+            self::addToAssertionCount(1);
         }
     }
 
@@ -1067,15 +1067,12 @@ final class DatabaseManagerTest extends TestCase
             $this->db->fetchAllAssociative(
                 "SELECT * FROM {$this->db->prefix()}nonexistent_wppack_allassoc",
             );
+            // get_results may return empty array rather than null for some error cases
+            self::addToAssertionCount(1);
         } catch (QueryException) {
             // If QueryException is thrown, that's the behavior we want
-            self::assertTrue(true);
-
-            return;
+            self::addToAssertionCount(1);
         }
-
-        // get_results may return empty array rather than null for some error cases
-        self::assertTrue(true);
     }
 
     // --- Transaction error paths (delegated to Connection/Driver) ---

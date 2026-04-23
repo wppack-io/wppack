@@ -315,8 +315,7 @@ final class ConnectionTest extends TestCase
 
         // No logger — should not throw
         $connection = new Connection($driver);
+        $this->expectNotToPerformAssertions();
         $connection->fetchAllAssociative('SELECT 1');
-
-        self::assertTrue(true);
     }
 }

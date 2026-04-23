@@ -22,23 +22,16 @@ use WPPack\Plugin\RedisCachePlugin\Admin\RedisCacheSettingsPage;
 #[CoversClass(RedisCacheSettingsPage::class)]
 final class RedisCacheSettingsPageTest extends TestCase
 {
-    private string $buildDir;
+    use \WPPack\Component\Admin\Tests\Fixtures\BuildDirFixtureTrait;
 
     protected function setUp(): void
     {
-        $this->buildDir = sys_get_temp_dir() . '/wppack-cache-test-' . uniqid() . '/js/build';
-        mkdir($this->buildDir, 0777, true);
+        $this->createBuildDir('wppack-cache');
     }
 
     protected function tearDown(): void
     {
-        $base = \dirname($this->buildDir, 2);
-        if (is_dir($base)) {
-            array_map('unlink', glob($this->buildDir . '/*') ?: []);
-            @rmdir($this->buildDir);
-            @rmdir(\dirname($this->buildDir));
-            @rmdir($base);
-        }
+        $this->cleanupBuildDir();
         wp_dequeue_script('wppack-cache-settings');
         wp_dequeue_style('wppack-cache-settings');
     }

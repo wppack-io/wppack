@@ -17,28 +17,22 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WPPack\Component\Admin\AbstractAdminPage;
+use WPPack\Component\Admin\Tests\Fixtures\BuildDirFixtureTrait;
 use WPPack\Plugin\AmazonMailerPlugin\Admin\AmazonMailerSettingsPage;
 
 #[CoversClass(AmazonMailerSettingsPage::class)]
 final class AmazonMailerSettingsPageTest extends TestCase
 {
-    private string $buildDir;
+    use BuildDirFixtureTrait;
 
     protected function setUp(): void
     {
-        $this->buildDir = sys_get_temp_dir() . '/wppack-mailer-test-' . uniqid() . '/js/build';
-        mkdir($this->buildDir, 0777, true);
+        $this->createBuildDir('wppack-mailer');
     }
 
     protected function tearDown(): void
     {
-        $base = \dirname($this->buildDir, 2);
-        if (is_dir($base)) {
-            array_map('unlink', glob($this->buildDir . '/*') ?: []);
-            @rmdir($this->buildDir);
-            @rmdir(\dirname($this->buildDir));
-            @rmdir($base);
-        }
+        $this->cleanupBuildDir();
         wp_dequeue_script('wppack-mailer-settings');
         wp_dequeue_style('wppack-mailer-settings');
     }

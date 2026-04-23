@@ -71,10 +71,8 @@ final class GenerateThumbnailsHandlerTest extends TestCase
         );
 
         // Should return early when get_attached_file returns false/empty
+        $this->expectNotToPerformAssertions();
         ($this->handler)($message);
-
-        // No exception means the handler gracefully handled missing attachment
-        self::assertTrue(true);
     }
 
     #[Test]
@@ -127,12 +125,14 @@ final class GenerateThumbnailsHandlerTest extends TestCase
             blogId: 1,
         );
 
-        // Should return early because get_attached_file returns empty
-        ($this->handler)($message);
-
-        self::assertTrue(true);
-
-        wp_delete_attachment($attachmentId, true);
+        // Should return early because get_attached_file returns empty;
+        // we only verify that the handler completes without throwing.
+        try {
+            ($this->handler)($message);
+            self::addToAssertionCount(1);
+        } finally {
+            wp_delete_attachment($attachmentId, true);
+        }
     }
 
     #[Test]

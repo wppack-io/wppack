@@ -119,9 +119,8 @@ final class RoleProviderTest extends TestCase
         $provider = new RoleProvider();
 
         // No exception
+        $this->expectNotToPerformAssertions();
         $provider->updateLabel('nonexistent-' . uniqid(), 'New Label');
-
-        self::assertTrue(true);
     }
 
     #[Test]

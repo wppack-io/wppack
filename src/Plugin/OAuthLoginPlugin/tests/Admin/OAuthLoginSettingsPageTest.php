@@ -22,23 +22,16 @@ use WPPack\Plugin\OAuthLoginPlugin\Admin\OAuthLoginSettingsPage;
 #[CoversClass(OAuthLoginSettingsPage::class)]
 final class OAuthLoginSettingsPageTest extends TestCase
 {
-    private string $buildDir;
+    use \WPPack\Component\Admin\Tests\Fixtures\BuildDirFixtureTrait;
 
     protected function setUp(): void
     {
-        $this->buildDir = sys_get_temp_dir() . '/wppack-oauth-test-' . uniqid() . '/js/build';
-        mkdir($this->buildDir, 0777, true);
+        $this->createBuildDir('wppack-oauth');
     }
 
     protected function tearDown(): void
     {
-        $base = \dirname($this->buildDir, 2);
-        if (is_dir($base)) {
-            array_map('unlink', glob($this->buildDir . '/*') ?: []);
-            @rmdir($this->buildDir);
-            @rmdir(\dirname($this->buildDir));
-            @rmdir($base);
-        }
+        $this->cleanupBuildDir();
         wp_dequeue_script('wppack-oauth-login-settings');
         wp_dequeue_style('wppack-oauth-login-settings');
     }

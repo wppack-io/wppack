@@ -17,28 +17,22 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WPPack\Component\Admin\AbstractAdminPage;
+use WPPack\Component\Admin\Tests\Fixtures\BuildDirFixtureTrait;
 use WPPack\Plugin\ScimPlugin\Admin\ScimSettingsPage;
 
 #[CoversClass(ScimSettingsPage::class)]
 final class ScimSettingsPageTest extends TestCase
 {
-    private string $buildDir;
+    use BuildDirFixtureTrait;
 
     protected function setUp(): void
     {
-        $this->buildDir = sys_get_temp_dir() . '/wppack-scim-test-' . uniqid() . '/js/build';
-        mkdir($this->buildDir, 0777, true);
+        $this->createBuildDir('wppack-scim');
     }
 
     protected function tearDown(): void
     {
-        $base = \dirname($this->buildDir, 2);
-        if (is_dir($base)) {
-            array_map('unlink', glob($this->buildDir . '/*') ?: []);
-            @rmdir($this->buildDir);
-            @rmdir(\dirname($this->buildDir));
-            @rmdir($base);
-        }
+        $this->cleanupBuildDir();
         wp_dequeue_script('wppack-scim-settings');
         wp_dequeue_style('wppack-scim-settings');
     }

@@ -98,9 +98,8 @@ final class IsGrantedCheckerTest extends TestCase
 
         $grants = [new IsGranted('edit_posts')];
 
+        $this->expectNotToPerformAssertions();
         $checker->check($grants);
-
-        self::assertTrue(true);
     }
 
     #[Test]
@@ -124,9 +123,8 @@ final class IsGrantedCheckerTest extends TestCase
         wp_set_current_user(1);
         $grants = [new IsGranted('manage_options')];
 
+        $this->expectNotToPerformAssertions();
         $checker->check($grants);
-
-        self::assertTrue(true);
     }
 
     #[Test]
@@ -147,9 +145,8 @@ final class IsGrantedCheckerTest extends TestCase
     {
         $checker = new IsGrantedChecker();
 
+        $this->expectNotToPerformAssertions();
         $checker->check([]);
-
-        self::assertTrue(true);
     }
 
     #[Test]

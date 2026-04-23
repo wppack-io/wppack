@@ -22,23 +22,16 @@ use WPPack\Plugin\S3StoragePlugin\Admin\S3StorageSettingsPage;
 #[CoversClass(S3StorageSettingsPage::class)]
 final class S3StorageSettingsPageTest extends TestCase
 {
-    private string $buildDir;
+    use \WPPack\Component\Admin\Tests\Fixtures\BuildDirFixtureTrait;
 
     protected function setUp(): void
     {
-        $this->buildDir = sys_get_temp_dir() . '/wppack-storage-test-' . uniqid() . '/js/build';
-        mkdir($this->buildDir, 0777, true);
+        $this->createBuildDir('wppack-storage');
     }
 
     protected function tearDown(): void
     {
-        $base = \dirname($this->buildDir, 2);
-        if (is_dir($base)) {
-            array_map('unlink', glob($this->buildDir . '/*') ?: []);
-            @rmdir($this->buildDir);
-            @rmdir(\dirname($this->buildDir));
-            @rmdir($base);
-        }
+        $this->cleanupBuildDir();
         wp_dequeue_script('wppack-storage-settings');
         wp_dequeue_style('wppack-storage-settings');
     }
