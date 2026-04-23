@@ -10,7 +10,11 @@
     "wppack/messenger": "^1.0"
   },
   "suggest": {
-    "wppack/eventbridge-scheduler": "EventBridge backend for high-reliability scheduling"
+    "wppack/eventbridge-scheduler": "EventBridge backend for high-reliability scheduling",
+    "woocommerce/action-scheduler": "Enables ActionSchedulerScheduler (supports cron + interval + single, local execution)"
+  },
+  "require-dev": {
+    "woocommerce/action-scheduler": "^3.7"
   },
   "autoload": {
     "psr-4": {
