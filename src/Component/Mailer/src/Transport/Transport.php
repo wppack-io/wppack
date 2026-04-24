@@ -63,7 +63,16 @@ final class Transport
             }
         }
 
-        throw new UnsupportedSchemeException($dsn);
+        // Enumerate well-known scheme names so the error points at the
+        // factories a user would need to enable. The actual runtime
+        // support set is the union of factory->supports(), but that's
+        // not reachable without an interface change.
+        throw new UnsupportedSchemeException($dsn, 'Mailer', [
+            'native', 'smtp', 'smtps', 'null',
+            'ses', 'ses+api', 'ses+https', 'ses+smtp', 'ses+smtps',
+            'azure', 'azure+api',
+            'sendgrid', 'sendgrid+api', 'sendgrid+smtp',
+        ]);
     }
 
     /** @return \Generator<int, TransportFactoryInterface> */

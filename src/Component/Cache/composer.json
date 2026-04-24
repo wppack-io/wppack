@@ -8,6 +8,13 @@
     "wordpress/core-implementation": "^6.7",
     "wppack/dsn": "^1.0"
   },
+  "suggest": {
+    "wppack/redis-cache": "Redis / Valkey adapter (redis:// / valkey:// DSN)",
+    "wppack/dynamodb-cache": "DynamoDB adapter (dynamodb:// DSN, serverless)",
+    "wppack/memcached-cache": "Memcached adapter (memcached:// DSN)",
+    "wppack/apcu-cache": "APCu adapter (apcu:// DSN, single-node shared memory)",
+    "wppack/elasticache-auth": "IAM authentication for AWS ElastiCache"
+  },
   "autoload": {
     "psr-4": {
       "WPPack\\Component\\Cache\\": "src/"

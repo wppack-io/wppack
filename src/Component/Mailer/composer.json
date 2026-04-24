@@ -9,6 +9,11 @@
     "wppack/dsn": "^1.0",
     "wppack/mime": "^1.0"
   },
+  "suggest": {
+    "wppack/amazon-mailer": "Amazon SES transport (ses:// DSN, API or SMTP)",
+    "wppack/azure-mailer": "Azure Communication Services transport (azure:// DSN)",
+    "wppack/sendgrid-mailer": "SendGrid transport (sendgrid:// DSN)"
+  },
   "autoload": {
     "psr-4": {
       "WPPack\\Component\\Mailer\\": "src/"

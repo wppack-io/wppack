@@ -17,8 +17,13 @@ use WPPack\Component\Dsn\Dsn;
 
 class UnsupportedSchemeException extends \InvalidArgumentException implements ExceptionInterface
 {
-    public function __construct(Dsn $dsn)
+    /** @param list<string> $supported */
+    public function __construct(Dsn $dsn, ?string $name = null, array $supported = [])
     {
-        parent::__construct(\sprintf('The scheme "%s" is not supported.', $dsn->getScheme()));
+        $message = \sprintf('The scheme "%s" is not supported.', $dsn->getScheme());
+        if ($name !== null && $supported !== []) {
+            $message .= \sprintf(' Supported schemes for "%s": %s.', $name, implode(', ', $supported));
+        }
+        parent::__construct($message);
     }
 }

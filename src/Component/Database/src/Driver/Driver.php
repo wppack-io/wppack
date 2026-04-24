@@ -60,7 +60,7 @@ final class Driver
         $factoryClass = self::SCHEME_TO_FACTORY[$scheme] ?? null;
 
         if ($factoryClass === null || !class_exists($factoryClass)) {
-            throw new UnsupportedSchemeException($parsed);
+            throw new UnsupportedSchemeException($parsed, 'Database', array_keys(self::SCHEME_TO_FACTORY));
         }
 
         $factory = new $factoryClass();
@@ -72,7 +72,7 @@ final class Driver
         // UnsupportedSchemeException rather than letting the factory
         // explode later with a cryptic missing-function error.
         if (!$factory->supports($parsed)) {
-            throw new UnsupportedSchemeException($parsed);
+            throw new UnsupportedSchemeException($parsed, 'Database', array_keys(self::SCHEME_TO_FACTORY));
         }
 
         return $factory->create($parsed, $options);
@@ -100,6 +100,6 @@ final class Driver
             }
         }
 
-        throw new UnsupportedSchemeException($dsn);
+        throw new UnsupportedSchemeException($dsn, 'Database', array_keys(self::SCHEME_TO_FACTORY));
     }
 }

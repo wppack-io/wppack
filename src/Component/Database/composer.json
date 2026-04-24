@@ -9,6 +9,13 @@
     "wordpress/core-implementation": "^6.7",
     "wppack/dsn": "^1.0"
   },
+  "suggest": {
+    "wppack/sqlite-database": "SQLite driver (sqlite:// DSN, great for local dev / CI)",
+    "wppack/postgresql-database": "PostgreSQL driver (pgsql:// DSN)",
+    "wppack/mysql-data-api-database": "Aurora MySQL Data API driver (mysql+dataapi:// DSN, serverless-friendly)",
+    "wppack/postgresql-data-api-database": "Aurora PostgreSQL Data API driver (pgsql+dataapi:// DSN)",
+    "wppack/aurora-dsql-database": "Aurora DSQL driver (dsql:// DSN, IAM-auth)"
+  },
   "autoload": {
     "psr-4": {
       "WPPack\\Component\\Database\\": "src/"

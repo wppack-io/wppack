@@ -99,6 +99,10 @@ final class ConditionGroup
     {
         $args = [];
 
+        // Accumulate via direct assignment instead of array_merge($args, …)
+        // inside the loop. Merging copies every prior entry each iteration
+        // (O(n²) over the entry count); per-key assignment is O(m) per
+        // merge where m is the size of the incoming chunk.
         foreach ($this->entries as $entry) {
             if ($entry['type'] === 'and' || $entry['type'] === 'or') {
                 $expr = $entry['expression'];
@@ -107,11 +111,13 @@ final class ConditionGroup
                 }
 
                 $value = $this->resolveFieldValue($expr, $parameters);
-                $resolved = $resolver($expr->key, $expr->operator, $value);
-                $args = array_merge($args, $resolved);
+                foreach ($resolver($expr->key, $expr->operator, $value) as $k => $v) {
+                    $args[$k] = $v;
+                }
             } else {
-                $nested = $entry['group']->toFieldArgs($prefix, $parameters, $resolver);
-                $args = array_merge($args, $nested);
+                foreach ($entry['group']->toFieldArgs($prefix, $parameters, $resolver) as $k => $v) {
+                    $args[$k] = $v;
+                }
             }
         }
 

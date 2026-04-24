@@ -62,7 +62,16 @@ final class Adapter
             }
         }
 
-        throw new UnsupportedSchemeException($dsn);
+        // The actual scheme set is the union of supported() across all
+        // factories; hard-code the well-known names for the error
+        // message so the caller doesn't need to plumb a factory-level
+        // API just to render guidance.
+        throw new UnsupportedSchemeException($dsn, 'Cache', [
+            'redis', 'rediss', 'valkey', 'valkeys',
+            'dynamodb',
+            'memcached',
+            'apcu',
+        ]);
     }
 
     /** @return \Generator<int, AdapterFactoryInterface> */
