@@ -33,10 +33,13 @@ final class OAuthVerifyController
     {
         $result = $this->authenticationManager->handleAuthentication(null, '', '');
 
-        if ($result instanceof \WP_User || $result instanceof \WP_Error) {
+        if ($result instanceof \WP_User) {
             return new RedirectResponse(admin_url());
         }
 
+        // WP_Error (failed handler) and null (no handler matched) both
+        // land on wp-login with an error code. Previously both paths
+        // fell through to admin_url, which silently hid auth failures.
         return new RedirectResponse(wp_login_url() . '?oauth_error=1');
     }
 }

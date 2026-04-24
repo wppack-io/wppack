@@ -31,7 +31,7 @@ use WPPack\Component\Database\Translator\QueryTranslatorInterface;
  *
  * Used by the db.php drop-in. Supports all database engines via DriverInterface.
  */
-class WPPackWpdb extends \wpdb
+final class WPPackWpdb extends \wpdb
 {
     private readonly DriverInterface $writer;
     private readonly ?DriverInterface $reader;

@@ -346,7 +346,17 @@ final class PostgreSQLQueryTranslator implements QueryTranslatorInterface
             );
 
             $cols = array_column($result->fetchAllAssociative(), 'column_name');
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            // Schema lookup can legitimately fail (permissions, the table
+            // hasn't been created yet, the DB isn't ready). Returning []
+            // lets translation proceed — ON CONFLICT will then target the
+            // primary key by default — but we log so the operator can
+            // diagnose when the generated SQL misbehaves.
+            $this->logger?->warning('PostgreSQL translator: failed to look up UNIQUE/PRIMARY constraint columns; falling back to empty set', [
+                'table' => $table,
+                'error' => $e->getMessage(),
+                'exception' => $e,
+            ]);
             $cols = [];
         }
 
@@ -585,7 +595,17 @@ final class PostgreSQLQueryTranslator implements QueryTranslatorInterface
             $row = $result->fetchAssociative();
             $seq = $row['seq'] ?? null;
             $this->sequenceCache[$cacheKey] = \is_string($seq) && $seq !== '' ? $seq : null;
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            // pg_get_serial_sequence fails when the column isn't SERIAL
+            // or the caller lacks USAGE on the sequence. Both are benign
+            // for the TRUNCATE rewrite path — we just skip the sequence
+            // reset. Log so an operator can notice an unexpected failure.
+            $this->logger?->warning('PostgreSQL translator: failed to resolve serial sequence; skipping sequence reset', [
+                'table' => $table,
+                'column' => $column,
+                'error' => $e->getMessage(),
+                'exception' => $e,
+            ]);
             $this->sequenceCache[$cacheKey] = null;
         }
 

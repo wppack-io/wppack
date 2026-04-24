@@ -30,7 +30,7 @@ use WPPack\Component\Database\Translator\QueryTranslatorInterface;
  * Wraps DriverException into QueryException for consistent error handling.
  * Optionally logs queries via PSR-3 LoggerInterface and QueryLoggerInterface.
  */
-class Connection
+final class Connection
 {
     public function __construct(
         private readonly DriverInterface $driver,

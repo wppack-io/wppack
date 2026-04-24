@@ -29,7 +29,7 @@ use WPPack\Component\HttpFoundation\Request;
 use WPPack\Component\HttpFoundation\Response;
 use WPPack\Component\Kernel\Kernel;
 
-class Handler implements HandlerInterface
+final class Handler implements HandlerInterface
 {
     private readonly Configuration $config;
     private readonly Environment $environment;

@@ -19,7 +19,7 @@ use WPPack\Component\HttpFoundation\Request;
 use WPPack\Component\Kernel\Attribute\TextDomain;
 use WPPack\Component\Kernel\Exception\KernelAlreadyBootedException;
 
-class Kernel
+final class Kernel
 {
     private static ?self $instance = null;
 
