@@ -13,4 +13,4 @@ declare(strict_types=1);
 
 namespace WPPack\Component\Routing\Exception;
 
-final class MissingParametersException extends \InvalidArgumentException {}
+final class MissingParametersException extends \InvalidArgumentException implements ExceptionInterface {}

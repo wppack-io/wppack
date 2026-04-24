@@ -13,4 +13,6 @@ declare(strict_types=1);
 
 namespace WPPack\Component\HttpFoundation\File\Exception;
 
-class FileException extends \RuntimeException {}
+use WPPack\Component\HttpFoundation\Exception\ExceptionInterface;
+
+class FileException extends \RuntimeException implements ExceptionInterface {}

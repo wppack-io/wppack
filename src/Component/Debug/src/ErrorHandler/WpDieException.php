@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace WPPack\Component\Debug\ErrorHandler;
 
+use WPPack\Component\Debug\Exception\ExceptionInterface;
+
 /**
  * Synthetic exception wrapping wp_die() data for rendering by ErrorRenderer.
  *
@@ -23,7 +25,7 @@ namespace WPPack\Component\Debug\ErrorHandler;
  * When the wp_die() was triggered by a WP_Error, the underlying error is
  * chained as the $previous exception (WpErrorException).
  */
-final class WpDieException extends \RuntimeException
+final class WpDieException extends \RuntimeException implements ExceptionInterface
 {
     /**
      * @param array<string, mixed> $wpDieArgs

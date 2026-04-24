@@ -11,6 +11,6 @@
 
 declare(strict_types=1);
 
-namespace WPPack\Component\Routing\Exception;
+namespace WPPack\Component\Rest\Exception;
 
-final class RouteNotFoundException extends \InvalidArgumentException implements ExceptionInterface {}
+interface ExceptionInterface extends \Throwable {}

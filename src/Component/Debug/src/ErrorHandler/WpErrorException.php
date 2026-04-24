@@ -13,13 +13,15 @@ declare(strict_types=1);
 
 namespace WPPack\Component\Debug\ErrorHandler;
 
+use WPPack\Component\Debug\Exception\ExceptionInterface;
+
 /**
  * Exception wrapping a WP_Error instance.
  *
  * Used as the $previous exception in WpDieException to represent
  * the underlying WP_Error that caused the wp_die() call.
  */
-final class WpErrorException extends \RuntimeException
+final class WpErrorException extends \RuntimeException implements ExceptionInterface
 {
     /**
      * @param list<string>         $wpErrorCodes
