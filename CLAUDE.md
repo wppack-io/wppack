@@ -69,11 +69,26 @@ Authoritative list (don't duplicate here):
 ## Dependency Graph
 
 Per-package `composer.json` declares deps; autoload is PSR-4. Graph
-stays acyclic: Substrate + Utility are free to depend on, other
-categories only reference each other when semantically meaningful.
+stays acyclic. Substrate + Utility are the safest to depend on, but
+**the 8 concern-domain categories aren't a strict layer hierarchy** —
+they're a grouping for readers. A Substrate component may depend on
+HTTP, Data, etc. when the semantic is natural (e.g. Kernel accepting
+a `Request` at boot, Handler receiving a `Request` at invocation —
+they're not "lower than" HttpFoundation, they just orchestrate it).
+What must stay acyclic is the concrete composer dep graph; categories
+are a navigation aid, not a ban list.
+
 Packages whose `src/` calls WP functions declare
 `wordpress/core-implementation`. See
 [coding-standards.md § Adding a Component](coding-standards.md#adding-a-component).
+
+**Bridges may define their own interfaces** when the concept is
+bridge-specific (e.g. `AzureBlobClientInterface` — Azure-only),
+implementation-orchestration (e.g. `ScheduleGroupResolverInterface`
+for EventBridge multi-site grouping), or a provider-family pluggability
+point (e.g. `ProviderInterface` in OAuth bridge — each upstream OAuth
+provider plugs in). Core-level abstractions that multiple bridges must
+satisfy still belong in the core component.
 
 ## Coding Conventions
 
