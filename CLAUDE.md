@@ -182,6 +182,16 @@ for:
   endpoints, `--ignore-scripts`)
 - Plugin settings menu position table
 
+## Release tagging
+
+- Tags are `vX.Y.Z` (e.g. `v1.1.0`), annotated + signed (`git tag -s -m`),
+  and use semver: features → minor, fix-only → patch. Same convention as
+  tidy-admin-plugin and translations-installer; Packagist picks new tags
+  up automatically via the GitHub integration.
+- **A pushed release tag is immutable** — packages are consumed via
+  Packagist, where moving or deleting a published tag is forbidden. Never
+  retag; if a released tag is wrong, cut a new higher version.
+
 ## Status
 
 All packages: in design phase (branch `1.x`, unreleased).
